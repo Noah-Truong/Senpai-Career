@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
-import { getUserById } from "@/lib/users";
+import { getUserById, updateUser } from "@/lib/users";
+import { createMultilingualContent } from "@/lib/translate";
 import fs from "fs";
 import path from "path";
 
@@ -83,6 +84,27 @@ export async function POST(request: NextRequest) {
     }
 
     const fromUserId = session.user.id;
+    
+    // Check user credits before sending message
+    const fromUser = getUserById(fromUserId);
+    if (!fromUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Credits cost is the same for all users
+    const creditsCost = 10; // Same for all account types
+    const currentCredits = fromUser.credits ?? 0;
+
+    if (currentCredits < creditsCost) {
+      return NextResponse.json(
+        { error: "Insufficient credits", insufficientCredits: true },
+        { status: 402 } // Payment Required
+      );
+    }
+
     let thread;
     let actualToUserId = toUserId;
 
@@ -141,13 +163,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Translate message content and create multilingual version
+    let messageContent: string | { en: string; ja: string };
+    try {
+      const multilingualContent = await createMultilingualContent(content);
+      messageContent = multilingualContent;
+    } catch (error) {
+      console.error("Translation error, storing as plain text:", error);
+      // Fallback to plain text if translation fails
+      messageContent = content;
+    }
+
     // Create message
     const message = {
       id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       threadId: thread.id,
       fromUserId,
       toUserId: actualToUserId,
-      content,
+      content: messageContent,
       createdAt: new Date().toISOString(),
       read: false,
     };
@@ -158,6 +191,11 @@ export async function POST(request: NextRequest) {
 
     saveMessage(message);
     saveThread(thread);
+
+    // Deduct credits from user
+    await updateUser(fromUserId, {
+      credits: currentCredits - creditsCost
+    });
 
     return NextResponse.json(
       { 

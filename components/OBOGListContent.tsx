@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslated } from "@/lib/translation-helpers";
 import Avatar from "./Avatar";
 
 interface OBOGUser {
@@ -24,6 +25,7 @@ interface OBOGListContentProps {
 
 export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
   const { t } = useLanguage();
+  const { translate } = useTranslated();
 
   return (
     <>
@@ -72,7 +74,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
               </div>
               
               <div className="mb-4">
-                <p className="text-sm text-gray-700 mb-3 line-clamp-2">{obog.oneLineMessage}</p>
+                <p className="text-sm text-gray-700 mb-3 line-clamp-2">{obog.oneLineMessage ? translate(obog.oneLineMessage) : ""}</p>
                 {obog.topics && obog.topics.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {obog.topics.slice(0, 3).map((topic, idx) => (

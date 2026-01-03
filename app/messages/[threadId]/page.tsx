@@ -5,12 +5,14 @@ import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import ReviewModal from "@/components/ReviewModal";
 
 export default function MessageThreadPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { translate } = useTranslated();
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
@@ -190,7 +192,7 @@ export default function MessageThreadPage() {
                           : "bg-gray-100 text-gray-900"
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap">{translate(message.content)}</p>
                       <p className={`text-xs mt-1 ${
                         isOwn ? "text-white/70" : "text-gray-500"
                       }`}>

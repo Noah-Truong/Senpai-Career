@@ -107,25 +107,25 @@ export default function Home() {
             </p>
             <ul className="text-left space-y-4 max-w-2xl mx-auto">
               <li className="flex items-start">
-                <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-1 gradient-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-1 gradient-text" fill="none" stroke="#1ed01e" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span className="text-gray-700">{t("home.mission.mentors")}</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-1 gradient-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-1 gradient-text" fill="none" stroke="#1ed01e" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span className="text-gray-700">{t("home.mission.opportunities")}</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-1 gradient-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-1 gradient-text" fill="none" stroke="#1ed01e" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span className="text-gray-700">{t("home.mission.connect")}</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-1 gradient-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 mr-3 flex-shrink-0 mt-1 gradient-text" fill="none" stroke="#1ed01e" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span className="text-gray-700">{t("home.mission.confidence")}</span>
@@ -208,7 +208,7 @@ export default function Home() {
 
               {/* Arrow */}
               <div className="hidden md:block">
-                <svg className="w-8 h-8 gradient-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 gradient-text" fill="none" stroke="#3399ff" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -226,7 +226,7 @@ export default function Home() {
 
               {/* Arrow */}
               <div className="hidden md:block">
-                <svg className="w-8 h-8 gradient-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 gradient-text" fill="none" stroke="#3399ff" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -244,7 +244,7 @@ export default function Home() {
 
               {/* Arrow */}
               <div className="hidden md:block">
-                <svg className="w-8 h-8 gradient-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 gradient-text" fill="none" stroke="#3399ff" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>

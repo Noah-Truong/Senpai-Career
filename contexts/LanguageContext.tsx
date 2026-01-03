@@ -46,10 +46,16 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.notifications": "Notifications",
     "nav.noNotifications": "No new notifications",
     "nav.markAllRead": "Mark all as read",
+    "nav.companies": "Companies",
+    "nav.jobListings": "Job Listings",
+    "nav.buyCredits": "Buy Credits",
     "role.student": "Student",
     "role.obog": "OB/OG",
     "role.company": "Company",
     "role.admin": "Admin",
+    "nav.admin/reports": "Reports",
+    "nav.admin/users": "Users",
+    "nav.dashboard": "Dashboard",
     
     // Home Page
     "home.hero.title": "A Fair Start Line\nfor International Students' Job Hunting",
@@ -393,9 +399,9 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Signup Pages
     "signup.title": "Create Account",
-    "signup.student.title": "Sign Up as Student",
-    "signup.obog.title": "Sign Up as OB/OG",
-    "signup.company.title": "Sign Up as Company",
+    "signup.student.title": "Student Sign Up",
+    "signup.obog.title": "OB/OG Sign Up",
+    "signup.company.title": "Company Sign Up",
     "signup.submit": "Sign Up",
     "signup.acceptTerms": "I accept the Terms of Service and Rules",
     "signup.alreadyHaveAccount": "Already have an account?",
@@ -514,15 +520,15 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Messages Pages
     "messages.title": "Messages",
-    "messages.empty": "No messages yet. Start a conversation with an OB/OG!",
-    "messages.new.title": "Send Message to OB/OG",
+    "messages.empty": "No messages yet.",
+    "messages.new.title": "Send Message to another user",
     "messages.new.subtitle": "Send a message to",
     "messages.new.message": "Message",
     "messages.new.placeholder": "Write your message here...",
     "messages.new.submit": "Send Message",
     "messages.new.error": "Please enter a message",
-    "messages.new.notFound": "OB/OG user not found",
-    "messages.new.failed": "Failed to load OB/OG profile",
+    "messages.new.notFound": "User not found",
+    "messages.new.failed": "Failed to load profile",
     "messages.new.success": "Message sent successfully!",
     "messages.thread.title": "Conversation with",
     "messages.thread.reply": "Reply",
@@ -532,7 +538,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Buttons
     "button.sendMessage": "Send Message",
     "button.sendMessageTo": "Send Message to",
-    "button.browseObog": "Browse OB/OG Profiles",
+    "button.browseObog": "Browse Profiles",
     "button.getStarted": "Get Started",
     "button.learnMore": "Learn More",
     "button.viewDetails": "View Details",

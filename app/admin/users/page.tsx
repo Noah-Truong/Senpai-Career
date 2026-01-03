@@ -146,12 +146,6 @@ export default function AdminUsersPage() {
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <button
-            onClick={() => router.push("/dashboard/admin")}
-            className="text-gray-600 hover:text-gray-900 mb-4"
-          >
-            ← Back to Admin Dashboard
-          </button>
           <h1 className="text-3xl font-bold mb-2">User Management</h1>
           <p className="text-gray-600">Manage all users, apply strikes, and ban users</p>
         </div>

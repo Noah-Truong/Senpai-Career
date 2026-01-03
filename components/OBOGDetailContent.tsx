@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslated } from "@/lib/translation-helpers";
 import MessageButton from "./MessageButton";
 import Avatar from "./Avatar";
 import ReportButton from "./ReportButton";
@@ -24,6 +25,7 @@ interface OBOGDetailContentProps {
 
 export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
   const { t } = useLanguage();
+  const { translate } = useTranslated();
 
   return (
     <div className="card-gradient p-8">
@@ -57,7 +59,7 @@ export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border-l-4" style={{
           borderImage: 'linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%) 1'
         }}>
-          <p className="text-lg italic text-gray-800">{obog.oneLineMessage}</p>
+          <p className="text-lg italic text-gray-800">{translate(obog.oneLineMessage)}</p>
         </div>
       )}
 
@@ -99,7 +101,7 @@ export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
         {obog.studentEraSummary && (
           <div>
             <h3 className="font-semibold mb-2 text-gray-900">{t("obogDetail.studentEraSummary")}</h3>
-            <p className="text-gray-700 whitespace-pre-wrap">{obog.studentEraSummary}</p>
+            <p className="text-gray-700 whitespace-pre-wrap">{translate(obog.studentEraSummary)}</p>
           </div>
         )}
       </div>

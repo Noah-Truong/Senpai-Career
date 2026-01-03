@@ -60,6 +60,11 @@ NEXTAUTH_URL=http://localhost:3000
 # Resend Email Configuration (for password reset)
 RESEND_API_KEY=your_resend_api_key_here
 RESEND_FROM_EMAIL=noreply@yourdomain.com
+
+# Stripe Payment Configuration (for credits purchase)
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 ```
 
 #### Generating NEXTAUTH_SECRET
@@ -78,6 +83,24 @@ Copy the output and use it as your `NEXTAUTH_SECRET` value.
 2. Create an API key in the dashboard
 3. Add it to `RESEND_API_KEY` in `.env.local`
 4. Set `RESEND_FROM_EMAIL` to your verified email or domain
+
+#### Getting Stripe API Keys (for Credits Payment)
+
+1. Sign up at [stripe.com](https://stripe.com)
+2. Go to Developers → API keys
+3. Copy your **Secret key** (starts with `sk_test_` for test mode) to `STRIPE_SECRET_KEY`
+4. Copy your **Publishable key** (starts with `pk_test_` for test mode) to `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+5. For webhooks:
+   - Go to Developers → Webhooks
+   - Click "Add endpoint"
+   - Set endpoint URL to: `https://yourdomain.com/api/payment/webhook` (or use Stripe CLI for local testing)
+   - Select events: `checkout.session.completed`, `invoice.payment_succeeded`, `customer.subscription.deleted`
+   - Copy the **Signing secret** (starts with `whsec_`) to `STRIPE_WEBHOOK_SECRET`
+
+**Note:** For local development, use Stripe CLI to forward webhooks:
+```bash
+stripe listen --forward-to localhost:3000/api/payment/webhook
+```
 
 ### 4. Initialize Data Directory
 

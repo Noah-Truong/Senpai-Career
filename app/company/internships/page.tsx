@@ -177,6 +177,12 @@ export default function CompanyInternshipsPage() {
 
                 <div className="flex gap-2 mt-4">
                   <Link
+                    href={`/company/internships/${internship.id}/applications`}
+                    className="btn-primary flex-1 text-center"
+                  >
+                    View Applications
+                  </Link>
+                  <Link
                     href={`/company/internships/${internship.id}/edit`}
                     className="btn-secondary flex-1 text-center"
                   >

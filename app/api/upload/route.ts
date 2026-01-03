@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import path from "path";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,54 +25,47 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+    const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed." },
+        { error: "Invalid file type. Only PDF, DOC, and DOCX files are allowed." },
         { status: 400 }
       );
     }
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: "File size too large. Maximum size is 5MB." },
+        { error: "File size exceeds 10MB limit." },
         { status: 400 }
       );
     }
 
     // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), "public", "uploads");
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    await mkdir(uploadsDir, { recursive: true });
 
     // Generate unique filename
     const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
+    const randomStr = Math.random().toString(36).substring(2, 11);
     const fileExtension = file.name.split(".").pop();
-    const fileName = `${session.user.id}_${timestamp}_${randomString}.${fileExtension}`;
-    const filePath = join(uploadsDir, fileName);
+    const filename = `${session.user.id}_${timestamp}_${randomStr}.${fileExtension}`;
+    const filepath = path.join(uploadsDir, filename);
 
-    // Convert file to buffer and save
+    // Save file
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    await writeFile(filepath, buffer);
 
-    // Return the public URL
-    const publicUrl = `/uploads/${fileName}`;
-    
-    return NextResponse.json({ 
-      url: publicUrl,
-      message: "File uploaded successfully" 
-    });
+    // Return public URL
+    const url = `/uploads/${filename}`;
+    return NextResponse.json({ url });
   } catch (error: any) {
-    console.error("Upload error:", error);
+    console.error("File upload error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to upload file" },
+      { error: "Failed to upload file" },
       { status: 500 }
     );
   }
 }
-

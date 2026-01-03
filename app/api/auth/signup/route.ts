@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { saveUser, readUsers } from "@/lib/users";
 import { UserRole } from "@/types";
+import { createMultilingualContent } from "@/lib/translate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,11 +48,41 @@ export async function POST(request: NextRequest) {
       ...profileData,
     };
 
-    // Add role-specific defaults
+    // Add role-specific defaults and translate multilingual fields
     if (role === "student") {
       userData.strikes = 0;
       userData.isBanned = false;
+      userData.credits = 0;
     } else if (role === "company") {
+      userData.credits = 0;
+      
+      // Translate company multilingual fields
+      const companyMultilingualFields = ['overview', 'internshipDetails', 'newGradDetails', 'idealCandidate', 'sellingPoints', 'oneLineMessage'];
+      for (const field of companyMultilingualFields) {
+        if (userData[field] && typeof userData[field] === 'string' && userData[field].trim()) {
+          try {
+            userData[field] = await createMultilingualContent(userData[field]);
+          } catch (error) {
+            console.error(`Translation error for ${field}:`, error);
+            // Continue with plain string if translation fails
+          }
+        }
+      }
+    } else if (role === "obog") {
+      userData.credits = 0;
+      
+      // Translate OB/OG multilingual fields
+      const obogMultilingualFields = ['oneLineMessage', 'studentEraSummary'];
+      for (const field of obogMultilingualFields) {
+        if (userData[field] && typeof userData[field] === 'string' && userData[field].trim()) {
+          try {
+            userData[field] = await createMultilingualContent(userData[field]);
+          } catch (error) {
+            console.error(`Translation error for ${field}:`, error);
+            // Continue with plain string if translation fails
+          }
+        }
+      }
     }
 
     const user = await saveUser(userData);

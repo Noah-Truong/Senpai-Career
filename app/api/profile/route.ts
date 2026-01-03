@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { getUserById, getUserByEmail, updateUser, readUsers } from "@/lib/users";
+import { createMultilingualContent } from "@/lib/translate";
 
 // GET - Fetch current user's profile
 export async function GET(request: NextRequest) {
@@ -78,6 +79,36 @@ export async function PUT(request: NextRequest) {
 
     // Don't allow updating id, email, password, createdAt, or role
     const { id, email, password, createdAt, role, ...allowedUpdates } = updates;
+
+    // Translate multilingual fields based on user role
+    const user = getUserById(session.user.id);
+    if (user) {
+      if (user.role === "company") {
+        const companyMultilingualFields = ['overview', 'internshipDetails', 'newGradDetails', 'idealCandidate', 'sellingPoints', 'oneLineMessage'];
+        for (const field of companyMultilingualFields) {
+          if (allowedUpdates[field] && typeof allowedUpdates[field] === 'string' && allowedUpdates[field].trim()) {
+            try {
+              allowedUpdates[field] = await createMultilingualContent(allowedUpdates[field]);
+            } catch (error) {
+              console.error(`Translation error for ${field}:`, error);
+              // Continue with plain string if translation fails
+            }
+          }
+        }
+      } else if (user.role === "obog") {
+        const obogMultilingualFields = ['oneLineMessage', 'studentEraSummary'];
+        for (const field of obogMultilingualFields) {
+          if (allowedUpdates[field] && typeof allowedUpdates[field] === 'string' && allowedUpdates[field].trim()) {
+            try {
+              allowedUpdates[field] = await createMultilingualContent(allowedUpdates[field]);
+            } catch (error) {
+              console.error(`Translation error for ${field}:`, error);
+              // Continue with plain string if translation fails
+            }
+          }
+        }
+      }
+    }
 
     // Update user
     const updatedUser = await updateUser(session.user.id, allowedUpdates);

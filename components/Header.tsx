@@ -28,19 +28,35 @@ export default function Header() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [userCredits, setUserCredits] = useState<number | null>(null);
 
   const isLoggedIn = !!session;
   const userRole = session?.user?.role as "student" | "obog" | "company" | undefined;
 
-  // Fetch notifications when logged in
+  // Fetch notifications and user credits when logged in
   useEffect(() => {
     if (isLoggedIn && session?.user?.id) {
       loadNotifications();
+      loadUserCredits();
       // Refresh notifications every 30 seconds
       const interval = setInterval(loadNotifications, 30000);
       return () => clearInterval(interval);
     }
   }, [isLoggedIn, session?.user?.id]);
+
+  const loadUserCredits = async () => {
+    if (!isLoggedIn) return;
+    
+    try {
+      const response = await fetch("/api/user");
+      if (response.ok) {
+        const data = await response.json();
+        setUserCredits(data.user?.credits ?? 0);
+      }
+    } catch (error) {
+      console.error("Error loading user credits:", error);
+    }
+  };
 
   const loadNotifications = async () => {
     if (!isLoggedIn) return;
@@ -132,6 +148,9 @@ export default function Header() {
               <Link href="/recruiting" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
                 {t("nav.recruiting")}
               </Link>
+              <Link href="/companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                {t("nav.companies") || "Companies"}
+              </Link>
               <Link href="/subsidy" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
                 {t("nav.subsidy")}
               </Link>
@@ -153,7 +172,10 @@ export default function Header() {
                     {t("nav.companyEditor")}
                   </Link>
                   <Link href="/company/internships" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                    {t("nav.internships") || "Listings"}
+                    {t("nav.jobListings") || "Job Listings"}
+                  </Link>
+                  <Link href="/companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.companies") || "Companies"}
                   </Link>
                   <Link href="/company/students" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.studentList")}
@@ -166,7 +188,7 @@ export default function Header() {
                   </Link>
                 </>
               )}
-              {(userRole === "student" || userRole === "obog") && (
+              {userRole === "student" && (
                 <>
                   <Link href="/about" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.about")}
@@ -179,6 +201,41 @@ export default function Header() {
                   </Link>
                   <Link href="/recruiting" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.recruiting")}
+                  </Link>
+                  <Link href="/companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.companies") || "Companies"}
+                  </Link>
+                </>
+              )}
+              {userRole === "obog" && (
+                <>
+                <Link href="/about" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  {t("nav.about")}
+                </Link>
+                <Link href="/ob-visit" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  {t("nav.obVisit")}
+                </Link>
+                <Link href="/internship" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  {t("nav.internships")}
+                </Link>
+                <Link href="/recruiting" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  {t("nav.recruiting")}
+                </Link>
+                <Link href="/companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  {t("nav.companies") || "Companies"}
+                </Link>
+              </>
+              )}
+              {userRole === "admin" && (
+                <>
+                  <Link href="/dashboard/admin" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.dashboard")}
+                  </Link>
+                  <Link href="/admin/reports" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.admin/reports")}
+                  </Link>
+                  <Link href="/admin/users" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.admin/users")}
                   </Link>
                 </>
               )}
@@ -236,9 +293,27 @@ export default function Header() {
                   <span className="text-base font-semibold">{session.user?.name || t("nav.profile")}</span>
                 </Link>
                 {session.user?.role && (
-                  <span className="px-2.5 py-1 text-xs font-bold text-white bg-gray-500 rounded whitespace-nowrap shadow-md" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)', WebkitTextFillColor: '#ffffff', color: '#ffffff', marginRight: '20px'}}>
-                    {t(`role.${session.user.role}`) || session.user.role}
-                  </span>
+                  <>
+                    <span className="px-2.5 py-1 text-xs font-bold text-white bg-gray-500 rounded whitespace-nowrap shadow-md" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)', WebkitTextFillColor: '#ffffff', color: '#ffffff', marginRight: '20px'}}>
+                      {t(`role.${session.user.role}`) || session.user.role}
+                    </span>
+                    {userCredits !== null && (
+                      <button
+                        onClick={() => router.push("/credits")}
+                        className={`px-2.5 py-1 text-xs font-bold rounded whitespace-nowrap shadow-md ${
+                          userCredits === 0 
+                            ? "gradient-bg text-white" 
+                            : "bg-gray-200 text-gray-800"
+                        }`}
+                        style={{ 
+                          marginRight: '20px',
+                          textShadow: userCredits === 0 ? '0 1px 2px rgba(0,0,0,0.2)' : 'none'
+                        }}
+                      >
+                        {userCredits === 0 ? t("nav.buyCredits") || "Buy Credits" : `Credits: ${userCredits}`}
+                      </button>
+                    )}
+                  </>
                 )}
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
@@ -337,24 +412,26 @@ export default function Header() {
             )}
 
             {/* Messages */}
-            <button
-              onClick={() => setShowMessages(!showMessages)}
-              className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {isLoggedIn && (
+              <button
+                onClick={() => router.push("/messages")}
+                className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </div>

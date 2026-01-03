@@ -6,10 +6,12 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
 
 export default function MessagesPage() {
   const { t } = useLanguage();
+  const { translate } = useTranslated();
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,9 +26,7 @@ export default function MessagesPage() {
     }
 
     if (status === "authenticated") {
-      // TODO: Load message threads from API
-      // For now, show empty state or redirect to create message
-      setLoading(false);
+      loadThreads();
       
       if (obogId) {
         // If obogId is provided, show message creation form
@@ -34,6 +34,20 @@ export default function MessagesPage() {
       }
     }
   }, [status, router, obogId]);
+
+  const loadThreads = async () => {
+    try {
+      const response = await fetch("/api/messages");
+      if (response.ok) {
+        const data = await response.json();
+        setThreads(data.threads || []);
+      }
+    } catch (error) {
+      console.error("Error loading threads:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (status === "loading" || loading) {
     return (
@@ -79,7 +93,7 @@ export default function MessagesPage() {
                   <div className="flex-1">
                     <h3 className="font-semibold">{thread.otherUser?.name || t("label.unknownUser")}</h3>
                     <p className="text-sm text-gray-600 truncate">
-                      {thread.lastMessage?.content || t("label.noMessagesYet")}
+                      {thread.lastMessage?.content ? translate(thread.lastMessage.content) : t("label.noMessagesYet")}
                     </p>
                   </div>
                   <div className="text-sm text-gray-500">
