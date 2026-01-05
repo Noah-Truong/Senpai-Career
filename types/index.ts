@@ -93,8 +93,9 @@ export interface Notification {
 
 export interface Report {
   id: string;
-  reportedUserId: string;
+  reportedUserId: string; // "PLATFORM" for non-user reports
   reporterUserId: string;
+  reportType?: "user" | "safety" | "platform" | "other";
   reason: string;
   description: string;
   status: "pending" | "reviewed" | "resolved";

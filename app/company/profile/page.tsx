@@ -4,8 +4,10 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-export default function CompanyEditorPage() {
+export default function CompanyProfilePage() {
+  const { t } = useLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -139,7 +141,7 @@ export default function CompanyEditorPage() {
       <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>Loading...</p>
+          <p>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -149,9 +151,9 @@ export default function CompanyEditorPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6" style={{ color: '#000000' }}>Company Page Editor</h1>
+        <h1 className="text-3xl font-bold mb-6" style={{ color: '#000000' }}>{t("company.profile.title") || "Company Profile"}</h1>
         <p className="text-gray-600 mb-8">
-          Edit your company profile page that students will see when browsing opportunities.
+          {t("company.profile.subtitle") || "Edit your company profile page that students will see when browsing opportunities."}
         </p>
 
         {error && (
@@ -162,17 +164,17 @@ export default function CompanyEditorPage() {
 
         {success && (
           <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-            Company page saved successfully!
+            {t("company.profile.success") || "Company profile saved successfully!"}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>Basic Information</h2>
+            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>{t("company.profile.basicInfo") || "Basic Information"}</h2>
             <div className="space-y-4">
               <div>
                 <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Name *
+                  {t("company.profile.companyName") || "Company Name"} *
                 </label>
                 <input
                   type="text"
@@ -188,7 +190,7 @@ export default function CompanyEditorPage() {
 
               <div>
                 <label htmlFor="overview" className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Overview *
+                  {t("company.profile.overview") || "Company Overview"} *
                 </label>
                 <textarea
                   id="overview"
@@ -197,7 +199,7 @@ export default function CompanyEditorPage() {
                   rows={4}
                   value={formData.overview}
                   onChange={handleChange}
-                  placeholder="Describe your company, its mission, and what makes it unique..."
+                  placeholder={t("company.profile.overviewPlaceholder") || "Describe your company, its mission, and what makes it unique..."}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   style={{ color: '#000000' }}
                 />
@@ -205,7 +207,7 @@ export default function CompanyEditorPage() {
 
               <div>
                 <label htmlFor="oneLineMessage" className="block text-sm font-medium text-gray-700 mb-2">
-                  One-line Message to Students
+                  {t("company.profile.oneLineMessage") || "One-line Message to Students"}
                 </label>
                 <input
                   type="text"
@@ -213,7 +215,7 @@ export default function CompanyEditorPage() {
                   name="oneLineMessage"
                   value={formData.oneLineMessage}
                   onChange={handleChange}
-                  placeholder="A brief message that will appear on your company card"
+                  placeholder={t("company.profile.oneLinePlaceholder") || "A brief message that will appear on your company card"}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   style={{ color: '#000000' }}
                 />
@@ -222,11 +224,11 @@ export default function CompanyEditorPage() {
           </div>
 
           <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>Work Details</h2>
+            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>{t("company.profile.workDetails") || "Work Details"}</h2>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="workLocation" className="block text-sm font-medium text-gray-700 mb-2">
-                  Work Location
+                  {t("company.profile.workLocation") || "Work Location"}
                 </label>
                 <input
                   type="text"
@@ -242,7 +244,7 @@ export default function CompanyEditorPage() {
 
               <div>
                 <label htmlFor="hourlyWage" className="block text-sm font-medium text-gray-700 mb-2">
-                  Hourly Wage (¥)
+                  {t("company.profile.hourlyWage") || "Hourly Wage (¥)"}
                 </label>
                 <input
                   type="number"
@@ -258,7 +260,7 @@ export default function CompanyEditorPage() {
 
               <div>
                 <label htmlFor="weeklyHours" className="block text-sm font-medium text-gray-700 mb-2">
-                  Weekly Hours
+                  {t("company.profile.weeklyHours") || "Weekly Hours"}
                 </label>
                 <input
                   type="number"
@@ -274,7 +276,7 @@ export default function CompanyEditorPage() {
 
               <div>
                 <label htmlFor="weeklyDays" className="block text-sm font-medium text-gray-700 mb-2">
-                  Weekly Days
+                  {t("company.profile.weeklyDays") || "Weekly Days"}
                 </label>
                 <input
                   type="number"
@@ -290,7 +292,7 @@ export default function CompanyEditorPage() {
 
               <div>
                 <label htmlFor="minRequiredHours" className="block text-sm font-medium text-gray-700 mb-2">
-                  Minimum Required Weekly Hours
+                  {t("company.profile.minRequiredHours") || "Minimum Required Weekly Hours"}
                 </label>
                 <input
                   type="number"
@@ -307,11 +309,11 @@ export default function CompanyEditorPage() {
           </div>
 
           <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>Opportunity Details</h2>
+            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>{t("company.profile.opportunityDetails") || "Opportunity Details"}</h2>
             <div className="space-y-4">
               <div>
                 <label htmlFor="internshipDetails" className="block text-sm font-medium text-gray-700 mb-2">
-                  Internship Details
+                  {t("company.profile.internshipDetails") || "Internship Details"}
                 </label>
                 <textarea
                   id="internshipDetails"
@@ -319,7 +321,7 @@ export default function CompanyEditorPage() {
                   rows={4}
                   value={formData.internshipDetails}
                   onChange={handleChange}
-                  placeholder="Describe the internship opportunity, what students will learn, and what they'll work on..."
+                  placeholder={t("company.profile.internshipPlaceholder") || "Describe the internship opportunity, what students will learn, and what they'll work on..."}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   style={{ color: '#000000' }}
                 />
@@ -327,7 +329,7 @@ export default function CompanyEditorPage() {
 
               <div>
                 <label htmlFor="newGradDetails" className="block text-sm font-medium text-gray-700 mb-2">
-                  New Graduate Position Details
+                  {t("company.profile.newGradDetails") || "New Graduate Position Details"}
                 </label>
                 <textarea
                   id="newGradDetails"
@@ -335,7 +337,7 @@ export default function CompanyEditorPage() {
                   rows={4}
                   value={formData.newGradDetails}
                   onChange={handleChange}
-                  placeholder="Describe the new graduate position, responsibilities, and growth opportunities..."
+                  placeholder={t("company.profile.newGradPlaceholder") || "Describe the new graduate position, responsibilities, and growth opportunities..."}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   style={{ color: '#000000' }}
                 />
@@ -344,11 +346,11 @@ export default function CompanyEditorPage() {
           </div>
 
           <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>Candidate & Appeal</h2>
+            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>{t("company.profile.candidateAppeal") || "Candidate & Appeal"}</h2>
             <div className="space-y-4">
               <div>
                 <label htmlFor="idealCandidate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Ideal Candidate
+                  {t("company.profile.idealCandidate") || "Ideal Candidate"}
                 </label>
                 <textarea
                   id="idealCandidate"
@@ -356,7 +358,7 @@ export default function CompanyEditorPage() {
                   rows={3}
                   value={formData.idealCandidate}
                   onChange={handleChange}
-                  placeholder="Describe the skills, experience, and qualities you're looking for..."
+                  placeholder={t("company.profile.idealCandidatePlaceholder") || "Describe the skills, experience, and qualities you're looking for..."}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   style={{ color: '#000000' }}
                 />
@@ -364,7 +366,7 @@ export default function CompanyEditorPage() {
 
               <div>
                 <label htmlFor="sellingPoints" className="block text-sm font-medium text-gray-700 mb-2">
-                  Selling Points / Why Work Here
+                  {t("company.profile.sellingPoints") || "Selling Points / Why Work Here"}
                 </label>
                 <textarea
                   id="sellingPoints"
@@ -372,7 +374,7 @@ export default function CompanyEditorPage() {
                   rows={3}
                   value={formData.sellingPoints}
                   onChange={handleChange}
-                  placeholder="What makes your company a great place to work? What are the benefits and opportunities?"
+                  placeholder={t("company.profile.sellingPointsPlaceholder") || "What makes your company a great place to work? What are the benefits and opportunities?"}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   style={{ color: '#000000' }}
                 />
@@ -382,8 +384,7 @@ export default function CompanyEditorPage() {
 
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
             <p className="text-sm text-gray-700">
-              <strong>Note:</strong> Students can work up to 28 hours/week during term, 
-              up to 40 hours/week during long breaks.
+              <strong>{t("common.note") || "Note"}:</strong> {t("company.profile.hoursNote") || "Students can work up to 28 hours/week during term, up to 40 hours/week during long breaks."}
             </p>
           </div>
 
@@ -393,14 +394,14 @@ export default function CompanyEditorPage() {
               disabled={saving}
               className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? "Saving..." : "Save Company Page"}
+              {saving ? t("common.saving") || "Saving..." : t("company.profile.save") || "Save Company Profile"}
             </button>
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
               className="btn-secondary"
             >
-              Cancel
+              {t("button.cancel") || "Cancel"}
             </button>
           </div>
         </form>

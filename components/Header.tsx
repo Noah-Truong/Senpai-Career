@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Logo from "./Logo";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "./Avatar";
@@ -23,6 +23,7 @@ export default function Header() {
   const { data: session } = useSession();
   const { t } = useLanguage();
   const router = useRouter();
+  const pathname = usePathname();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -31,7 +32,22 @@ export default function Header() {
   const [userCredits, setUserCredits] = useState<number | null>(null);
 
   const isLoggedIn = !!session;
-  const userRole = session?.user?.role as "student" | "obog" | "company" | undefined;
+  const userRole = session?.user?.role as "student" | "obog" | "company" | "admin" | undefined;
+
+  // Helper function to check if a link is active
+  const isActiveLink = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
+  // Get link classes based on active state
+  const getLinkClasses = (href: string) => {
+    const baseClasses = "inline-flex items-center px-2 py-1 rounded-lg border-2 transition-all whitespace-nowrap flex-shrink-0";
+    if (isActiveLink(href)) {
+      return `${baseClasses} nav-active font-semibold text-black`;
+    }
+    return `${baseClasses} border-gray-300 hover:border-gray-400 link-gradient`;
+  };
 
   // Fetch notifications and user credits when logged in
   useEffect(() => {
@@ -136,29 +152,14 @@ export default function Header() {
             className="hidden md:flex flex-wrap items-center gap-2 flex-1 overflow-x-auto"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', marginLeft: '-25px' }}
           >
-              <Link href="/about" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+              <Link href="/about" className={getLinkClasses("/about")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                 {t("nav.about")}
               </Link>
-              <Link href="/ob-visit" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                {t("nav.obVisit")}
+              <Link href="/ob-list" className={getLinkClasses("/ob-list")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                {t("nav.ob-list")}
               </Link>
-              <Link href="/internship" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+              <Link href="/internships" className={getLinkClasses("/internships")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                 {t("nav.internship")}
-              </Link>
-              <Link href="/recruiting" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                {t("nav.recruiting")}
-              </Link>
-              <Link href="/companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                {t("nav.companies") || "Companies"}
-              </Link>
-              <Link href="/subsidy" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                {t("nav.subsidy")}
-              </Link>
-              <Link href="/for-companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                {t("nav.forCompanies")}
-              </Link>
-              <Link href="/for-obog" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                {t("nav.forObog")}
               </Link>
             </nav>
           ) : (
@@ -168,74 +169,62 @@ export default function Header() {
           >
               {userRole === "company" && (
                 <>
-                  <Link href="/company/editor" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                    {t("nav.companyEditor")}
+                  <Link href="/company/profile" className={getLinkClasses("/company/profile")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.companyProfile") || "Company Profile"}
                   </Link>
-                  <Link href="/company/internships" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  <Link href="/company/internships" className={getLinkClasses("/company/internships")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.jobListings") || "Job Listings"}
                   </Link>
-                  <Link href="/companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  <Link href="/companies" className={getLinkClasses("/companies")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.companies") || "Companies"}
                   </Link>
-                  <Link href="/company/students" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  <Link href="/company/students" className={getLinkClasses("/company/students")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.studentList")}
                   </Link>
-                  <Link href="/company/inquiry" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  <Link href="/company/inquiry" className={getLinkClasses("/company/inquiry")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.contact")}
                   </Link>
-                  <Link href="/for-companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  <Link href="/for-companies" className={getLinkClasses("/for-companies")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.forCompanies")}
                   </Link>
                 </>
               )}
               {userRole === "student" && (
                 <>
-                  <Link href="/about" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  <Link href="/about" className={getLinkClasses("/about")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.about")}
                   </Link>
-                  <Link href="/ob-visit" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                    {t("nav.obVisit")}
+                  <Link href="/ob-list" className={getLinkClasses("/ob-list")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.ob-list")}
                   </Link>
-                  <Link href="/internship" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  <Link href="/internships" className={getLinkClasses("/internships")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.internships")}
                   </Link>
-                  <Link href="/recruiting" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                    {t("nav.recruiting")}
-                  </Link>
-                  <Link href="/companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  <Link href="/companies" className={getLinkClasses("/companies")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.companies") || "Companies"}
+                  </Link>
+                  <Link href = "/report" className={getLinkClasses("/report")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.report")}
                   </Link>
                 </>
               )}
               {userRole === "obog" && (
                 <>
-                <Link href="/about" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                <Link href="/about" className={getLinkClasses("/about")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                   {t("nav.about")}
                 </Link>
-                <Link href="/ob-visit" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                  {t("nav.obVisit")}
-                </Link>
-                <Link href="/internship" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                  {t("nav.internships")}
-                </Link>
-                <Link href="/recruiting" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                  {t("nav.recruiting")}
-                </Link>
-                <Link href="/companies" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                  {t("nav.companies") || "Companies"}
-                </Link>
+                <Link href = "/report" className={getLinkClasses("/report")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.report")}
+                  </Link>
               </>
               )}
               {userRole === "admin" && (
                 <>
-                  <Link href="/dashboard/admin" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                    {t("nav.dashboard")}
-                  </Link>
-                  <Link href="/admin/reports" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                  <Link href="/admin/reports" className={getLinkClasses("/admin/reports")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
                     {t("nav.admin/reports")}
                   </Link>
-                  <Link href="/admin/users" className="link-gradient inline-flex items-center px-2 py-1 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-all whitespace-nowrap flex-shrink-0" style={{ minHeight: '32px', lineHeight: '1.2' }}>
-                    {t("nav.admin/users")}
+                  <Link href="/admin/student-actions" className={getLinkClasses("/admin/student-actions")} style={{ minHeight: '32px', lineHeight: '1.2' }}>
+                    {t("nav.admin/studentActions") || "Student Actions"}
                   </Link>
                 </>
               )}
@@ -250,25 +239,11 @@ export default function Header() {
             {!isLoggedIn ? (
               <div className="flex items-center space-x-2">
                 <Link
-                  href="/signup/student"
+                  href="/register"
                   className="btn-secondary text-sm whitespace-nowrap"
                   style={{ paddingTop: '6px', paddingBottom: '6px', lineHeight: '1.2', minHeight: '32px', display: 'inline-flex', alignItems: 'center' }}
                 >
-                  {t("nav.studentSignUp")}
-                </Link>
-                <Link
-                  href="/signup/obog"
-                  className="btn-secondary text-sm whitespace-nowrap"
-                  style={{ paddingTop: '6px', paddingBottom: '6px', lineHeight: '1.2', minHeight: '32px', display: 'inline-flex', alignItems: 'center' }}
-                >
-                  {t("nav.obogSignUp")}
-                </Link>
-                <Link
-                  href="/signup/company"
-                  className="btn-secondary text-sm whitespace-nowrap"
-                  style={{ paddingTop: '6px', paddingBottom: '6px', lineHeight: '1.2', minHeight: '32px', display: 'inline-flex', alignItems: 'center' }}
-                >
-                  {t("nav.companySignUp")}
+                  {t("nav.register")}
                 </Link>
                 <Link
                   href="/login"

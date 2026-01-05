@@ -175,7 +175,7 @@ export default function Home() {
             </div>
             <div className="text-center mt-8">
               <Link
-                href="/ob-visit"
+                href="/about/ob-visit"
                 className="btn-primary px-6 py-3"
               >
                 {t("home.obogVisit.learnMore")}
@@ -265,10 +265,10 @@ export default function Home() {
                 {t("home.journey.path")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/ob-visit" className="btn-primary px-6 py-3">
+                <Link href="/ob-list" className="btn-primary px-6 py-3">
                   {t("home.journey.browse")}
                 </Link>
-                <Link href="/internship" className="btn-secondary px-6 py-3">
+                <Link href="/internships" className="btn-secondary px-6 py-3">
                   {t("home.journey.viewInternships")}
                 </Link>
               </div>
@@ -326,7 +326,7 @@ export default function Home() {
               <h4 className="font-semibold mb-4 text-white">{t("home.footer.students")}</h4>
               <ul className="space-y-2 text-sm text-white">
                 <li><Link href="/ob-visit" className="hover:gradient-text transition-colors text-white">{t("nav.obVisit")}</Link></li>
-                <li><Link href="/internship" className="hover:gradient-text transition-colors text-white">{t("nav.internship")}</Link></li>
+                <li><Link href="/internships" className="hover:gradient-text transition-colors text-white">{t("nav.internship")}</Link></li>
                 <li><Link href="/recruiting" className="hover:gradient-text transition-colors text-white">{t("nav.recruiting")}</Link></li>
               </ul>
             </div>

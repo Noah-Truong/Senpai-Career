@@ -174,9 +174,15 @@ export default function AdminReportsPage() {
                         <p className="text-sm text-gray-600">
                           <strong>Reporter:</strong> {report.reporter?.name || "Unknown"} ({report.reporter?.email || "N/A"})
                         </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>Reported User:</strong> {report.reported?.name || "Unknown"} ({report.reported?.email || "N/A"})
-                        </p>
+                        {report.reportedUserId !== "PLATFORM" ? (
+                          <p className="text-sm text-gray-600">
+                            <strong>Reported User:</strong> {report.reported?.name || "Unknown"} ({report.reported?.email || "N/A"})
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-600">
+                            <strong>Type:</strong> <span className="capitalize">{report.reportType || "Platform"}</span> Issue
+                          </p>
+                        )}
                       </div>
                       <p className="text-sm font-medium mb-1">Reason: {report.reason}</p>
                       <p className="text-sm text-gray-700 line-clamp-2">{report.description}</p>
@@ -212,18 +218,40 @@ export default function AdminReportsPage() {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium mb-1">Report Type</label>
+                  <span className={`px-3 py-1 rounded text-sm font-semibold inline-block ${
+                    selectedReport.reportType === "user" ? "bg-red-100 text-red-800" :
+                    selectedReport.reportType === "safety" ? "bg-orange-100 text-orange-800" :
+                    selectedReport.reportType === "platform" ? "bg-blue-100 text-blue-800" :
+                    "bg-gray-100 text-gray-800"
+                  }`}>
+                    {selectedReport.reportType === "user" ? "User Report" :
+                     selectedReport.reportType === "safety" ? "Safety Concern" :
+                     selectedReport.reportType === "platform" ? "Platform Issue" :
+                     "Other"}
+                  </span>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium mb-1">Reporter</label>
                   <p className="text-sm text-gray-700">
                     {selectedReport.reporter?.name || "Unknown"} ({selectedReport.reporter?.email || "N/A"}) - {selectedReport.reporter?.role || "N/A"}
                   </p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">Reported User</label>
-                  <p className="text-sm text-gray-700">
-                    {selectedReport.reported?.name || "Unknown"} ({selectedReport.reported?.email || "N/A"}) - {selectedReport.reported?.role || "N/A"}
-                  </p>
-                </div>
+                {selectedReport.reportedUserId !== "PLATFORM" ? (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Reported User</label>
+                    <p className="text-sm text-gray-700">
+                      {selectedReport.reported?.name || "Unknown"} ({selectedReport.reported?.email || "N/A"}) - {selectedReport.reported?.role || "N/A"}
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Target</label>
+                    <p className="text-sm text-gray-700">Platform / System</p>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium mb-1">Reason</label>

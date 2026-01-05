@@ -29,7 +29,7 @@ export default async function StudentDashboardPage() {
             <p className="text-gray-700 mb-4">
               Discover long-term internship opportunities that align with your interests.
             </p>
-            <a href="/internship" className="btn-primary inline-block">
+            <a href="/internships" className="btn-primary inline-block">
               View Internships
             </a>
           </div>
@@ -49,6 +49,15 @@ export default async function StudentDashboardPage() {
             </p>
             <a href="/profile" className="btn-primary inline-block">
               Edit Profile
+            </a>
+          </div>
+          <div className="card-gradient p-6">
+            <h2 className="text-xl font-semibold mb-4">Report an Issue</h2>
+            <p className="text-gray-700 mb-4">
+              Report safety concerns, inappropriate behavior, or platform issues.
+            </p>
+            <a href="/report" className="btn-secondary inline-block border border-gray-300">
+              Submit Report
             </a>
           </div>
         </div>

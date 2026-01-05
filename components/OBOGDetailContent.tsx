@@ -48,7 +48,7 @@ export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
               {obog.type === "working-professional" ? t("obogDetail.workingProfessional") : t("obogDetail.jobOfferHolder")}
             </span>
           </div>
-          <h1 className="text-3xl font-bold mb-2">{obog.nickname || obog.name}</h1>
+          <h1 className="text-3xl font-bold mb-2 text-gray-600">{obog.nickname || obog.name}</h1>
           <p className="text-lg text-gray-600">{obog.university}</p>
           <p className="text-lg text-gray-600">{obog.company}</p>
         </div>

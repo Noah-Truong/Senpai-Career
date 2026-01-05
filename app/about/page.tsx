@@ -19,9 +19,15 @@ export default function AboutPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             {t("about.hero.title")}
           </h1>
-          <p className="text-2xl text-gray-700">
+          <p className="text-2xl text-gray-700 mb-8">
             {t("about.hero.subtitle")}
           </p>
+          <Link
+            href="/about/ob-visit"
+            className="btn-primary px-8 py-4 text-lg font-semibold whitespace-nowrap inline-flex items-center"
+          >
+            {t("nav.obAbout")}
+          </Link>
         </div>
       </section>
 

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { reportedUserId, reason, description } = body;
+    const { reportedUserId, reportType, reason, description } = body;
 
     if (!reportedUserId || !reason || !description) {
       return NextResponse.json(
@@ -22,20 +22,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify reported user exists
-    const reportedUser = getUserById(reportedUserId);
-    if (!reportedUser) {
-      return NextResponse.json({ error: "Reported user not found" }, { status: 404 });
-    }
+    // For user reports, verify the reported user exists
+    if (reportedUserId !== "PLATFORM") {
+      const reportedUser = getUserById(reportedUserId);
+      if (!reportedUser) {
+        return NextResponse.json({ error: "Reported user not found" }, { status: 404 });
+      }
 
-    // Prevent self-reporting
-    if (reportedUserId === session.user.id) {
-      return NextResponse.json({ error: "Cannot report yourself" }, { status: 400 });
+      // Prevent self-reporting
+      if (reportedUserId === session.user.id) {
+        return NextResponse.json({ error: "Cannot report yourself" }, { status: 400 });
+      }
     }
 
     const report = saveReport({
       reportedUserId,
       reporterUserId: session.user.id,
+      reportType: reportType || "user",
       reason,
       description,
       status: "pending",

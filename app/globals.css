@@ -40,6 +40,23 @@ body {
   .gradient-border {
     border-image: linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%) 1;
   }
+
+  .nav-active {
+    position: relative;
+    background: linear-gradient(135deg, rgba(242, 106, 163, 0.1) 0%, rgba(245, 159, 193, 0.1) 35%, rgba(111, 211, 238, 0.1) 70%, rgba(76, 195, 230, 0.1) 100%);
+    border-color: transparent !important;
+  }
+
+  .nav-active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%);
+    border-radius: 3px;
+  }
   
   .gradient-hover:hover {
     background: linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%);

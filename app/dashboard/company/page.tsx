@@ -20,7 +20,7 @@ export default async function CompanyDashboardPage() {
             <p className="text-gray-700 mb-4">
               Edit your company profile, internship details, and company information.
             </p>
-            <a href="/company/editor" className="btn-primary inline-block">
+            <a href="/company/profile" className="btn-primary inline-block">
               Edit Company Page
             </a>
           </div>

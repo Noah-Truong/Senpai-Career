@@ -33,6 +33,15 @@ export default async function OBOGDashboardPage() {
               Open Messages
             </a>
           </div>
+          <div className="card-gradient p-6">
+            <h2 className="text-xl font-semibold mb-4">Report an Issue</h2>
+            <p className="text-gray-700 mb-4">
+              Report safety concerns, inappropriate behavior, or platform issues.
+            </p>
+            <a href="/report" className="btn-secondary inline-block border border-gray-300">
+              Submit Report
+            </a>
+          </div>
         </div>
       </div>
     </div>
