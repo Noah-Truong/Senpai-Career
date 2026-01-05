@@ -18,6 +18,8 @@ export default function MessagesPage() {
   const obogId = searchParams.get("obogId");
   const [threads, setThreads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const role = (session?.user as any)?.role;
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -64,15 +66,21 @@ export default function MessagesPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6">{t("messages.title")}</h1>
+        <h1 className="text-3xl font-bold mb-6 text-gray-600">{t("messages.title")}</h1>
         
         {threads.length === 0 ? (
           <div className="card-gradient p-8 text-center">
             <p className="text-gray-700 text-lg mb-4">{t("messages.empty")}</p>
-            <p className="text-gray-600 mb-6">{t("messages.empty")}</p>
-            <Link href="/ob-visit" className="btn-primary inline-block">
-              {t("button.browseObog")}
-            </Link>
+            {role === "student" && (
+              <Link href="/ob-list" className="btn-primary inline-block">
+                {t("button.browseObog")}
+              </Link>
+            )}
+            {(role === "obog" || role === "company") && (
+              <Link href="/student-list" className="btn-primary inline-block">
+                {t("button.browseStudents")}
+              </Link>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
