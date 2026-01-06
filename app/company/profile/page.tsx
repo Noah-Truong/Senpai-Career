@@ -41,7 +41,6 @@ export default function CompanyProfilePage() {
       return;
     }
 
-    // Load existing company data
     if (session?.user?.id) {
       loadCompanyData();
     }
@@ -54,7 +53,6 @@ export default function CompanyProfilePage() {
       
       if (!response.ok) {
         if (response.status === 404) {
-          // Company profile doesn't exist yet, that's okay
           return;
         }
         throw new Error("Failed to load company data");
@@ -62,7 +60,6 @@ export default function CompanyProfilePage() {
 
       const data = await response.json();
       if (data.company) {
-        // Map company data to form fields
         setFormData({
           companyName: data.company.companyName || "",
           overview: data.company.overview || "",
@@ -97,7 +94,6 @@ export default function CompanyProfilePage() {
     setSaving(true);
 
     try {
-      // Prepare data for API (convert string numbers to actual numbers)
       const updateData = {
         companyName: formData.companyName,
         overview: formData.overview,
@@ -141,7 +137,7 @@ export default function CompanyProfilePage() {
       <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>{t("common.loading")}</p>
+          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -151,29 +147,38 @@ export default function CompanyProfilePage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6" style={{ color: '#000000' }}>{t("company.profile.title") || "Company Profile"}</h1>
-        <p className="text-gray-600 mb-8">
+        <h1 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>{t("company.profile.title") || "Company Profile"}</h1>
+        <p className="mb-8" style={{ color: '#6B7280' }}>
           {t("company.profile.subtitle") || "Edit your company profile page that students will see when browsing opportunities."}
         </p>
 
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div 
+            className="mb-4 px-4 py-3 rounded border"
+            style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
+          >
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          <div 
+            className="mb-4 px-4 py-3 rounded border"
+            style={{ backgroundColor: '#D1FAE5', borderColor: '#A7F3D0', color: '#059669' }}
+          >
             {t("company.profile.success") || "Company profile saved successfully!"}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>{t("company.profile.basicInfo") || "Basic Information"}</h2>
+          <div 
+            className="p-6 bg-white border rounded"
+            style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{t("company.profile.basicInfo") || "Basic Information"}</h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="companyName" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.companyName") || "Company Name"} *
                 </label>
                 <input
@@ -183,13 +188,13 @@ export default function CompanyProfilePage() {
                   required
                   value={formData.companyName}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
 
               <div>
-                <label htmlFor="overview" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="overview" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.overview") || "Company Overview"} *
                 </label>
                 <textarea
@@ -200,13 +205,13 @@ export default function CompanyProfilePage() {
                   value={formData.overview}
                   onChange={handleChange}
                   placeholder={t("company.profile.overviewPlaceholder") || "Describe your company, its mission, and what makes it unique..."}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
 
               <div>
-                <label htmlFor="oneLineMessage" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="oneLineMessage" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.oneLineMessage") || "One-line Message to Students"}
                 </label>
                 <input
@@ -216,18 +221,21 @@ export default function CompanyProfilePage() {
                   value={formData.oneLineMessage}
                   onChange={handleChange}
                   placeholder={t("company.profile.oneLinePlaceholder") || "A brief message that will appear on your company card"}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>{t("company.profile.workDetails") || "Work Details"}</h2>
+          <div 
+            className="p-6 bg-white border rounded"
+            style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{t("company.profile.workDetails") || "Work Details"}</h2>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="workLocation" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="workLocation" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.workLocation") || "Work Location"}
                 </label>
                 <input
@@ -237,13 +245,13 @@ export default function CompanyProfilePage() {
                   value={formData.workLocation}
                   onChange={handleChange}
                   placeholder="Tokyo, Remote, etc."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
 
               <div>
-                <label htmlFor="hourlyWage" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="hourlyWage" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.hourlyWage") || "Hourly Wage (¥)"}
                 </label>
                 <input
@@ -253,13 +261,13 @@ export default function CompanyProfilePage() {
                   value={formData.hourlyWage}
                   onChange={handleChange}
                   placeholder="1500"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
 
               <div>
-                <label htmlFor="weeklyHours" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="weeklyHours" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.weeklyHours") || "Weekly Hours"}
                 </label>
                 <input
@@ -269,13 +277,13 @@ export default function CompanyProfilePage() {
                   value={formData.weeklyHours}
                   onChange={handleChange}
                   placeholder="20"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
 
               <div>
-                <label htmlFor="weeklyDays" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="weeklyDays" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.weeklyDays") || "Weekly Days"}
                 </label>
                 <input
@@ -285,13 +293,13 @@ export default function CompanyProfilePage() {
                   value={formData.weeklyDays}
                   onChange={handleChange}
                   placeholder="3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
 
               <div>
-                <label htmlFor="minRequiredHours" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="minRequiredHours" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.minRequiredHours") || "Minimum Required Weekly Hours"}
                 </label>
                 <input
@@ -301,18 +309,21 @@ export default function CompanyProfilePage() {
                   value={formData.minRequiredHours}
                   onChange={handleChange}
                   placeholder="10"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>{t("company.profile.opportunityDetails") || "Opportunity Details"}</h2>
+          <div 
+            className="p-6 bg-white border rounded"
+            style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{t("company.profile.opportunityDetails") || "Opportunity Details"}</h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="internshipDetails" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="internshipDetails" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.internshipDetails") || "Internship Details"}
                 </label>
                 <textarea
@@ -322,13 +333,13 @@ export default function CompanyProfilePage() {
                   value={formData.internshipDetails}
                   onChange={handleChange}
                   placeholder={t("company.profile.internshipPlaceholder") || "Describe the internship opportunity, what students will learn, and what they'll work on..."}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
 
               <div>
-                <label htmlFor="newGradDetails" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="newGradDetails" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.newGradDetails") || "New Graduate Position Details"}
                 </label>
                 <textarea
@@ -338,18 +349,21 @@ export default function CompanyProfilePage() {
                   value={formData.newGradDetails}
                   onChange={handleChange}
                   placeholder={t("company.profile.newGradPlaceholder") || "Describe the new graduate position, responsibilities, and growth opportunities..."}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>{t("company.profile.candidateAppeal") || "Candidate & Appeal"}</h2>
+          <div 
+            className="p-6 bg-white border rounded"
+            style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{t("company.profile.candidateAppeal") || "Candidate & Appeal"}</h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="idealCandidate" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="idealCandidate" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.idealCandidate") || "Ideal Candidate"}
                 </label>
                 <textarea
@@ -359,13 +373,13 @@ export default function CompanyProfilePage() {
                   value={formData.idealCandidate}
                   onChange={handleChange}
                   placeholder={t("company.profile.idealCandidatePlaceholder") || "Describe the skills, experience, and qualities you're looking for..."}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
 
               <div>
-                <label htmlFor="sellingPoints" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="sellingPoints" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   {t("company.profile.sellingPoints") || "Selling Points / Why Work Here"}
                 </label>
                 <textarea
@@ -375,15 +389,18 @@ export default function CompanyProfilePage() {
                   value={formData.sellingPoints}
                   onChange={handleChange}
                   placeholder={t("company.profile.sellingPointsPlaceholder") || "What makes your company a great place to work? What are the benefits and opportunities?"}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-            <p className="text-sm text-gray-700">
+          <div 
+            className="p-4 border-l-4"
+            style={{ backgroundColor: '#FEF3C7', borderLeftColor: '#F59E0B' }}
+          >
+            <p className="text-sm" style={{ color: '#374151' }}>
               <strong>{t("common.note") || "Note"}:</strong> {t("company.profile.hoursNote") || "Students can work up to 28 hours/week during term, up to 40 hours/week during long breaks."}
             </p>
           </div>
@@ -409,4 +426,3 @@ export default function CompanyProfilePage() {
     </div>
   );
 }
-

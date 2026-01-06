@@ -14,10 +14,11 @@ export default function LanguageSwitcher() {
   return (
     <motion.button
       onClick={toggleLanguage}
-      className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg hover:shadow-xl gradient-bg text-white font-semibold"
+      className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg hover:shadow-xl text-white font-semibold"
       aria-label="Switch language"
       style={{
-        background: 'linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%)',
+        backgroundColor: '#0F2A44',
+        borderRadius: '6px',
       }}
       initial={{ opacity: 0, scale: 0, rotate: -180 }}
       animate={{ opacity: 1, scale: 1, rotate: 0 }}
@@ -49,7 +50,7 @@ export default function LanguageSwitcher() {
         />
       </motion.svg>
       <span className="text-sm font-bold">
-        <AnimatedText key={language}>
+        <AnimatedText animationKey={language}>
           {language === "en" ? "日本語" : "English"}
         </AnimatedText>
       </span>

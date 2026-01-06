@@ -13,32 +13,41 @@ export default async function OBOGDashboardPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6">OB/OG Dashboard</h1>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>OB/OG Dashboard</h1>
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4">Your Profile</h2>
-            <p className="text-gray-700 mb-4">
+          <div 
+            className="p-6 bg-white border rounded"
+            style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <h2 className="text-lg font-semibold mb-3" style={{ color: '#111827' }}>Your Profile</h2>
+            <p className="mb-4" style={{ color: '#6B7280' }}>
               Manage your OB/OG profile and update the topics you can help with.
             </p>
             <a href="/profile" className="btn-primary inline-block">
               Edit Profile
             </a>
           </div>
-          <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4">Messages</h2>
-            <p className="text-gray-700 mb-4">
+          <div 
+            className="p-6 bg-white border rounded"
+            style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <h2 className="text-lg font-semibold mb-3" style={{ color: '#111827' }}>Messages</h2>
+            <p className="mb-4" style={{ color: '#6B7280' }}>
               View messages from students seeking career advice.
             </p>
             <a href="/messages" className="btn-primary inline-block">
               Open Messages
             </a>
           </div>
-          <div className="card-gradient p-6">
-            <h2 className="text-xl font-semibold mb-4">Report an Issue</h2>
-            <p className="text-gray-700 mb-4">
+          <div 
+            className="p-6 bg-white border rounded"
+            style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <h2 className="text-lg font-semibold mb-3" style={{ color: '#111827' }}>Report an Issue</h2>
+            <p className="mb-4" style={{ color: '#6B7280' }}>
               Report safety concerns, inappropriate behavior, or platform issues.
             </p>
-            <a href="/report" className="btn-secondary inline-block border border-gray-300">
+            <a href="/report" className="btn-secondary inline-block">
               Submit Report
             </a>
           </div>
@@ -47,4 +56,3 @@ export default async function OBOGDashboardPage() {
     </div>
   );
 }
-

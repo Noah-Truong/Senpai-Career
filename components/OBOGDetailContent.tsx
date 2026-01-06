@@ -90,7 +90,7 @@ export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
             <h3 className="font-semibold mb-2 text-gray-900">{t("obogDetail.topics")}</h3>
             <div className="flex flex-wrap gap-2">
               {obog.topics.map((topic, idx) => (
-                <span key={idx} className="px-3 py-1 gradient-bg text-white rounded font-medium">
+                <span key={idx} className="px-3 py-1 bg-[#0F2A44] text-white rounded font-medium">
                   {topic}
                 </span>
               ))}

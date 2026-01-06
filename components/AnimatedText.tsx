@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 interface AnimatedTextProps {
   children: string;
   className?: string;
-  key?: string | number;
+  animationKey?: string | number;
 }
 
-export default function AnimatedText({ children, className = "", key }: AnimatedTextProps) {
+export default function AnimatedText({ children, className = "", animationKey }: AnimatedTextProps) {
   const [displayText, setDisplayText] = useState(children);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -29,7 +29,7 @@ export default function AnimatedText({ children, className = "", key }: Animated
   return (
     <AnimatePresence mode="wait">
       <motion.span
-        key={`${key || displayText}-${Date.now()}`}
+        key={`${animationKey || displayText}-${Date.now()}`}
         className={className}
         initial={{ opacity: 0, y: 8, rotateX: -10 }}
         animate={{ opacity: 1, y: 0, rotateX: 0 }}

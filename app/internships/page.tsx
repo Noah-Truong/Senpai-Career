@@ -56,30 +56,55 @@ export default function InternshipPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-gray-600">{t("internship.title")}</h1>
-          <p className="text-gray-600">
+          <h1 
+            className="text-2xl md:text-3xl font-bold mb-2"
+            style={{ color: '#111827' }}
+          >
+            {t("internship.title")}
+          </h1>
+          <p style={{ color: '#6B7280' }}>
             {t("internship.subtitle")}
           </p>
         </div>
 
         {/* Info Section */}
-        <div className="card-gradient p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-3 text-gray-600">{t("internship.about.title")}</h2>
-          <p className="text-gray-600 mb-4">
+        <div 
+          className="p-6 mb-8 border rounded"
+          style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+        >
+          <h2 
+            className="text-lg font-semibold mb-3"
+            style={{ color: '#111827' }}
+          >
+            {t("internship.about.title")}
+          </h2>
+          <p style={{ color: '#6B7280' }} className="mb-4">
             {t("internship.about.desc")}
           </p>
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
-            <p className="text-sm text-gray-600">
+          <div 
+            className="p-4 border-l-4"
+            style={{ backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }}
+          >
+            <p className="text-sm" style={{ color: '#374151' }}>
               <strong>{t("internship.about.hours")}</strong> {t("internship.about.hoursDesc")}
             </p>
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="mb-8 card-gradient p-4">
+        <div 
+          className="mb-8 p-4 border rounded"
+          style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+        >
           <div className="relative">
-            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg 
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" 
+              fill="none" 
+              stroke="#9CA3AF" 
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -87,25 +112,37 @@ export default function InternshipPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t("internship.searchPlaceholder") || "Search by title, company, skills..."}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-              style={{ color: '#000000' }}
+              className="w-full pl-10 pr-4 py-2 bg-white border rounded focus:outline-none focus:ring-2"
+              style={{ 
+                borderColor: '#D1D5DB', 
+                borderRadius: '6px',
+                color: '#111827'
+              }}
             />
           </div>
           {searchTerm && (
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm" style={{ color: '#6B7280' }}>
               {filteredInternships.length} {t("internship.resultsFound") || "internships found"}
             </p>
           )}
         </div>
 
         {loading ? (
-          <div className="card-gradient p-8 text-center">
-            <p className="text-gray-600 text-lg">{t("common.loading") || "Loading internships..."}</p>
+          <div 
+            className="p-8 text-center border rounded"
+            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <p style={{ color: '#6B7280' }}>{t("common.loading") || "Loading internships..."}</p>
           </div>
         ) : filteredInternships.length === 0 ? (
-          <div className="card-gradient p-8 text-center">
-            <p className="text-gray-600 text-lg mb-4">{searchTerm ? (t("internship.noResults") || "No internships found matching your search.") : t("internship.empty.title")}</p>
-            <p className="text-gray-500 mb-6">
+          <div 
+            className="p-8 text-center border rounded"
+            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <p className="text-lg mb-4" style={{ color: '#374151' }}>
+              {searchTerm ? (t("internship.noResults") || "No internships found matching your search.") : t("internship.empty.title")}
+            </p>
+            <p className="mb-6" style={{ color: '#6B7280' }}>
               {searchTerm ? (t("internship.tryDifferent") || "Try a different search term.") : t("internship.empty.desc")}
             </p>
             {!isLoggedIn && !searchTerm && (
@@ -120,7 +157,8 @@ export default function InternshipPage() {
               <Link
                 key={internship.id}
                 href={`/internships/${internship.id}`}
-                className="card-gradient p-6 hover:shadow-xl transition-all duration-300 block"
+                className="bg-white border rounded p-6 hover:shadow-md transition-all duration-200 block"
+                style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
               >
                 <div className="flex items-start mb-4">
                   <CompanyLogo
@@ -130,18 +168,21 @@ export default function InternshipPage() {
                     className="mr-4"
                   />
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-2 text-gray-600">
+                    <h3 
+                      className="text-base font-semibold mb-1"
+                      style={{ color: '#111827' }}
+                    >
                       {internship.titleKey ? t(internship.titleKey) : internship.title}
                     </h3>
-                    <p className="text-sm text-gray-600">{internship.companyName}</p>
+                    <p className="text-sm" style={{ color: '#6B7280' }}>{internship.companyName}</p>
                   </div>
                 </div>
                 
                 <div className="mb-4">
-                  <p className="text-sm font-semibold text-gray-600 mb-1">
+                  <p className="text-sm font-medium mb-1" style={{ color: '#0F2A44' }}>
                     {t("label.hourlyWage")}: ¥{internship.hourlyWage?.toLocaleString()}
                   </p>
-                  <p className="text-sm text-gray-600 line-clamp-2">
+                  <p className="text-sm line-clamp-2" style={{ color: '#6B7280' }}>
                     {internship.workDetailsKey ? t(internship.workDetailsKey) : internship.workDetails}
                   </p>
                 </div>
@@ -150,7 +191,11 @@ export default function InternshipPage() {
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
                       {(internship.skillsGainedKeys || internship.skillsGained).slice(0, 3).map((skillKeyOrSkill: string, idx: number) => (
-                        <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">
+                        <span 
+                          key={idx} 
+                          className="px-2 py-1 rounded text-xs"
+                          style={{ backgroundColor: '#F5F7FA', color: '#374151' }}
+                        >
                           {internship.skillsGainedKeys ? t(skillKeyOrSkill) : skillKeyOrSkill}
                         </span>
                       ))}
@@ -158,7 +203,7 @@ export default function InternshipPage() {
                   </div>
                 )}
 
-                <div className="text-sm text-gray-600">
+                <div className="text-sm" style={{ color: '#6B7280' }}>
                   <p className="line-clamp-2">
                     {internship.whyThisCompanyKey ? t(internship.whyThisCompanyKey) : internship.whyThisCompany}
                   </p>
@@ -171,4 +216,3 @@ export default function InternshipPage() {
     </div>
   );
 }
-

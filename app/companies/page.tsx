@@ -70,13 +70,12 @@ export default function CompaniesPage() {
       <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>{t("common.loading")}</p>
+          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
       </div>
     );
   }
 
-  // Filter companies based on search
   const filteredCompanies = companies.filter((company) => {
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
@@ -93,12 +92,15 @@ export default function CompaniesPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-gray-600">{t("companies.title") || "Companies"}</h1>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>{t("companies.title") || "Companies"}</h1>
         
         {/* Search Bar */}
-        <div className="mb-8 card-gradient p-4">
+        <div 
+          className="mb-8 p-4 border rounded"
+          style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+        >
           <div className="relative">
-            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -106,34 +108,43 @@ export default function CompaniesPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t("companies.searchPlaceholder") || "Search by company name, location, or keywords..."}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-              style={{ color: '#000000' }}
+              className="w-full pl-10 pr-4 py-2 bg-white border rounded focus:outline-none focus:ring-2"
+              style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
             />
           </div>
           {searchTerm && (
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm" style={{ color: '#6B7280' }}>
               {filteredCompanies.length} {t("companies.resultsFound") || "companies found"}
             </p>
           )}
         </div>
 
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div 
+            className="mb-4 px-4 py-3 rounded border"
+            style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
+          >
             {error}
           </div>
         )}
 
         {filteredCompanies.length === 0 ? (
-          <div className="card-gradient p-8 text-center">
-            <p className="text-gray-600 text-lg mb-4">{searchTerm ? (t("companies.noResults") || "No companies found matching your search.") : (t("companies.empty") || "No companies found.")}</p>
-            {searchTerm && <p className="text-gray-500">{t("companies.tryDifferent") || "Try a different search term."}</p>}
+          <div 
+            className="p-8 text-center border rounded"
+            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <p className="text-lg mb-4" style={{ color: '#374151' }}>
+              {searchTerm ? (t("companies.noResults") || "No companies found matching your search.") : (t("companies.empty") || "No companies found.")}
+            </p>
+            {searchTerm && <p style={{ color: '#6B7280' }}>{t("companies.tryDifferent") || "Try a different search term."}</p>}
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCompanies.map((company) => (
               <div
                 key={company.id}
-                className="card-gradient p-6 hover:shadow-xl transition-all duration-300"
+                className="p-6 bg-white border rounded hover:shadow-md transition-all duration-300"
+                style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
               >
                 <div className="flex items-start mb-4">
                   <Avatar
@@ -144,41 +155,41 @@ export default function CompaniesPage() {
                     className="mr-4"
                   />
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-2 text-gray-600">{company.companyName}</h3>
+                    <h3 className="text-lg font-semibold mb-2" style={{ color: '#111827' }}>{company.companyName}</h3>
                     {company.oneLineMessage && (
-                      <p className="text-sm text-gray-600 mb-2">{translate(company.oneLineMessage)}</p>
+                      <p className="text-sm mb-2" style={{ color: '#6B7280' }}>{translate(company.oneLineMessage)}</p>
                     )}
                   </div>
                 </div>
 
                 {company.overview && (
                   <div className="mb-4">
-                    <p className="text-sm text-gray-700 line-clamp-3">{translate(company.overview)}</p>
+                    <p className="text-sm line-clamp-3" style={{ color: '#374151' }}>{translate(company.overview)}</p>
                   </div>
                 )}
 
                 <div className="space-y-2 mb-4">
                   {company.workLocation && (
-                    <p className="text-sm text-gray-600">
-                      <span className="font-semibold">{t("companies.workLocation") || "Location"}:</span> {company.workLocation}
+                    <p className="text-sm" style={{ color: '#6B7280' }}>
+                      <span className="font-semibold" style={{ color: '#374151' }}>{t("companies.workLocation") || "Location"}:</span> {company.workLocation}
                     </p>
                   )}
                   {company.hourlyWage && (
-                    <p className="text-sm text-gray-600">
-                      <span className="font-semibold">{t("companies.hourlyWage") || "Hourly Wage"}:</span> ¥{company.hourlyWage.toLocaleString()}
+                    <p className="text-sm" style={{ color: '#6B7280' }}>
+                      <span className="font-semibold" style={{ color: '#374151' }}>{t("companies.hourlyWage") || "Hourly Wage"}:</span> ¥{company.hourlyWage.toLocaleString()}
                     </p>
                   )}
                   {company.weeklyHours && (
-                    <p className="text-sm text-gray-600">
-                      <span className="font-semibold">{t("companies.weeklyHours") || "Weekly Hours"}:</span> {company.weeklyHours}
+                    <p className="text-sm" style={{ color: '#6B7280' }}>
+                      <span className="font-semibold" style={{ color: '#374151' }}>{t("companies.weeklyHours") || "Weekly Hours"}:</span> {company.weeklyHours}
                     </p>
                   )}
                 </div>
 
                 {company.sellingPoints && (
                   <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-700 mb-1">{t("companies.sellingPoints") || "Selling Points"}:</p>
-                    <p className="text-sm text-gray-600 line-clamp-2">{translate(company.sellingPoints)}</p>
+                    <p className="text-xs font-semibold mb-1" style={{ color: '#374151' }}>{t("companies.sellingPoints") || "Selling Points"}:</p>
+                    <p className="text-sm line-clamp-2" style={{ color: '#6B7280' }}>{translate(company.sellingPoints)}</p>
                   </div>
                 )}
 
@@ -196,4 +207,3 @@ export default function CompaniesPage() {
     </div>
   );
 }
-

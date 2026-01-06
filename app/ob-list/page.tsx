@@ -15,7 +15,6 @@ export default function OBVisitPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch OB/OG users
     fetch("/api/obog")
       .then(res => res.json())
       .then(data => {
@@ -33,12 +32,12 @@ export default function OBVisitPage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+      <section className="py-16" style={{ backgroundColor: '#F5F7FA' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: '#111827' }}>
             {t("obvisit.hero.title")}
           </h1>
-          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: '#6B7280' }}>
             {t("obvisit.hero.subtitle")}
           </p>
         </div>
@@ -47,10 +46,13 @@ export default function OBVisitPage() {
       {/* Safety Rules */}
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">{t("obvisit.safety.title")}</h2>
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-6">
-            <p className="text-gray-700 font-semibold mb-2">{t("obvisit.safety.important")}</p>
-            <ul className="space-y-2 text-sm text-gray-700">
+          <h2 className="text-2xl font-bold mb-8" style={{ color: '#111827' }}>{t("obvisit.safety.title")}</h2>
+          <div 
+            className="p-6 mb-6 border-l-4"
+            style={{ backgroundColor: '#FEF3C7', borderLeftColor: '#F59E0B' }}
+          >
+            <p className="font-semibold mb-2" style={{ color: '#374151' }}>{t("obvisit.safety.important")}</p>
+            <ul className="space-y-2 text-sm" style={{ color: '#374151' }}>
               <li>• {t("obvisit.safety.1")}</li>
               <li>• {t("obvisit.safety.2")}</li>
               <li>• {t("obvisit.safety.3")}</li>
@@ -61,7 +63,7 @@ export default function OBVisitPage() {
               <li>• {t("obvisit.safety.8")}</li>
             </ul>
           </div>
-          <p className="text-gray-700">
+          <p style={{ color: '#6B7280' }}>
             {t("obvisit.safety.desc")}
           </p>
         </div>
@@ -72,7 +74,7 @@ export default function OBVisitPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">{t("common.loading")}</p>
+              <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
             </div>
           ) : (
             <OBOGListContent obogUsers={obogUsers} />
@@ -82,22 +84,23 @@ export default function OBVisitPage() {
 
       {/* CTA Section */}
       {!isLoggedIn && (
-        <section className="py-16 gradient-bg text-white">
+        <section className="py-16 text-white" style={{ backgroundColor: '#0F2A44' }}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold mb-4">{t("obvisit.cta.title")}</h2>
-            <p className="text-xl mb-8 opacity-90">
+            <h2 className="text-2xl font-bold mb-4">{t("obvisit.cta.title")}</h2>
+            <p className="text-lg mb-8 opacity-90">
               {t("obvisit.cta.subtitle")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/signup/student"
-                className="btn-secondary px-8 py-3"
+                className="btn-primary px-8 py-3"
               >
                 {t("obvisit.cta.signUpStudent")}
               </Link>
               <Link
                 href="/signup/obog"
-                className="px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:gradient-text transition-all"
+                className="px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded font-semibold hover:bg-white hover:text-gray-900 transition-all"
+                style={{ borderRadius: '6px' }}
               >
                 {t("obvisit.cta.signUpObog")}
               </Link>
@@ -113,11 +116,7 @@ export default function OBVisitPage() {
       )}
 
       {/* Footer */}
-      <footer className="text-white py-12" style={{
-        background: 'linear-gradient(135deg, rgba(17, 24, 39, 1) 0%, rgba(31, 41, 55, 1) 100%)',
-        borderTop: '2px solid transparent',
-        borderImage: 'linear-gradient(135deg, rgba(242, 106, 163, 0.3) 0%, rgba(245, 159, 193, 0.3) 35%, rgba(111, 211, 238, 0.3) 70%, rgba(76, 195, 230, 0.3) 100%) 1'
-      }}>
+      <footer className="text-white py-12" style={{ backgroundColor: '#111827' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-white">{t("common.copyright")}</p>
@@ -127,4 +126,3 @@ export default function OBVisitPage() {
     </div>
   );
 }
-

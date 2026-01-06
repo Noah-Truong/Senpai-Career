@@ -35,7 +35,6 @@ export default function ReportPage() {
       return;
     }
 
-    // Only students and obog can access this page
     if (status === "authenticated") {
       const role = session?.user?.role;
       if (role !== "student" && role !== "obog") {
@@ -57,7 +56,6 @@ export default function ReportPage() {
       const response = await fetch("/api/users");
       if (response.ok) {
         const data = await response.json();
-        // Filter out current user and admins
         const filteredUsers = (data.users || []).filter(
           (u: User) => u.id !== session?.user?.id && u.role !== "admin"
         );
@@ -75,7 +73,6 @@ export default function ReportPage() {
     setError("");
     setSubmitting(true);
 
-    // Validate
     if (!reason || !description.trim()) {
       setError(t("report.error.required") || "Please provide a reason and description");
       setSubmitting(false);
@@ -109,7 +106,6 @@ export default function ReportPage() {
       }
 
       setSuccess(true);
-      // Reset form
       setReportType("user");
       setReason("");
       setDescription("");
@@ -127,7 +123,7 @@ export default function ReportPage() {
       <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-gray-600">{t("common.loading")}</p>
+          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -184,30 +180,36 @@ export default function ReportPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#F5F7FA' }}>
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>
             {t("report.page.title") || "Submit a Report"}
           </h1>
-          <p className="text-gray-600">
+          <p style={{ color: '#6B7280' }}>
             {t("report.page.subtitle") || "Help us maintain a safe and positive community by reporting any issues"}
           </p>
         </div>
 
         {success ? (
-          <div className="card-gradient p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div 
+            className="p-8 text-center bg-white border rounded"
+            style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <div 
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: '#D1FAE5' }}
+            >
+              <svg className="w-8 h-8" style={{ color: '#059669' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl font-bold mb-2" style={{ color: '#111827' }}>
               {t("report.success.title") || "Report Submitted Successfully"}
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="mb-6" style={{ color: '#6B7280' }}>
               {t("report.success.message") || "Thank you for your report. Our team will review it and take appropriate action."}
             </p>
             <div className="flex gap-4 justify-center">
@@ -225,8 +227,11 @@ export default function ReportPage() {
         ) : (
           <form onSubmit={handleSubmit}>
             {/* Step 1: Report Type Selection */}
-            <div className="card-gradient p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-600">
+            <div 
+              className="p-6 mb-6 bg-white border rounded"
+              style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+            >
+              <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>
                 {t("report.step1.title") || "Step 1: What would you like to report?"}
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
@@ -235,19 +240,23 @@ export default function ReportPage() {
                     key={type.value}
                     type="button"
                     onClick={() => setReportType(type.value as any)}
-                    className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      reportType === type.value
-                        ? "border-pink-500 bg-pink-50"
-                        : "border-gray-200 hover:border-gray-300 bg-white"
-                    }`}
+                    className="p-4 rounded border-2 transition-all text-left"
+                    style={{
+                      borderColor: reportType === type.value ? '#2563EB' : '#E5E7EB',
+                      backgroundColor: reportType === type.value ? '#EFF6FF' : '#FFFFFF',
+                      borderRadius: '6px'
+                    }}
                   >
-                    <div className={`mb-2 ${reportType === type.value ? "text-pink-600" : "text-gray-600"}`}>
+                    <div className="mb-2" style={{ color: reportType === type.value ? '#2563EB' : '#6B7280' }}>
                       {type.icon}
                     </div>
-                    <h3 className={`font-semibold mb-1 ${reportType === type.value ? "text-pink-700" : "text-gray-900"}`}>
+                    <h3 
+                      className="font-semibold mb-1"
+                      style={{ color: reportType === type.value ? '#1D4ED8' : '#111827' }}
+                    >
                       {type.label}
                     </h3>
-                    <p className="text-sm text-gray-600">{type.description}</p>
+                    <p className="text-sm" style={{ color: '#6B7280' }}>{type.description}</p>
                   </button>
                 ))}
               </div>
@@ -255,8 +264,11 @@ export default function ReportPage() {
 
             {/* Step 2: User Selection (if reporting a user) */}
             {reportType === "user" && (
-              <div className="card-gradient p-6 mb-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-600">
+              <div 
+                className="p-6 mb-6 bg-white border rounded"
+                style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+              >
+                <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>
                   {t("report.step2.title") || "Step 2: Select the user"}
                 </h2>
                 <div className="mb-4">
@@ -265,16 +277,16 @@ export default function ReportPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder={t("report.step2.searchPlaceholder") || "Search by name or email..."}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                    style={{ color: '#000000' }}
+                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                   />
                 </div>
                 {loadingUsers ? (
-                  <p className="text-center py-4 text-gray-500">{t("common.loading")}</p>
+                  <p className="text-center py-4" style={{ color: '#6B7280' }}>{t("common.loading")}</p>
                 ) : (
-                  <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
+                  <div className="max-h-64 overflow-y-auto border rounded" style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}>
                     {filteredUsers.length === 0 ? (
-                      <p className="text-center py-4 text-gray-500">
+                      <p className="text-center py-4" style={{ color: '#6B7280' }}>
                         {t("report.step2.noUsers") || "No users found"}
                       </p>
                     ) : (
@@ -283,30 +295,35 @@ export default function ReportPage() {
                           key={user.id}
                           type="button"
                           onClick={() => setSelectedUserId(user.id)}
-                          className={`w-full px-4 py-3 flex items-center justify-between border-b border-gray-100 last:border-b-0 transition-colors ${
-                            selectedUserId === user.id
-                              ? "bg-pink-50"
-                              : "hover:bg-gray-50"
-                          }`}
+                          className="w-full px-4 py-3 flex items-center justify-between border-b last:border-b-0 transition-colors"
+                          style={{
+                            borderColor: '#F3F4F6',
+                            backgroundColor: selectedUserId === user.id ? '#EFF6FF' : 'transparent'
+                          }}
                         >
                           <div className="text-left">
-                            <p className={`font-medium ${selectedUserId === user.id ? "text-pink-700" : "text-gray-900"}`}>
+                            <p 
+                              className="font-medium"
+                              style={{ color: selectedUserId === user.id ? '#1D4ED8' : '#111827' }}
+                            >
                               {user.name}
                             </p>
-                            <p className="text-sm text-gray-500">{user.email}</p>
+                            <p className="text-sm" style={{ color: '#6B7280' }}>{user.email}</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className={`text-xs px-2 py-1 rounded ${
-                              user.role === "student" ? "bg-blue-100 text-blue-700" :
-                              user.role === "obog" ? "bg-purple-100 text-purple-700" :
-                              "bg-green-100 text-green-700"
-                            }`}>
+                            <span 
+                              className="text-xs px-2 py-1 rounded"
+                              style={{
+                                backgroundColor: user.role === "student" ? '#DBEAFE' : user.role === "obog" ? '#E9D5FF' : '#D1FAE5',
+                                color: user.role === "student" ? '#1D4ED8' : user.role === "obog" ? '#7C3AED' : '#059669'
+                              }}
+                            >
                               {user.role === "student" ? t("role.student") :
                                user.role === "obog" ? t("role.obog") :
                                t("role.company")}
                             </span>
                             {selectedUserId === user.id && (
-                              <svg className="w-5 h-5 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-5 h-5" style={{ color: '#2563EB' }} fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                               </svg>
                             )}
@@ -320,28 +337,34 @@ export default function ReportPage() {
             )}
 
             {/* Step 3: Report Details */}
-            <div className="card-gradient p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-600">
+            <div 
+              className="p-6 mb-6 bg-white border rounded"
+              style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+            >
+              <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>
                 {reportType === "user"
                   ? (t("report.step3.title") || "Step 3: Provide details")
                   : (t("report.step2.titleAlt") || "Step 2: Provide details")}
               </h2>
 
               {error && (
-                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                <div 
+                  className="mb-4 px-4 py-3 rounded border"
+                  style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
+                >
                   {error}
                 </div>
               )}
 
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-gray-600">
-                  {t("report.reason.label") || "Reason"} <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                  {t("report.reason.label") || "Reason"} <span style={{ color: '#DC2626' }}>*</span>
                 </label>
                 <select
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                   required
                 >
                   <option value="">{t("report.reason.select") || "Select a reason"}</option>
@@ -381,19 +404,19 @@ export default function ReportPage() {
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-gray-600">
-                  {t("report.description.label") || "Description"} <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                  {t("report.description.label") || "Description"} <span style={{ color: '#DC2626' }}>*</span>
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={5}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  style={{ color: '#000000' }}
+                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                   placeholder={t("report.description.placeholder") || "Please provide as much detail as possible..."}
                   required
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
                   {t("report.description.hint") || "Include specific dates, times, messages, or any other relevant information."}
                 </p>
               </div>
@@ -401,16 +424,19 @@ export default function ReportPage() {
 
             {/* Safety Notice */}
             {(reportType === "user" || reportType === "safety") && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div 
+                className="p-4 mb-6 rounded border"
+                style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}
+              >
                 <div className="flex items-start">
-                  <svg className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 mt-0.5 mr-3" style={{ color: '#D97706' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                   <div>
-                    <h3 className="font-semibold text-yellow-800 mb-1">
+                    <h3 className="font-semibold mb-1" style={{ color: '#92400E' }}>
                       {t("report.safety.title") || "Important Safety Information"}
                     </h3>
-                    <p className="text-sm text-yellow-700">
+                    <p className="text-sm" style={{ color: '#B45309' }}>
                       {t("report.safety.message") || "If you are in immediate danger, please contact local emergency services immediately. This report system is for documenting incidents, not for emergency response."}
                     </p>
                   </div>
@@ -422,7 +448,8 @@ export default function ReportPage() {
             <div className="flex justify-end gap-4">
               <Link
                 href="/dashboard"
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="px-6 py-3 border rounded transition-colors"
+                style={{ borderColor: '#D1D5DB', color: '#374151', borderRadius: '6px' }}
               >
                 {t("button.cancel") || "Cancel"}
               </Link>
@@ -440,4 +467,3 @@ export default function ReportPage() {
     </div>
   );
 }
-

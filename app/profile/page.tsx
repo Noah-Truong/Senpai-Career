@@ -87,12 +87,12 @@ export default function ProfilePage() {
     setError("");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const uploadData = new FormData();
+      uploadData.append("file", file);
 
       const response = await fetch("/api/upload", {
         method: "POST",
-        body: formData,
+        body: uploadData,
       });
 
       if (!response.ok) {
@@ -101,7 +101,7 @@ export default function ProfilePage() {
       }
 
       const data = await response.json();
-      setFormData({ ...formData, [fieldName]: data.url });
+      setFormData((prevFormData: any) => ({ ...prevFormData, [fieldName]: data.url }));
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
     } catch (err: any) {
@@ -415,11 +415,12 @@ export default function ProfilePage() {
                     </div>
                   )}
                   {user.oneLineMessage && (
-                    <div className="p-4 bg-gray-50 rounded-lg border-l-4" style={{
-                      borderImage: 'linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%) 1'
+                    <div className="p-4 rounded-lg border-l-4" style={{
+                      backgroundColor: '#F5F7FA',
+                      borderLeftColor: '#2563EB'
                     }}>
-                      <h3 className="font-semibold mb-2 text-gray-900">{t("form.oneLineMessage")}</h3>
-                      <p className="text-lg italic text-gray-800">{user.oneLineMessage}</p>
+                      <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("form.oneLineMessage")}</h3>
+                      <p className="text-lg italic" style={{ color: '#374151' }}>{user.oneLineMessage}</p>
                     </div>
                   )}
                   {user.studentEraSummary && (
@@ -933,6 +934,21 @@ export default function ProfilePage() {
               </button>
             </div>
           </form>
+        )}
+        {/* Sign Out Section */}
+        {!isEditing && (
+          <div className="card-gradient p-8 border-t-2 border-red-200 mb-6">
+            <h3 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>
+              {t("profile.signOut.title") || "Sign Out"}
+            </h3>
+          
+          <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="btn-secondary text-sm"
+              >
+                {t("nav.signOut")}
+              </button>
+              </div>
         )}
 
         {/* Delete Account Section */}

@@ -69,7 +69,6 @@ export default function CompanySignupPage() {
         throw new Error(data.error || "Failed to create account");
       }
 
-      // Auto-login after signup
       try {
         const signInResult = await signIn("credentials", {
           redirect: false,
@@ -78,19 +77,15 @@ export default function CompanySignupPage() {
         });
 
         if (signInResult?.ok) {
-          // Successfully signed in - redirect to main page
           router.push("/");
           router.refresh();
         } else {
-          // Login failed but account was created
           setError("Account created successfully! However, automatic login failed. Please log in manually.");
-          // Still redirect to login page after a short delay
           setTimeout(() => {
             router.push("/login");
           }, 2000);
         }
       } catch (signInError: any) {
-        // Account created but sign-in failed
         console.error("Auto-login error:", signInError);
         setError("Account created successfully! However, automatic login failed. Please log in manually.");
         setTimeout(() => {
@@ -105,28 +100,32 @@ export default function CompanySignupPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{
-      background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)'
-    }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#F5F7FA' }}>
       <Header />
       <div className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-6">
+        <div 
+          className="max-w-2xl mx-auto bg-white p-8 border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+        >
+          <h2 className="text-2xl font-bold text-center mb-6" style={{ color: '#111827' }}>
             {t("signup.company.title")}
           </h2>
 
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            <div 
+              className="mb-4 px-4 py-3 rounded border"
+              style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
+            >
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("form.accountInfo")}</h3>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{t("form.accountInfo")}</h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-medium" style={{ color: '#374151' }}>
                     {t("form.companyEmail")} *
                   </label>
                   <input
@@ -136,12 +135,12 @@ export default function CompanySignupPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    style={{ color: '#000000' }}
+                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                   />
                 </div>
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="password" className="block text-sm font-medium" style={{ color: '#374151' }}>
                     {t("form.password")} *
                   </label>
                   <input
@@ -151,12 +150,12 @@ export default function CompanySignupPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    style={{ color: '#000000' }}
+                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                   />
                 </div>
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium" style={{ color: '#374151' }}>
                     {t("form.confirmPassword")} *
                   </label>
                   <input
@@ -166,18 +165,18 @@ export default function CompanySignupPage() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    style={{ color: '#000000' }}
+                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                   />
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("form.companyInfo")}</h3>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{t("form.companyInfo")}</h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="companyName" className="block text-sm font-medium" style={{ color: '#374151' }}>
                     {t("form.companyName")} *
                   </label>
                   <input
@@ -187,12 +186,12 @@ export default function CompanySignupPage() {
                     required
                     value={formData.companyName}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    style={{ color: '#000000' }}
+                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                   />
                 </div>
                 <div>
-                  <label htmlFor="contactName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="contactName" className="block text-sm font-medium" style={{ color: '#374151' }}>
                     {t("form.contactName")} *
                   </label>
                   <input
@@ -202,38 +201,47 @@ export default function CompanySignupPage() {
                     required
                     value={formData.contactName}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    style={{ color: '#000000' }}
+                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="card-gradient border-l-4 p-4" style={{ borderImage: 'linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%) 1' }}>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t("form.forCompanies")}</h3>
-              <p className="text-sm text-gray-700 mb-4">
+            <div 
+              className="p-4 border-l-4"
+              style={{ backgroundColor: '#EFF6FF', borderLeftColor: '#2563EB' }}
+            >
+              <h3 className="text-lg font-semibold mb-2" style={{ color: '#111827' }}>{t("form.forCompanies")}</h3>
+              <p className="text-sm mb-4" style={{ color: '#374151' }}>
                 {t("form.companyFeatures")}
               </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 mb-4">
+              <ul className="list-disc list-inside space-y-1 text-sm mb-4" style={{ color: '#374151' }}>
                 <li>{t("form.companyFeature1")}</li>
                 <li>{t("form.companyFeature2")}</li>
                 <li>{t("form.companyFeature3")}</li>
                 <li>{t("form.companyFeature4")}</li>
               </ul>
-              <p className="text-xs text-gray-600 mt-4">
+              <p className="text-xs mt-4" style={{ color: '#6B7280' }}>
                 <strong>{t("form.workHoursNote")}</strong> {t("form.workHoursDesc")}
               </p>
             </div>
 
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("form.termsAndRules")}</h3>
-              <div className="space-y-3 text-sm text-gray-700 mb-4">
+            <div 
+              className="p-4 border-l-4"
+              style={{ backgroundColor: '#FEF3C7', borderLeftColor: '#F59E0B' }}
+            >
+              <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{t("form.termsAndRules")}</h3>
+              <div className="space-y-3 text-sm mb-4" style={{ color: '#374151' }}>
                 <p className="font-semibold">{t("form.readAndAccept")}</p>
                 <ul className="list-disc list-inside space-y-1 ml-2">
                   <li>{t("form.termsOfService")}</li>
                   <li>{t("form.platformRules")}</li>
                 </ul>
-                <div className="mt-4 p-3 bg-white rounded border border-yellow-300">
+                <div 
+                  className="mt-4 p-3 bg-white rounded border"
+                  style={{ borderColor: '#F59E0B' }}
+                >
                   <p className="font-semibold mb-2">Key Rules:</p>
                   <ul className="list-disc list-inside space-y-1 text-xs">
                     <li>No use outside job hunting/career consultation</li>
@@ -252,10 +260,10 @@ export default function CompanySignupPage() {
                   type="checkbox"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  style={{ accentColor: '#f26aa3' }}
+                  className="mt-1 h-4 w-4 border-gray-300 rounded"
+                  style={{ accentColor: '#2563EB' }}
                 />
-                <span className="ml-2 text-sm text-gray-700">
+                <span className="ml-2 text-sm" style={{ color: '#374151' }}>
                   {t("signup.acceptTerms")} *
                 </span>
               </label>
@@ -271,15 +279,15 @@ export default function CompanySignupPage() {
               </button>
             </div>
 
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm" style={{ color: '#6B7280' }}>
               {t("signup.alreadyHaveAccount")}{" "}
-              <Link href="/login" className="font-medium link-gradient">
+              <Link href="/login" className="font-medium hover:underline" style={{ color: '#2563EB' }}>
                 {t("signup.login")}
               </Link>
             </p>
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm" style={{ color: '#6B7280' }}>
               {t("signup.questions") || "Have questions?"}{" "}
-              <a href="mailto:info@senpaicareer.com" className="font-medium link-gradient">
+              <a href="mailto:info@senpaicareer.com" className="font-medium hover:underline" style={{ color: '#2563EB' }}>
                 {t("button.contact")}
               </a>
             </p>
@@ -289,4 +297,3 @@ export default function CompanySignupPage() {
     </div>
   );
 }
-

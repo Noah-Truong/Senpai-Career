@@ -24,11 +24,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
-    const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    // Validate file type - allow both documents and images
+    const documentTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    const imageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+    const allowedTypes = [...documentTypes, ...imageTypes];
+    
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: "Invalid file type. Only PDF, DOC, and DOCX files are allowed." },
+        { error: "Invalid file type. Allowed: PDF, DOC, DOCX, JPEG, PNG, GIF, WebP." },
         { status: 400 }
       );
     }

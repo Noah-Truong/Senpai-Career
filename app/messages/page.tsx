@@ -31,7 +31,6 @@ export default function MessagesPage() {
       loadThreads();
       
       if (obogId) {
-        // If obogId is provided, show message creation form
         router.push(`/messages/new?obogId=${obogId}`);
       }
     }
@@ -56,7 +55,7 @@ export default function MessagesPage() {
       <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>{t("common.loading")}</p>
+          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -66,11 +65,14 @@ export default function MessagesPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-gray-600">{t("messages.title")}</h1>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>{t("messages.title")}</h1>
         
         {threads.length === 0 ? (
-          <div className="card-gradient p-8 text-center">
-            <p className="text-gray-700 text-lg mb-4">{t("messages.empty")}</p>
+          <div 
+            className="p-8 text-center border rounded"
+            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          >
+            <p className="text-lg mb-4" style={{ color: '#374151' }}>{t("messages.empty")}</p>
             {role === "student" && (
               <Link href="/ob-list" className="btn-primary inline-block">
                 {t("button.browseObog")}
@@ -88,7 +90,8 @@ export default function MessagesPage() {
               <Link
                 key={thread.id}
                 href={`/messages/${thread.id}`}
-                className="card-gradient p-4 hover:shadow-lg transition-shadow block"
+                className="p-4 bg-white border rounded hover:shadow-md transition-shadow block"
+                style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
               >
                 <div className="flex items-center">
                   <Avatar
@@ -99,12 +102,12 @@ export default function MessagesPage() {
                     className="mr-4"
                   />
                   <div className="flex-1">
-                    <h3 className="font-semibold">{thread.otherUser?.name || t("label.unknownUser")}</h3>
-                    <p className="text-sm text-gray-600 truncate">
+                    <h3 className="font-semibold" style={{ color: '#111827' }}>{thread.otherUser?.name || t("label.unknownUser")}</h3>
+                    <p className="text-sm truncate" style={{ color: '#6B7280' }}>
                       {thread.lastMessage?.content ? translate(thread.lastMessage.content) : t("label.noMessagesYet")}
                     </p>
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm" style={{ color: '#9CA3AF' }}>
                     {thread.lastMessage?.createdAt 
                       ? new Date(thread.lastMessage.createdAt).toLocaleDateString()
                       : ""}
@@ -118,4 +121,3 @@ export default function MessagesPage() {
     </div>
   );
 }
-

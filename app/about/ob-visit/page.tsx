@@ -34,7 +34,7 @@ export default function OBVisitPage() {
     
     <section className="py-16"
     style={{
-      background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.08) 0%, rgba(245, 159, 193, 0.08) 35%, rgba(111, 211, 238, 0.08) 70%, rgba(76, 195, 230, 0.08) 100%)'
+      background: '#F5F7FA'
     }}
     >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -51,12 +51,12 @@ export default function OBVisitPage() {
       </section>
 
       {/* Benefits */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">{t("obvisit.benefits.title")}</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 gradient-bg">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-[#0F2A44]">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -67,7 +67,7 @@ export default function OBVisitPage() {
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 gradient-bg">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-[#0F2A44]">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
@@ -78,7 +78,7 @@ export default function OBVisitPage() {
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 gradient-bg">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-[#0F2A44]">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -89,7 +89,7 @@ export default function OBVisitPage() {
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 gradient-bg">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-[#0F2A44]">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
@@ -104,11 +104,13 @@ export default function OBVisitPage() {
       </section>
 
       {/* Profile Types */}
-      <section className="py-16 bg-white">
+      <section className="py-16" style={{
+        background: '#F5F7FA'
+      }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">{t("obvisit.profiles.title")}</h2>
           <div className="space-y-6">
-            <div className="border-l-4 pl-6" style={{ borderImage: 'linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%) 1' }}>
+            <div className="border-l-4 pl-6" style={{ borderColor: '#2563EB' }}>
               <h3 className="text-xl font-semibold mb-2 text-gray-900">{t("obvisit.profiles.holders.title")}</h3>
               <p className="text-gray-700 mb-4">
                 {t("obvisit.profiles.holders.desc")}
@@ -128,7 +130,7 @@ export default function OBVisitPage() {
                 </li>
               </ul>
             </div>
-            <div className="border-l-4 pl-6" style={{ borderImage: 'linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%) 1' }}>
+            <div className="border-l-4 pl-6" style={{ borderColor: '#2563EB' }}>
               <h3 className="text-xl font-semibold mb-2 text-gray-900">{t("obvisit.profiles.professionals.title")}</h3>
               <p className="text-gray-700 mb-4">
                 {t("obvisit.profiles.professionals.desc")}
@@ -153,15 +155,13 @@ export default function OBVisitPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16" style={{
-        background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)'
-      }}>
+      <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">{t("obvisit.howItWorks.title")}</h2>
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-start">
-                <div className="flex-shrink-0 w-10 h-10 gradient-bg text-white rounded-full flex items-center justify-center font-bold mr-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-[#0F2A44] text-white rounded-full flex items-center justify-center font-bold mr-4">
                   1
                 </div>
                 <div>
@@ -174,7 +174,7 @@ export default function OBVisitPage() {
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-start">
-                <div className="flex-shrink-0 w-10 h-10 gradient-bg text-white rounded-full flex items-center justify-center font-bold mr-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-[#0F2A44] text-white rounded-full flex items-center justify-center font-bold mr-4">
                   2
                 </div>
                 <div>
@@ -187,7 +187,7 @@ export default function OBVisitPage() {
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-start">
-                <div className="flex-shrink-0 w-10 h-10 gradient-bg text-white rounded-full flex items-center justify-center font-bold mr-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-[#0F2A44] text-white rounded-full flex items-center justify-center font-bold mr-4">
                   3
                 </div>
                 <div>
@@ -200,7 +200,7 @@ export default function OBVisitPage() {
             </div>
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <div className="flex items-start">
-                <div className="flex-shrink-0 w-10 h-10 gradient-bg text-white rounded-full flex items-center justify-center font-bold mr-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-[#0F2A44] text-white rounded-full flex items-center justify-center font-bold mr-4">
                   4
                 </div>
                 <div>

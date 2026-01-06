@@ -337,7 +337,7 @@ The application uses JSON files for data storage in the `data/` directory:
 
 The application uses Tailwind CSS with custom gradient theme:
 - Gradient colors: `#f26aa3` → `#f59fc1` → `#6fd3ee` → `#4cc3e6`
-- Custom classes: `.gradient-text`, `.gradient-bg`, `.card-gradient`, `.btn-primary`, `.btn-secondary`
+- Custom classes: `.gradient-text`, `.card-gradient`, `.btn-primary`, `.btn-secondary`
 - All styles defined in `app/globals.css`
 
 ### Language Support

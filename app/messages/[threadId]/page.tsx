@@ -47,7 +47,6 @@ export default function MessageThreadPage() {
         setMessages(data.messages);
         if (data.otherUser) {
           setOtherUser(data.otherUser);
-          // Check if user has already reviewed this person
           if (session?.user?.id && data.otherUser.id) {
             try {
               const reviewResponse = await fetch(`/api/reviews?userId=${data.otherUser.id}`);
@@ -100,7 +99,6 @@ export default function MessageThreadPage() {
       }
 
       setNewMessage("");
-      // Reload messages
       loadMessages();
     } catch (err: any) {
       setError(err.message || "Failed to send message");
@@ -114,7 +112,7 @@ export default function MessageThreadPage() {
       <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>{t("common.loading")}</p>
+          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -124,11 +122,15 @@ export default function MessageThreadPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="card-gradient p-6 mb-4">
+        <div 
+          className="p-6 mb-4 bg-white border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+        >
           <div className="flex items-center mb-4">
             <button
               onClick={() => router.push("/messages")}
-              className="mr-4 text-gray-600 hover:text-gray-900"
+              className="mr-4 transition-colors"
+              style={{ color: '#6B7280' }}
             >
               ← {t("nav.back") || "Back"}
             </button>
@@ -140,11 +142,11 @@ export default function MessageThreadPage() {
               className="mr-4"
             />
             <div className="flex-1">
-              <h1 className="text-xl font-semibold">
+              <h1 className="text-lg font-semibold" style={{ color: '#111827' }}>
                 {otherUser?.name || t("label.unknownUser")}
               </h1>
               {otherUser?.company && (
-                <p className="text-sm text-gray-600">{otherUser.company}</p>
+                <p className="text-sm" style={{ color: '#6B7280' }}>{otherUser.company}</p>
               )}
             </div>
             {otherUser?.id && (
@@ -167,15 +169,21 @@ export default function MessageThreadPage() {
         </div>
 
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div 
+            className="mb-4 px-4 py-3 rounded border"
+            style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
+          >
             {error}
           </div>
         )}
 
         {/* Messages */}
-        <div className="card-gradient p-6 mb-4" style={{ minHeight: "400px", maxHeight: "600px", overflowY: "auto" }}>
+        <div 
+          className="p-6 mb-4 bg-white border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px', minHeight: '400px', maxHeight: '600px', overflowY: 'auto' }}
+        >
           {messages.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">{t("messages.empty")}</p>
+            <p className="text-center py-8" style={{ color: '#6B7280' }}>{t("messages.empty")}</p>
           ) : (
             <div className="space-y-4">
               {messages.map((message) => {
@@ -186,16 +194,18 @@ export default function MessageThreadPage() {
                     className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                        isOwn
-                          ? "gradient-bg text-white"
-                          : "bg-gray-100 text-gray-900"
-                      }`}
+                      className="max-w-xs lg:max-w-md px-4 py-2 rounded"
+                      style={{
+                        backgroundColor: isOwn ? '#0F2A44' : '#F5F7FA',
+                        color: isOwn ? '#FFFFFF' : '#111827',
+                        borderRadius: '6px'
+                      }}
                     >
                       <p className="text-sm whitespace-pre-wrap">{translate(message.content)}</p>
-                      <p className={`text-xs mt-1 ${
-                        isOwn ? "text-white/70" : "text-gray-500"
-                      }`}>
+                      <p 
+                        className="text-xs mt-1"
+                        style={{ color: isOwn ? 'rgba(255,255,255,0.7)' : '#6B7280' }}
+                      >
                         {new Date(message.createdAt).toLocaleString()}
                       </p>
                     </div>
@@ -207,15 +217,19 @@ export default function MessageThreadPage() {
         </div>
 
         {/* Message Input */}
-        <form onSubmit={handleSend} className="card-gradient p-4">
+        <form 
+          onSubmit={handleSend} 
+          className="p-4 bg-white border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+        >
           <div className="flex gap-4">
             <textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder={t("messages.thread.placeholder")}
               rows={3}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              style={{ color: '#000000' }}
+              className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2"
+              style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
             />
             <button
               type="submit"
@@ -242,4 +256,3 @@ export default function MessageThreadPage() {
     </div>
   );
 }
-

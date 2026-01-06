@@ -31,12 +31,9 @@ export default function CreditsPage() {
     if (status === "authenticated") {
       loadUserCredits();
       
-      // Check for success/cancel from Stripe
       const success = searchParams.get("success");
-      const canceled = searchParams.get("canceled");
       
       if (success) {
-        // Reload credits after successful payment
         setTimeout(() => {
           loadUserCredits();
           router.replace("/credits");
@@ -60,9 +57,6 @@ export default function CreditsPage() {
     }
   };
 
-  // Calculate JPY price from credits
-  // Companies: 20 credits = 300 JPY (15 JPY per credit)
-  // Others: 20 credits = 600 JPY (30 JPY per credit)
   const calculatePrice = (credits: number): number => {
     if (!credits || credits <= 0) return 0;
     const pricePerCredit = userRole === "company" ? 15 : 30;
@@ -90,7 +84,7 @@ export default function CreditsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          credits, // Send the credits amount
+          credits,
           isRecurring,
         }),
       });
@@ -103,7 +97,6 @@ export default function CreditsPage() {
       const { url } = await response.json();
       
       if (url) {
-        // Redirect to Stripe Checkout
         window.location.href = url;
       } else {
         throw new Error("No checkout URL received");
@@ -119,7 +112,7 @@ export default function CreditsPage() {
       <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>{t("common.loading")}</p>
+          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -132,35 +125,44 @@ export default function CreditsPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6" style={{ color: '#000000' }}>{"Pricing"}</h1>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>Pricing</h1>
 
         {/* Current Credits Display */}
-        <div className="card-gradient p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000'}}>{"Current Credits"}</h2>
-          <p className="text-3xl font-bold text-gray-900 mb-4" style={{ color: 'green' }}>
+        <div 
+          className="p-6 mb-8 bg-white border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+        >
+          <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>Current Credits</h2>
+          <p className="text-3xl font-bold mb-4" style={{ color: '#059669' }}>
             {userCredits !== null ? userCredits.toLocaleString() : 0}
           </p>
-          <p className="text-sm text-gray-600 mb-2">
-            {"Credits are deducted when sending messages:"}
+          <p className="text-sm mb-2" style={{ color: '#6B7280' }}>
+            Credits are deducted when sending messages:
           </p>
-          <p className="text-sm font-semibold" style={{ color: 'red'}}>
-            {"-10 credits per message (all account types)"}
+          <p className="text-sm font-semibold" style={{ color: '#DC2626' }}>
+            -10 credits per message (all account types)
           </p>
         </div>
 
         {/* Pricing Information */}
-        <div className="card-gradient p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000'}}>{"Pricing"}</h2>
+        <div 
+          className="p-6 mb-8 bg-white border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+        >
+          <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>Pricing</h2>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-              <span className="font-bold" style={{ color: '#000000'}}>{"Rate"}:</span>
-              <span className="text-lg font-semibold" style={{ color: '#000000'}}>
+            <div 
+              className="flex items-center justify-between p-3 rounded"
+              style={{ backgroundColor: '#F5F7FA' }}
+            >
+              <span className="font-bold" style={{ color: '#111827' }}>Rate:</span>
+              <span className="text-lg font-semibold" style={{ color: '#111827' }}>
                 {userRole === "company" 
                   ? "20 credits = ¥300"
                   : "20 credits = ¥600"}
               </span>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm" style={{ color: '#6B7280' }}>
               {userRole === "company"
                 ? "Companies receive credits at a discounted rate"
                 : "Standard rate for students and OB/OG"}
@@ -169,19 +171,25 @@ export default function CreditsPage() {
         </div>
 
         {/* Purchase Form */}
-        <div className="card-gradient p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4" style={{ color: '#000000'}}>{"Purchase Credits"}</h2>
+        <div 
+          className="p-6 mb-8 bg-white border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+        >
+          <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>Purchase Credits</h2>
           
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            <div 
+              className="mb-4 px-4 py-3 rounded border"
+              style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
+            >
               {error}
             </div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="credits" className="block text-sm font-medium text-gray-700 mb-2">
-                {"Number of Credits"}
+              <label htmlFor="credits" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                Number of Credits
               </label>
               <input
                 type="number"
@@ -196,48 +204,58 @@ export default function CreditsPage() {
                     setError("");
                   }
                 }}
-                placeholder={"Enter amount (minimum 20)"}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
-                style={{ color: '#000000' }}
+                placeholder="Enter amount (minimum 20)"
+                className="w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 text-lg"
+                style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                {"Minimum: 20 credits"}
+              <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
+                Minimum: 20 credits
               </p>
             </div>
 
             {customCredits && creditsValue >= 20 && priceJPY > 0 && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div 
+                className="p-4 rounded border"
+                style={{ backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }}
+              >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-gray-900">
-                    {"Total Price"}:
+                  <span className="font-semibold" style={{ color: '#111827' }}>
+                    Total Price:
                   </span>
-                  <span className="text-2xl font-bold text-blue-600">
+                  <span className="text-2xl font-bold" style={{ color: '#2563EB' }}>
                     ¥{priceJPY.toLocaleString()}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">
-                  {"Credits"}: {creditsValue.toLocaleString()}
+                <p className="text-sm" style={{ color: '#6B7280' }}>
+                  Credits: {creditsValue.toLocaleString()}
                 </p>
               </div>
             )}
 
             {/* Recurring Payment Option */}
-            <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+            <div 
+              className="flex items-center p-4 rounded"
+              style={{ backgroundColor: '#F5F7FA' }}
+            >
               <input
                 type="checkbox"
                 id="recurring"
                 checked={isRecurring}
                 onChange={(e) => setIsRecurring(e.target.checked)}
-                className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-5 h-5 border-gray-300 rounded"
+                style={{ accentColor: '#2563EB' }}
               />
-              <label htmlFor="recurring" className="ml-3 text-sm font-medium text-gray-700">
-                {"Enable recurring monthly payments"}
+              <label htmlFor="recurring" className="ml-3 text-sm font-medium" style={{ color: '#374151' }}>
+                Enable recurring monthly payments
               </label>
             </div>
             {isRecurring && (
-              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  {"You will be charged monthly for the selected amount of credits. You can cancel anytime."}
+              <div 
+                className="p-3 rounded border"
+                style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}
+              >
+                <p className="text-sm" style={{ color: '#92400E' }}>
+                  You will be charged monthly for the selected amount of credits. You can cancel anytime.
                 </p>
               </div>
             )}
@@ -248,29 +266,34 @@ export default function CreditsPage() {
               className="btn-primary w-full py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {processing 
-                ? ("Processing...")
+                ? "Processing..."
                 : isRecurring
-                ? ("Subscribe")
-                : ("Purchase Credits")}
+                ? "Subscribe"
+                : "Purchase Credits"}
             </button>
           </div>
         </div>
 
         {/* Success Message */}
         {searchParams.get("success") && (
-          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-            {"Payment successful! Your credits have been added."}
+          <div 
+            className="mb-4 px-4 py-3 rounded border"
+            style={{ backgroundColor: '#D1FAE5', borderColor: '#A7F3D0', color: '#059669' }}
+          >
+            Payment successful! Your credits have been added.
           </div>
         )}
 
         {/* Cancel Message */}
         {searchParams.get("canceled") && (
-          <div className="mb-4 bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
-            {"Payment was canceled."}
+          <div 
+            className="mb-4 px-4 py-3 rounded border"
+            style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D', color: '#D97706' }}
+          >
+            Payment was canceled.
           </div>
         )}
       </div>
     </div>
   );
 }
-

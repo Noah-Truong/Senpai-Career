@@ -28,14 +28,12 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        // More specific error messages
         if (result.error === "CredentialsSignin") {
           setError(t("login.error"));
         } else {
           setError(t("login.errorGeneric"));
         }
       } else if (result?.ok) {
-        // Redirect to main page
         router.push("/");
         router.refresh();
       } else {
@@ -50,29 +48,36 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{
-      background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)'
-    }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#F5F7FA' }}>
       <Header />
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
+        <div 
+          className="max-w-md w-full space-y-8 bg-white p-8 border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+        >
           <div>
-            <h2 className="text-3xl font-bold text-center text-gray-900">
+            <h2 
+              className="text-2xl font-bold text-center"
+              style={{ color: '#111827' }}
+            >
               {t("login.title")}
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm" style={{ color: '#6B7280' }}>
               {t("login.subtitle")}
             </p>
           </div>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div 
+                className="px-4 py-3 rounded border"
+                style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
+              >
                 {error}
               </div>
             )}
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium" style={{ color: '#374151' }}>
                   {t("login.email")}
                 </label>
                 <input
@@ -83,13 +88,13 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="mt-1 appearance-none relative block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 sm:text-sm"
                   placeholder={t("form.emailPlaceholder")}
-                  style={{ color: '#000000' }}
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium" style={{ color: '#374151' }}>
                   {t("login.password")}
                 </label>
                 <input
@@ -100,9 +105,9 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="mt-1 appearance-none relative block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 sm:text-sm"
                   placeholder="••••••••"
-                  style={{ color: '#000000' }}
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />
               </div>
             </div>
@@ -113,15 +118,20 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 border-gray-300 rounded" style={{ accentColor: '#f26aa3' }}
+                  className="h-4 w-4 border-gray-300 rounded"
+                  style={{ accentColor: '#2563EB' }}
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                <label htmlFor="remember-me" className="ml-2 block text-sm" style={{ color: '#374151' }}>
                   {t("login.rememberMe")}
                 </label>
               </div>
 
               <div className="text-sm">
-                <Link href="/forgot-password" className="font-medium link-gradient">
+                <Link 
+                  href="/forgot-password" 
+                  className="font-medium hover:underline"
+                  style={{ color: '#2563EB' }}
+                >
                   {t("login.forgotPassword")}
                 </Link>
               </div>
@@ -142,4 +152,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
