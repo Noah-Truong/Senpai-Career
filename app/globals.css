@@ -18,6 +18,24 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+}
+
+/* Smooth transitions for all interactive elements */
+a, button, input, textarea, select {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @layer utilities {
@@ -71,11 +89,17 @@ body {
     @apply px-4 py-2 text-white rounded-lg font-semibold transition-all duration-300;
     background: linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%);
     box-shadow: 0 4px 15px rgba(242, 106, 163, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(242, 106, 163, 0.4);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(242, 106, 163, 0.3);
   }
   
   .btn-secondary {
@@ -86,12 +110,17 @@ body {
     background-origin: border-box;
     background-clip: padding-box, border-box;
     color: #f26aa3;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .btn-secondary:hover {
     background-image: linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%), linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%);
     color: white;
     transform: translateY(-2px);
+  }
+  
+  .btn-secondary:active {
+    transform: translateY(0);
   }
   
   /* Gradient Link Styles */
@@ -101,10 +130,12 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .link-gradient:hover {
     opacity: 0.8;
+    transform: scale(1.05);
   }
   
   /* Navigation Button with Gradient Border */
@@ -135,6 +166,12 @@ body {
   /* Custom card styles */
   .card {
     @apply bg-white rounded-lg shadow-md p-6;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   }
   
   .card-gradient {
@@ -142,6 +179,12 @@ body {
     background: linear-gradient(135deg, rgba(242, 106, 163, 0.05) 0%, rgba(245, 159, 193, 0.05) 35%, rgba(111, 211, 238, 0.05) 70%, rgba(76, 195, 230, 0.05) 100%);
     border: 1px solid;
     border-image: linear-gradient(135deg, rgba(242, 106, 163, 0.2) 0%, rgba(245, 159, 193, 0.2) 35%, rgba(111, 211, 238, 0.2) 70%, rgba(76, 195, 230, 0.2) 100%) 1;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .card-gradient:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(242, 106, 163, 0.15);
   }
   
   /* Input focus styles with gradient */
@@ -163,6 +206,14 @@ select:focus {
   border-color: #f26aa3 !important;
   box-shadow: 0 0 0 3px rgba(242, 106, 163, 0.1) !important;
   outline: none !important;
+  transform: scale(1.01);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input,
+textarea,
+select {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Global input text and placeholder styles - input text black, placeholder gray */
@@ -245,5 +296,44 @@ textarea::placeholder {
 .animated-gradient-flow {
   background-size: 300% 300%;
   animation: gradient-flow 4s ease infinite;
+}
+
+/* Custom Scrollbar Styles - Gradient Pink to Blue */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(242, 106, 163, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #e55a93 0%, #e58fb1 35%, #5fc3de 70%, #3cb3d6 100%);
+  box-shadow: 0 0 10px rgba(242, 106, 163, 0.5);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(242, 106, 163, 0.1);
+}
+
+/* Firefox - uses solid color since gradients aren't supported */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #6fd3ee rgba(242, 106, 163, 0.1);
+}
+
+/* Additional smooth scrollbar styling */
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #d44a83 0%, #d57fa1 35%, #4fb3ce 70%, #2ca3c6 100%);
 }
 

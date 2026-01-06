@@ -1,5 +1,8 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { avatarVariants } from "@/lib/animations";
+
 interface AvatarProps {
   src?: string | null;
   alt: string;
@@ -54,9 +57,16 @@ export default function Avatar({
   };
 
   return (
-    <div className={`${sizeClasses[size]} rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden ${className}`}>
+    <motion.div 
+      className={`${sizeClasses[size]} rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden ${className}`}
+      variants={avatarVariants}
+      initial="initial"
+      animate="animate"
+      whileHover={{ scale: 1.1 }}
+      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+    >
       {src ? (
-        <img 
+        <motion.img 
           src={src} 
           alt={alt} 
           className="w-full h-full rounded-full object-cover"
@@ -65,15 +75,19 @@ export default function Avatar({
             const target = e.target as HTMLImageElement;
             target.src = placeholderSvg(getInitial());
           }}
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.2 }}
         />
       ) : (
-        <img 
+        <motion.img 
           src={placeholderSvg(getInitial())} 
           alt={alt}
           className="w-full h-full rounded-full object-cover"
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.2 }}
         />
       )}
-    </div>
+    </motion.div>
   );
 }
 
