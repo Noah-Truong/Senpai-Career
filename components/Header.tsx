@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import Logo from "./Logo";
@@ -31,6 +32,10 @@ function NavDropdown({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownVariants = {
+    hidden: { opacity: 0, y: 6, scale: 0.98, pointerEvents: "none" },
+    visible: { opacity: 1, y: 0, scale: 1, pointerEvents: "auto", transition: { duration: 0.18, ease: [0.25, 0.1, 0.25, 1] } },
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -44,8 +49,9 @@ function NavDropdown({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
+      <motion.button
         onClick={() => setIsOpen(!isOpen)}
+        whileTap={{ scale: 0.97 }}
         className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded transition-colors ${
           isActive 
             ? 'text-navy bg-surface-light' 
@@ -62,25 +68,32 @@ function NavDropdown({
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
-      </button>
-      {isOpen && (
-        <div 
-          className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded shadow-lg z-50"
-          style={{ borderRadius: '6px' }}
-        >
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-navy transition-colors"
-              style={{ color: '#374151' }}
-              onClick={() => setIsOpen(false)}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      )}
+      </motion.button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            key="dropdown"
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={dropdownVariants}
+            className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded shadow-lg z-50 origin-top"
+            style={{ borderRadius: '6px' }}
+          >
+            {items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-navy transition-colors"
+                style={{ color: '#374151' }}
+                onClick={() => setIsOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -6,6 +6,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import OBOGListContent from "@/components/OBOGListContent";
+import { motion } from "framer-motion";
+import { fadeIn, slideUp, staggerContainer, staggerItem, buttonVariants } from "@/lib/animations";
 
 export default function OBVisitPage() {
   const { t } = useLanguage();
@@ -32,87 +34,180 @@ export default function OBVisitPage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="py-16" style={{ backgroundColor: '#F5F7FA' }}>
+      <motion.section 
+        className="py-16" 
+        style={{ backgroundColor: '#F5F7FA' }}
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: '#111827' }}>
+          <motion.h1 
+            className="text-3xl md:text-4xl font-bold mb-6" 
+            style={{ color: '#111827' }}
+            variants={slideUp}
+          >
             {t("obvisit.hero.title")}
-          </h1>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: '#6B7280' }}>
+          </motion.h1>
+          <motion.p 
+            className="text-lg max-w-2xl mx-auto" 
+            style={{ color: '#6B7280' }}
+            variants={slideUp}
+          >
             {t("obvisit.hero.subtitle")}
-          </p>
+          </motion.p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Safety Rules */}
-      <section className="py-16 bg-white">
+      <motion.section 
+        className="py-16 bg-white"
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={fadeIn}
+      >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold mb-8" style={{ color: '#111827' }}>{t("obvisit.safety.title")}</h2>
-          <div 
+          <motion.h2 
+            className="text-2xl font-bold mb-8" 
+            style={{ color: '#111827' }}
+            variants={slideUp}
+          >
+            {t("obvisit.safety.title")}
+          </motion.h2>
+          <motion.div 
             className="p-6 mb-6 border-l-4"
             style={{ backgroundColor: '#FEF3C7', borderLeftColor: '#F59E0B' }}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.25 }}
           >
             <p className="font-semibold mb-2" style={{ color: '#374151' }}>{t("obvisit.safety.important")}</p>
-            <ul className="space-y-2 text-sm" style={{ color: '#374151' }}>
-              <li>• {t("obvisit.safety.1")}</li>
-              <li>• {t("obvisit.safety.2")}</li>
-              <li>• {t("obvisit.safety.3")}</li>
-              <li>• {t("obvisit.safety.4")}</li>
-              <li>• {t("obvisit.safety.5")}</li>
-              <li>• {t("obvisit.safety.6")}</li>
-              <li>• {t("obvisit.safety.7")}</li>
-              <li>• {t("obvisit.safety.8")}</li>
-            </ul>
-          </div>
-          <p style={{ color: '#6B7280' }}>
+            <motion.ul 
+              className="space-y-2 text-sm" 
+              style={{ color: '#374151' }}
+              variants={staggerContainer}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+            >
+              {[
+                t("obvisit.safety.1"),
+                t("obvisit.safety.2"),
+                t("obvisit.safety.3"),
+                t("obvisit.safety.4"),
+                t("obvisit.safety.5"),
+                t("obvisit.safety.6"),
+                t("obvisit.safety.7"),
+                t("obvisit.safety.8"),
+              ].map((item, index) => (
+                <motion.li key={index} variants={staggerItem}>
+                  • {item}
+                </motion.li>
+              ))}
+            </motion.ul>
+          </motion.div>
+          <motion.p 
+            style={{ color: '#6B7280' }}
+            variants={slideUp}
+          >
             {t("obvisit.safety.desc")}
-          </p>
+          </motion.p>
         </div>
-      </section>
+      </motion.section>
 
       {/* OB/OG List Section */}
-      <section className="py-16 bg-white">
+      <motion.section 
+        className="py-16 bg-white"
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={fadeIn}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
-            <div className="text-center py-12">
+            <motion.div 
+              className="text-center py-12"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.25 }}
+            >
               <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
-            </div>
+            </motion.div>
           ) : (
             <OBOGListContent obogUsers={obogUsers} />
           )}
         </div>
-      </section>
+      </motion.section>
 
       {/* CTA Section */}
       {!isLoggedIn && (
-        <section className="py-16 text-white" style={{ backgroundColor: '#0F2A44' }}>
+        <motion.section 
+          className="py-16 text-white" 
+          style={{ backgroundColor: '#0F2A44' }}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={fadeIn}
+        >
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">{t("obvisit.cta.title")}</h2>
-            <p className="text-lg mb-8 opacity-90">
+            <motion.h2 
+              className="text-2xl font-bold mb-4"
+              variants={slideUp}
+            >
+              {t("obvisit.cta.title")}
+            </motion.h2>
+            <motion.p 
+              className="text-lg mb-8 opacity-90"
+              variants={slideUp}
+            >
               {t("obvisit.cta.subtitle")}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/signup/student"
-                className="btn-primary px-8 py-3"
-              >
-                {t("obvisit.cta.signUpStudent")}
-              </Link>
-              <Link
-                href="/signup/obog"
-                className="px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded font-semibold hover:bg-white hover:text-gray-900 transition-all"
-                style={{ borderRadius: '6px' }}
-              >
-                {t("obvisit.cta.signUpObog")}
-              </Link>
-            </div>
-            <p className="mt-8 text-lg opacity-90">
+            </motion.p>
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+              variants={staggerContainer}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+            >
+              <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+                <Link
+                  href="/signup/student"
+                  className="btn-primary px-8 py-3"
+                >
+                  {t("obvisit.cta.signUpStudent")}
+                </Link>
+              </motion.div>
+              <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+                <Link
+                  href="/signup/obog"
+                  className="px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded font-semibold hover:bg-white hover:text-gray-900 transition-all"
+                  style={{ borderRadius: '6px' }}
+                >
+                  {t("obvisit.cta.signUpObog")}
+                </Link>
+              </motion.div>
+            </motion.div>
+            <motion.p 
+              className="mt-8 text-lg opacity-90"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 0.9 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.25, delay: 0.2 }}
+            >
               {t("obvisit.cta.login")}{" "}
-              <Link href="/login" className="underline hover:opacity-80">
-                {t("obvisit.cta.loginLink")}
-              </Link>
-            </p>
+              <motion.span
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Link href="/login" className="underline hover:opacity-80">
+                  {t("obvisit.cta.loginLink")}
+                </Link>
+              </motion.span>
+            </motion.p>
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* Footer */}

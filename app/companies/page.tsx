@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
+import { motion } from "framer-motion";
+import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
 
 interface Company {
   id: string;
@@ -91,13 +93,27 @@ export default function CompaniesPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>{t("companies.title") || "Companies"}</h1>
+      <motion.div 
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+      >
+        <motion.h1 
+          className="text-2xl font-bold mb-6" 
+          style={{ color: '#111827' }}
+          variants={slideUp}
+        >
+          {t("companies.title") || "Companies"}
+        </motion.h1>
         
         {/* Search Bar */}
-        <div 
+        <motion.div 
           className="mb-8 p-4 border rounded"
           style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.1 }}
         >
           <div className="relative">
             <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24">
@@ -113,38 +129,61 @@ export default function CompaniesPage() {
             />
           </div>
           {searchTerm && (
-            <p className="mt-2 text-sm" style={{ color: '#6B7280' }}>
+            <motion.p 
+              className="mt-2 text-sm" 
+              style={{ color: '#6B7280' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
               {filteredCompanies.length} {t("companies.resultsFound") || "companies found"}
-            </p>
+            </motion.p>
           )}
-        </div>
+        </motion.div>
 
         {error && (
-          <div 
+          <motion.div 
             className="mb-4 px-4 py-3 rounded border"
             style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.2 }}
           >
             {error}
-          </div>
+          </motion.div>
         )}
 
         {filteredCompanies.length === 0 ? (
-          <div 
+          <motion.div 
             className="p-8 text-center border rounded"
             style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
           >
             <p className="text-lg mb-4" style={{ color: '#374151' }}>
               {searchTerm ? (t("companies.noResults") || "No companies found matching your search.") : (t("companies.empty") || "No companies found.")}
             </p>
             {searchTerm && <p style={{ color: '#6B7280' }}>{t("companies.tryDifferent") || "Try a different search term."}</p>}
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCompanies.map((company) => (
-              <div
+          <motion.div 
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            {filteredCompanies.map((company, index) => (
+              <motion.div
                 key={company.id}
                 className="p-6 bg-white border rounded hover:shadow-md transition-all duration-300"
                 style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+                variants={cardVariants}
+                whileHover="hover"
+                initial="initial"
+                animate="animate"
+                transition={{ delay: index * 0.05 }}
               >
                 <div className="flex items-start mb-4">
                   <Avatar
@@ -193,17 +232,19 @@ export default function CompaniesPage() {
                   </div>
                 )}
 
-                <Link
-                  href={`/companies/${company.id}`}
-                  className="btn-primary w-full text-center block"
-                >
-                  {t("button.viewDetails") || "View Details"}
-                </Link>
-              </div>
+                <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+                  <Link
+                    href={`/companies/${company.id}`}
+                    className="btn-primary w-full text-center block"
+                  >
+                    {t("button.viewDetails") || "View Details"}
+                  </Link>
+                </motion.div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

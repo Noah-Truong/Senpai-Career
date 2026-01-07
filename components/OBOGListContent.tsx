@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
 import Avatar from "./Avatar";
+import { motion } from "framer-motion";
+import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
 
 interface OBOGUser {
   id: string;
@@ -47,15 +49,25 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
 
   return (
     <>
-      <div className="mb-8">
+      <motion.div 
+        className="mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
         <h2 className="text-3xl font-bold mb-2 text-gray-600">{t("obogList.title")}</h2>
         <p className="text-gray-600">
           {t("obogList.subtitle")}
         </p>
-      </div>
+      </motion.div>
 
       {/* Search and Filter */}
-      <div className="mb-8 card-gradient p-4">
+      <motion.div 
+        className="mb-8 card-gradient p-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, delay: 0.1 }}
+      >
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -72,45 +84,64 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
               />
             </div>
           </div>
-          <div className="flex gap-2">
-            <button
+          <motion.div 
+            className="flex gap-2"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            <motion.button
               onClick={() => setTypeFilter("all")}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 typeFilter === "all" 
                   ? "bg-pink-500 text-white" 
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
             >
               {t("obogList.filter.all") || "All"}
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => setTypeFilter("working-professional")}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 typeFilter === "working-professional" 
                   ? "bg-blue-500 text-white" 
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
             >
               {t("obogList.filter.professional") || "Professionals"}
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => setTypeFilter("job-offer-holder")}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 typeFilter === "job-offer-holder" 
                   ? "bg-green-500 text-white" 
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
             >
               {t("obogList.filter.jobOffer") || "Job Offer Holders"}
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
         {searchTerm && (
-          <p className="mt-2 text-sm text-gray-500">
+          <motion.p 
+            className="mt-2 text-sm text-gray-500"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          >
             {filteredUsers.length} {t("obogList.resultsFound") || "results found"}
-          </p>
+          </motion.p>
         )}
-      </div>
+      </motion.div>
 
       {filteredUsers.length === 0 ? (
         <div className="card-gradient p-8 text-center">
@@ -118,13 +149,24 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
           <p className="text-gray-500 mt-2">{searchTerm ? (t("obogList.tryDifferent") || "Try a different search term or filter.") : t("obogList.empty.desc")}</p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredUsers.map((obog) => (
-            <Link 
-              key={obog.id} 
-              href={`/obog/${obog.id}`}
-              className="card-gradient p-6 hover:shadow-xl transition-all duration-300 block"
+        <motion.div 
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          {filteredUsers.map((obog, index) => (
+            <motion.div
+              key={obog.id}
+              variants={staggerItem}
+              initial="initial"
+              animate="animate"
+              transition={{ delay: index * 0.05 }}
             >
+              <Link 
+                href={`/obog/${obog.id}`}
+                className="card-gradient p-6 hover:shadow-xl transition-all duration-300 block"
+              >
               <div className="flex items-start mb-4">
                 <Avatar 
                   src={obog.profilePhoto} 
@@ -175,9 +217,10 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
                   <p>{t("obogList.card.nationality")} {obog.nationality}</p>
                 )}
               </div>
-            </Link>
+              </Link>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </>
   );
