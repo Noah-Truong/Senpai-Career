@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "next-auth/react";
 import CompanyLogo from "@/components/CompanyLogo";
+import { motion } from "framer-motion";
+import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
 
 export default function RecruitingPage() {
   const { t } = useLanguage();
@@ -57,9 +59,14 @@ export default function RecruitingPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <motion.div 
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+      >
         {/* Page Header */}
-        <div className="mb-8">
+        <motion.div className="mb-8" variants={slideUp}>
           <h1 
             className="text-2xl md:text-3xl font-bold mb-2"
             style={{ color: '#111827' }}
@@ -69,12 +76,17 @@ export default function RecruitingPage() {
           <p style={{ color: '#6B7280' }}>
             {t("recruiting.subtitle")}
           </p>
-        </div>
+        </motion.div>
 
         {/* Info Section */}
-        <div 
+        <motion.div 
           className="p-6 mb-8 border rounded"
           style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          variants={cardVariants}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true }}
+          whileHover="hover"
         >
           <h2 
             className="text-lg font-semibold mb-3"
@@ -85,12 +97,15 @@ export default function RecruitingPage() {
           <p style={{ color: '#6B7280' }} className="mb-4">
             {t("recruiting.about.desc")}
           </p>
-        </div>
+        </motion.div>
 
         {/* Search Bar */}
-        <div 
+        <motion.div 
           className="mb-8 p-4 border rounded"
           style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.1 }}
         >
           <div className="relative">
             <svg 
@@ -115,23 +130,35 @@ export default function RecruitingPage() {
             />
           </div>
           {searchTerm && (
-            <p className="mt-2 text-sm" style={{ color: '#6B7280' }}>
+            <motion.p 
+              className="mt-2 text-sm" 
+              style={{ color: '#6B7280' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
               {filteredListings.length} {t("recruiting.resultsFound") || "positions found"}
-            </p>
+            </motion.p>
           )}
-        </div>
+        </motion.div>
 
         {loading ? (
-          <div 
+          <motion.div 
             className="p-8 text-center border rounded"
             style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25 }}
           >
             <p style={{ color: '#6B7280' }}>{t("common.loading") || "Loading listings..."}</p>
-          </div>
+          </motion.div>
         ) : filteredListings.length === 0 ? (
-          <div 
+          <motion.div 
             className="p-8 text-center border rounded"
             style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
           >
             <p className="text-lg mb-4" style={{ color: '#374151' }}>
               {searchTerm ? (t("recruiting.noResults") || "No positions found matching your search.") : t("recruiting.empty.title")}
@@ -140,20 +167,33 @@ export default function RecruitingPage() {
               {searchTerm ? (t("recruiting.tryDifferent") || "Try a different search term.") : t("recruiting.empty.desc")}
             </p>
             {!isLoggedIn && !searchTerm && (
-              <Link href="/signup/student" className="btn-primary inline-block">
-                {t("recruiting.empty.signUp")}
-              </Link>
+              <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+                <Link href="/signup/student" className="btn-primary inline-block">
+                  {t("recruiting.empty.signUp")}
+                </Link>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map((listing: any) => (
-              <Link
+          <motion.div 
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            {filteredListings.map((listing: any, index: number) => (
+              <motion.div
                 key={listing.id}
-                href={`/recruiting/${listing.id}`}
-                className="bg-white border rounded p-6 hover:shadow-md transition-all duration-200 block"
-                style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+                variants={staggerItem}
+                initial="initial"
+                animate="animate"
+                transition={{ delay: index * 0.05 }}
               >
+                <Link
+                  href={`/recruiting/${listing.id}`}
+                  className="bg-white border rounded p-6 hover:shadow-md transition-all duration-200 block"
+                  style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+                >
                 <div className="flex items-start mb-4">
                   <CompanyLogo
                     src={listing.companyLogo}
@@ -199,11 +239,12 @@ export default function RecruitingPage() {
                     {listing.whyThisCompanyKey ? t(listing.whyThisCompanyKey) : listing.whyThisCompany || listing.sellingPoints}
                   </p>
                 </div>
-              </Link>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

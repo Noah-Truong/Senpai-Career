@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
+import { fadeIn, slideUp, buttonVariants } from "@/lib/animations";
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -51,11 +53,18 @@ export default function LoginPage() {
     <div className="min-h-screen" style={{ backgroundColor: '#F5F7FA' }}>
       <Header />
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div 
+        <motion.div 
           className="max-w-md w-full space-y-8 bg-white p-8 border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.3 }}
         >
-          <div>
+          <motion.div
+            variants={slideUp}
+            initial="initial"
+            animate="animate"
+          >
             <h2 
               className="text-2xl font-bold text-center"
               style={{ color: '#111827' }}
@@ -65,15 +74,19 @@ export default function LoginPage() {
             <p className="mt-2 text-center text-sm" style={{ color: '#6B7280' }}>
               {t("login.subtitle")}
             </p>
-          </div>
+          </motion.div>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div 
+              <motion.div 
                 className="px-4 py-3 rounded border"
                 style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
               >
                 {error}
-              </div>
+              </motion.div>
             )}
             <div className="space-y-4">
               <div>
@@ -137,17 +150,20 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div>
-              <button
+            <motion.div>
+              <motion.button
                 type="submit"
                 disabled={loading}
                 className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
               >
                 {loading ? t("common.loading") : t("login.submit")}
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
           </form>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
