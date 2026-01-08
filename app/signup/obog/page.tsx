@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 
 export default function OBOGSignupPage() {
   const { t } = useLanguage();
@@ -19,10 +20,22 @@ export default function OBOGSignupPage() {
     university: "",
     company: "",
     nationality: "",
-    languages: "",
-    topics: "",
+    languages: [] as string[],
+    topics: [] as string[],
     oneLineMessage: "",
   });
+
+  const languageOptions = ["Japanese", "English", "Chinese", "Korean", "Spanish", "French", "German", "Portuguese"];
+  const topicOptions = [
+    "Career Change", 
+    "Job Search Strategy", 
+    "Interview Preparation", 
+    "Resume/CV Writing", 
+    "Industry Insights", 
+    "Networking", 
+    "Salary Negotiation",
+    "Work-Life Balance"
+  ];
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -71,8 +84,8 @@ export default function OBOGSignupPage() {
           university: formData.university,
           company: formData.company,
           nationality: formData.nationality,
-          languages: formData.languages ? formData.languages.split(",").map((l: string) => l.trim()) : [],
-          topics: formData.topics ? formData.topics.split(",").map((t: string) => t.trim()) : [],
+          languages: formData.languages || [],
+          topics: formData.topics || [],
           oneLineMessage: formData.oneLineMessage,
         }),
       });
@@ -118,7 +131,7 @@ export default function OBOGSignupPage() {
       <Header />
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div 
-          className="max-w-2xl mx-auto bg-white p-8 border rounded"
+          className="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto bg-white p-8 border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
         >
           <h2 className="text-2xl font-bold text-center mb-6" style={{ color: '#111827' }}>
@@ -281,35 +294,27 @@ export default function OBOGSignupPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="languages" className="block text-sm font-medium" style={{ color: '#374151' }}>
-                    {t("form.languages")} *
-                  </label>
-                  <input
-                    type="text"
-                    id="languages"
-                    name="languages"
+                  <MultiSelectDropdown
+                    options={languageOptions}
+                    selected={formData.languages}
+                    onChange={(selected) => setFormData({ ...formData, languages: selected })}
+                    label={t("form.languages")}
                     required
-                    value={formData.languages}
-                    onChange={handleChange}
-                    placeholder={t("form.languagesPlaceholder")}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
+                    placeholder={t("form.languagesPlaceholder") || "Select languages..."}
+                    allowOther={true}
+                    otherPlaceholder="Enter other language"
                   />
                 </div>
                 <div>
-                  <label htmlFor="topics" className="block text-sm font-medium" style={{ color: '#374151' }}>
-                    {t("form.topics")} *
-                  </label>
-                  <input
-                    type="text"
-                    id="topics"
-                    name="topics"
+                  <MultiSelectDropdown
+                    options={topicOptions}
+                    selected={formData.topics}
+                    onChange={(selected) => setFormData({ ...formData, topics: selected })}
+                    label={t("form.topics")}
                     required
-                    value={formData.topics}
-                    onChange={handleChange}
-                    placeholder={t("form.topicsPlaceholder")}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
+                    placeholder={t("form.topicsPlaceholder") || "Select topics..."}
+                    allowOther={true}
+                    otherPlaceholder="Enter other topic"
                   />
                 </div>
                 <div>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 
 export default function StudentSignupPage() {
   const { t } = useLanguage();
@@ -18,12 +19,16 @@ export default function StudentSignupPage() {
     university: "",
     nationality: "",
     year: "",
-    languages: "",
-    interests: "",
-    skills: "",
+    languages: [] as string[],
+    interests: [] as string[],
+    skills: [] as string[],
     desiredIndustry: "",
     jlptLevel: "",
   });
+
+  const languageOptions = ["Japanese", "English", "Chinese", "Korean", "Spanish", "French", "German", "Portuguese"];
+  const interestOptions = ["Technology", "Finance", "Consulting", "Marketing", "Engineering", "Design", "Healthcare", "Education"];
+  const skillOptions = ["Programming", "Data Analysis", "Project Management", "Design", "Marketing", "Sales", "Research", "Writing"];
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -71,9 +76,9 @@ export default function StudentSignupPage() {
           university: formData.university,
           nationality: formData.nationality,
           year: formData.year ? parseInt(formData.year) : undefined,
-          languages: formData.languages ? formData.languages.split(",").map((l: string) => l.trim()) : [],
-          interests: formData.interests ? formData.interests.split(",").map((i: string) => i.trim()) : [],
-          skills: formData.skills ? formData.skills.split(",").map((s: string) => s.trim()) : [],
+          languages: formData.languages || [],
+          interests: formData.interests || [],
+          skills: formData.skills || [],
           desiredIndustry: formData.desiredIndustry,
           jlptLevel: formData.jlptLevel,
         }),
@@ -129,7 +134,7 @@ export default function StudentSignupPage() {
       <Header />
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div 
-          className="max-w-2xl mx-auto bg-white p-8 border rounded"
+          className="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto bg-white p-8 border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
         >
           <h2 
@@ -288,19 +293,15 @@ export default function StudentSignupPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="languages" className="block text-sm font-medium" style={{ color: '#374151' }}>
-                    {t("form.languages")} *
-                  </label>
-                  <input
-                    type="text"
-                    id="languages"
-                    name="languages"
+                  <MultiSelectDropdown
+                    options={languageOptions}
+                    selected={formData.languages}
+                    onChange={(selected) => setFormData({ ...formData, languages: selected })}
+                    label={t("form.languages")}
                     required
-                    value={formData.languages}
-                    onChange={handleChange}
-                    placeholder={t("form.languagesPlaceholder")}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
+                    placeholder={t("form.languagesPlaceholder") || "Select languages..."}
+                    allowOther={true}
+                    otherPlaceholder="Enter other language"
                   />
                 </div>
                 <div>
@@ -324,33 +325,25 @@ export default function StudentSignupPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="interests" className="block text-sm font-medium" style={{ color: '#374151' }}>
-                    {t("form.interests")}
-                  </label>
-                  <input
-                    type="text"
-                    id="interests"
-                    name="interests"
-                    value={formData.interests}
-                    onChange={handleChange}
-                    placeholder={t("form.interestsPlaceholder")}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
+                  <MultiSelectDropdown
+                    options={interestOptions}
+                    selected={formData.interests}
+                    onChange={(selected) => setFormData({ ...formData, interests: selected })}
+                    label={t("form.interests")}
+                    placeholder={t("form.interestsPlaceholder") || "Select interests..."}
+                    allowOther={true}
+                    otherPlaceholder="Enter other interest"
                   />
                 </div>
                 <div>
-                  <label htmlFor="skills" className="block text-sm font-medium" style={{ color: '#374151' }}>
-                    {t("form.skills")}
-                  </label>
-                  <input
-                    type="text"
-                    id="skills"
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleChange}
-                    placeholder={t("form.skillsPlaceholder")}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
+                  <MultiSelectDropdown
+                    options={skillOptions}
+                    selected={formData.skills}
+                    onChange={(selected) => setFormData({ ...formData, skills: selected })}
+                    label={t("form.skills")}
+                    placeholder={t("form.skillsPlaceholder") || "Select skills..."}
+                    allowOther={true}
+                    otherPlaceholder="Enter other skill"
                   />
                 </div>
                 <div>
