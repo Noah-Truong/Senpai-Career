@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
-import Header from "@/components/Header";
+import SidebarLayout from "@/components/SidebarLayout";
 
 export default async function StudentDashboardPage() {
   const session = await auth();
@@ -10,8 +10,7 @@ export default async function StudentDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
+    <SidebarLayout role="student">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>Student Dashboard</h1>
         <div className="grid md:grid-cols-2 gap-6">
@@ -77,6 +76,6 @@ export default async function StudentDashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+    </SidebarLayout>
   );
 }

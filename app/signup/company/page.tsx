@@ -104,7 +104,7 @@ export default function CompanySignupPage() {
       <Header />
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div 
-          className="max-w-2xl mx-auto bg-white p-8 border rounded"
+          className="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto bg-white p-8 border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
         >
           <h2 className="text-2xl font-bold text-center mb-6" style={{ color: '#111827' }}>
