@@ -6,7 +6,30 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "next-auth/react";
 import HeroLogo from "@/components/HeroLogo";
 import { motion } from "framer-motion";
+import { Suspense, lazy, memo } from "react";
 import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
+
+// Lazy load heavy sections for better performance
+const WhatIsSection = lazy(() => import("@/components/sections/WhatIsSection"));
+const MissionSection = lazy(() => import("@/components/sections/MissionSection"));
+const OBOGVisitSection = lazy(() => import("@/components/sections/OBOGVisitSection"));
+const ForStudentsSection = lazy(() => import("@/components/sections/ForStudentsSection"));
+const ForCompaniesSection = lazy(() => import("@/components/sections/ForCompaniesSection"));
+const TestimonialsSection = lazy(() => import("@/components/sections/TestimonialsSection"));
+const CTASection = lazy(() => import("@/components/sections/CTASection"));
+
+// Loading fallback component
+const SectionFallback = () => (
+  <div className="py-16 md:py-20 animate-pulse">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto mb-8"></div>
+      <div className="space-y-4">
+        <div className="h-4 bg-gray-200 rounded"></div>
+        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      </div>
+    </div>
+  </div>
+);
 
 export default function Home() {
   const { t } = useLanguage();
@@ -71,102 +94,9 @@ export default function Home() {
 
 
       {/* What is Senpai Career */}
-      <motion.section 
-        className="py-16 md:py-20 bg-white"
-        initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={fadeIn}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2 
-            className="text-2xl md:text-3xl font-bold text-center mb-12"
-            style={{ color: '#111827' }}
-            variants={slideUp}
-          >
-            {t("home.whatIs.title")}
-          </motion.h2>
-          <motion.div 
-            className="grid md:grid-cols-3 gap-8"
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-          >
-            {/* Card 1 */}
-            <motion.div 
-              className="card text-center"
-              variants={cardVariants}
-              whileHover="hover"
-            >
-              <motion.div 
-                className="w-14 h-14 rounded flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: '#0F2A44' }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ duration: 0.2 }}
-              >
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </motion.div>
-              <h3 className="text-lg font-semibold mb-2" style={{ color: '#111827' }}>
-                {t("home.whatIs.obog")}
-              </h3>
-              <p style={{ color: '#6B7280' }}>
-                {t("home.whatIs.obogDesc")}
-              </p>
-            </motion.div>
-
-            {/* Card 2 */}
-            <motion.div 
-              className="card text-center"
-              variants={cardVariants}
-              whileHover="hover"
-            >
-              <motion.div 
-                className="w-14 h-14 rounded flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: '#0F2A44' }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ duration: 0.2 }}
-              >
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </motion.div>
-              <h3 className="text-lg font-semibold mb-2" style={{ color: '#111827' }}>
-                {t("home.whatIs.internship")}
-              </h3>
-              <p style={{ color: '#6B7280' }}>
-                {t("home.whatIs.internshipDesc")}
-              </p>
-            </motion.div>
-
-            {/* Card 3 */}
-            <motion.div 
-              className="card text-center"
-              variants={cardVariants}
-              whileHover="hover"
-            >
-              <motion.div 
-                className="w-14 h-14 rounded flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: '#0F2A44' }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ duration: 0.2 }}
-              >
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
-              </motion.div>
-              <h3 className="text-lg font-semibold mb-2" style={{ color: '#111827' }}>
-                {t("home.whatIs.recruiting")}
-              </h3>
-              <p style={{ color: '#6B7280' }}>
-                {t("home.whatIs.recruitingDesc")}
-              </p>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.section>
+      <Suspense fallback={<SectionFallback />}>
+        <WhatIsSection />
+      </Suspense>
 
       {/* Our Mission */}
       <motion.section 

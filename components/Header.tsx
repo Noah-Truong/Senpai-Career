@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
@@ -113,32 +113,32 @@ export default function Header() {
   const isLoggedIn = !!session;
   const userRole = session?.user?.role as "student" | "obog" | "company" | "admin" | undefined;
 
-  // Helper function to check if a link is active
-  const isActiveLink = (href: string) => {
+  // Memoized helper functions to prevent unnecessary recalculations
+  const isActiveLink = useCallback((href: string) => {
     if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(href + "/");
-  };
+  }, [pathname]);
 
-  // Get link classes based on active state
-  const getLinkClasses = (href: string) => {
+  const getLinkClasses = useCallback((href: string) => {
     const baseClasses = "px-3 py-2 text-sm font-medium rounded transition-colors";
     if (isActiveLink(href)) {
       return `${baseClasses} nav-active`;
     }
     return `${baseClasses} text-gray-600 hover:text-navy hover:bg-gray-50`;
-  };
+  }, [isActiveLink]);
 
-  // Fetch notifications and user credits when logged in
+  // Fetch notifications and user credits when logged in - reduced polling frequency
   useEffect(() => {
     if (isLoggedIn && session?.user?.id) {
       loadNotifications();
       loadUserCredits();
-      const interval = setInterval(loadNotifications, 30000);
+      // Reduced polling frequency from 30s to 60s for better performance
+      const interval = setInterval(loadNotifications, 60000);
       return () => clearInterval(interval);
     }
   }, [isLoggedIn, session?.user?.id]);
 
-  const loadUserCredits = async () => {
+  const loadUserCredits = useCallback(async () => {
     if (!isLoggedIn) return;
     try {
       const response = await fetch("/api/user");
@@ -149,9 +149,9 @@ export default function Header() {
     } catch (error) {
       console.error("Error loading user credits:", error);
     }
-  };
+  }, [isLoggedIn]);
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     if (!isLoggedIn) return;
     setLoadingNotifications(true);
     try {
@@ -166,7 +166,7 @@ export default function Header() {
     } finally {
       setLoadingNotifications(false);
     }
-  };
+  }, [isLoggedIn]);
 
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.read) {

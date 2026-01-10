@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
+import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
 
 export default function StudentSignupPage() {
   const { t } = useLanguage();
@@ -22,7 +23,7 @@ export default function StudentSignupPage() {
     languages: [] as string[],
     interests: [] as string[],
     skills: [] as string[],
-    desiredIndustry: "",
+    desiredIndustry: [] as string[],
     jlptLevel: "",
   });
 
@@ -44,19 +45,19 @@ export default function StudentSignupPage() {
     setLoading(true);
 
     if (!acceptedTerms) {
-      setError("You must accept the Terms of Service and Rules to continue.");
+      setError(t("signup.errors.acceptTermsRequired"));
       setLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("signup.errors.passwordMismatch"));
       setLoading(false);
       return;
     }
 
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+      setError(t("signup.errors.passwordTooShort"));
       setLoading(false);
       return;
     }
@@ -79,7 +80,7 @@ export default function StudentSignupPage() {
           languages: formData.languages || [],
           interests: formData.interests || [],
           skills: formData.skills || [],
-          desiredIndustry: formData.desiredIndustry,
+          desiredIndustry: formData.desiredIndustry.join(", "),
           jlptLevel: formData.jlptLevel,
         }),
       });
@@ -281,8 +282,7 @@ export default function StudentSignupPage() {
                   <label htmlFor="nationality" className="block text-sm font-medium" style={{ color: '#374151' }}>
                     {t("form.nationality")} *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="nationality"
                     name="nationality"
                     required
@@ -290,7 +290,14 @@ export default function StudentSignupPage() {
                     onChange={handleChange}
                     className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
                     style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
-                  />
+                  >
+                    <option value="">{t("form.selectNationality") || "Select nationality"}</option>
+                    {NATIONALITY_OPTIONS.map((nationality) => (
+                      <option key={nationality} value={nationality}>
+                        {nationality}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <MultiSelectDropdown
@@ -347,18 +354,14 @@ export default function StudentSignupPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="desiredIndustry" className="block text-sm font-medium" style={{ color: '#374151' }}>
-                    {t("form.desiredIndustry")}
-                  </label>
-                  <input
-                    type="text"
-                    id="desiredIndustry"
-                    name="desiredIndustry"
-                    value={formData.desiredIndustry}
-                    onChange={handleChange}
-                    placeholder={t("form.desiredIndustryPlaceholder")}
-                    className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                    style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
+                  <MultiSelectDropdown
+                    options={INDUSTRY_OPTIONS}
+                    selected={formData.desiredIndustry}
+                    onChange={(selected) => setFormData({ ...formData, desiredIndustry: selected })}
+                    label={t("form.desiredIndustry")}
+                    placeholder={t("form.desiredIndustryPlaceholder") || "Select desired industries..."}
+                    allowOther={true}
+                    otherPlaceholder="Enter other industry"
                   />
                 </div>
               </div>

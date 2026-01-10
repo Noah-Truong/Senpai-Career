@@ -22,22 +22,25 @@ export default function PageWrapper({ children, className = "" }: PageWrapperPro
   );
 }
 
-export function AnimatedSection({ 
-  children, 
+export function AnimatedSection({
+  children,
   className = "",
-  bgColor = "white"
-}: { 
-  children: ReactNode; 
+  bgColor = "white",
+  animateOnView = false
+}: {
+  children: ReactNode;
   className?: string;
   bgColor?: "white" | "light";
+  animateOnView?: boolean;
 }) {
   return (
     <motion.section
       className={`py-16 md:py-20 ${className}`}
       style={{ backgroundColor: bgColor === "light" ? '#F5F7FA' : '#FFFFFF' }}
       initial="initial"
-      whileInView="animate"
-      viewport={{ once: true, amount: 0.2 }}
+      animate={animateOnView ? undefined : "animate"}
+      whileInView={animateOnView ? "animate" : undefined}
+      viewport={animateOnView ? { once: true, amount: 0.2 } : undefined}
       variants={fadeIn}
     >
       {children}

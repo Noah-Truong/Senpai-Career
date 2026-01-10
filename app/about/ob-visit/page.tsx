@@ -71,11 +71,10 @@ export default function OBVisitPage() {
       </motion.section>
 
       {/* Benefits */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,12 +84,11 @@ export default function OBVisitPage() {
           >
             {t("obvisit.benefits.title")}
           </motion.h2>
-          <motion.div 
+          <motion.div
             className="grid md:grid-cols-2 gap-6"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[
               { icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", title: t("obvisit.benefits.consultation.title"), desc: t("obvisit.benefits.consultation.desc") },
@@ -124,12 +122,11 @@ export default function OBVisitPage() {
       </motion.section>
 
       {/* Profile Types */}
-      <motion.section 
-        className="py-16" 
+      <motion.section
+        className="py-16"
         style={{ background: '#F5F7FA' }}
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -139,12 +136,11 @@ export default function OBVisitPage() {
           >
             {t("obvisit.profiles.title")}
           </motion.h2>
-          <motion.div 
+          <motion.div
             className="space-y-6"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[
               { 
@@ -170,12 +166,11 @@ export default function OBVisitPage() {
                 <p className="text-gray-700 mb-4">
                   {profile.desc}
                 </p>
-                <motion.ul 
+                <motion.ul
                   className="space-y-2 text-gray-700"
                   variants={staggerContainer}
                   initial="initial"
-                  whileInView="animate"
-                  viewport={{ once: true }}
+                  animate="animate"
                 >
                   {profile.items.map((item, i) => (
                     <motion.li 
@@ -195,11 +190,10 @@ export default function OBVisitPage() {
       </motion.section>
 
       {/* How It Works */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -209,12 +203,11 @@ export default function OBVisitPage() {
           >
             {t("obvisit.howItWorks.title")}
           </motion.h2>
-          <motion.div 
+          <motion.div
             className="space-y-6"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[1, 2, 3, 4].map((step) => (
               <motion.div 

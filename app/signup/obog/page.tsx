@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
+import { NATIONALITY_OPTIONS } from "@/lib/constants";
 
 export default function OBOGSignupPage() {
   const { t } = useLanguage();
@@ -51,19 +52,19 @@ export default function OBOGSignupPage() {
     setLoading(true);
 
     if (!acceptedTerms) {
-      setError("You must accept the Terms of Service and Rules to continue.");
+      setError(t("signup.errors.acceptTermsRequired"));
       setLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("signup.errors.passwordMismatch"));
       setLoading(false);
       return;
     }
 
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+      setError(t("signup.errors.passwordTooShort"));
       setLoading(false);
       return;
     }
@@ -282,8 +283,7 @@ export default function OBOGSignupPage() {
                   <label htmlFor="nationality" className="block text-sm font-medium" style={{ color: '#374151' }}>
                     {t("form.nationality")} *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="nationality"
                     name="nationality"
                     required
@@ -291,7 +291,14 @@ export default function OBOGSignupPage() {
                     onChange={handleChange}
                     className="mt-1 block w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
                     style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
-                  />
+                  >
+                    <option value="">{t("form.selectNationality") || "Select nationality"}</option>
+                    {NATIONALITY_OPTIONS.map((nationality) => (
+                      <option key={nationality} value={nationality}>
+                        {nationality}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <MultiSelectDropdown

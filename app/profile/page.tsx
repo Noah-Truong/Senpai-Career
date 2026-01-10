@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "@/components/Avatar";
+import MultiSelectDropdown from "@/components/MultiSelectDropdown";
+import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
 
 export default function ProfilePage() {
   const { t } = useLanguage();
@@ -42,8 +44,18 @@ export default function ProfilePage() {
         throw new Error(errorData.error || "Failed to load profile");
       }
       const data = await response.json();
-      setUser(data.user);
-      setFormData(data.user);
+      const processedUser = {
+        ...data.user,
+        desiredIndustry: data.user.desiredIndustry
+          ? (typeof data.user.desiredIndustry === 'string'
+              ? data.user.desiredIndustry.split(', ').filter(Boolean)
+              : Array.isArray(data.user.desiredIndustry)
+                ? data.user.desiredIndustry
+                : [])
+          : []
+      };
+      setUser(processedUser);
+      setFormData(processedUser);
       setLoading(false);
       setError(""); // Clear any previous errors
     } catch (err: any) {
@@ -123,7 +135,12 @@ export default function ProfilePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          desiredIndustry: Array.isArray(formData.desiredIndustry)
+            ? formData.desiredIndustry.join(", ")
+            : formData.desiredIndustry
+        }),
       });
 
       const data = await response.json();
@@ -192,9 +209,15 @@ export default function ProfilePage() {
             {error && (
               <p className="text-red-600 text-sm mt-2">{error}</p>
             )}
-            <p className="text-gray-600 text-sm mt-4">
+            <p className="text-gray-600 text-sm mt-4 mb-6">
               {t("profile.notFoundHint") || "Please try logging out and logging back in, or contact support if the issue persists."}
             </p>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="btn-primary"
+            >
+              {t("nav.signOut") || "Sign Out"}
+            </button>
           </div>
         </div>
       </div>
@@ -633,8 +656,7 @@ export default function ProfilePage() {
                     <label htmlFor="nationality" className="block text-sm font-medium text-gray-700 mb-1">
                       {t("form.nationality")} *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="nationality"
                       name="nationality"
                       required
@@ -642,7 +664,14 @@ export default function ProfilePage() {
                       onChange={handleChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       style={{ color: '#000000' }}
-                    />
+                    >
+                      <option value="">{t("form.selectNationality") || "Select nationality"}</option>
+                      {NATIONALITY_OPTIONS.map((nationality) => (
+                        <option key={nationality} value={nationality}>
+                          {nationality}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
@@ -695,18 +724,14 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <label htmlFor="desiredIndustry" className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("form.desiredIndustry")}
-                    </label>
-                    <input
-                      type="text"
-                      id="desiredIndustry"
-                      name="desiredIndustry"
-                      value={formData.desiredIndustry || ""}
-                      onChange={handleChange}
-                      placeholder={t("form.desiredIndustryPlaceholder")}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      style={{ color: '#000000' }}
+                    <MultiSelectDropdown
+                      options={INDUSTRY_OPTIONS}
+                      selected={formData.desiredIndustry || []}
+                      onChange={(selected) => setFormData({ ...formData, desiredIndustry: selected })}
+                      label={t("form.desiredIndustry")}
+                      placeholder={t("form.desiredIndustryPlaceholder") || "Select desired industries..."}
+                      allowOther={true}
+                      otherPlaceholder="Enter other industry"
                     />
                   </div>
                 </>
@@ -769,8 +794,7 @@ export default function ProfilePage() {
                     <label htmlFor="nationality" className="block text-sm font-medium text-gray-700 mb-1">
                       {t("form.nationality")} *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="nationality"
                       name="nationality"
                       required
@@ -778,7 +802,14 @@ export default function ProfilePage() {
                       onChange={handleChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       style={{ color: '#000000' }}
-                    />
+                    >
+                      <option value="">{t("form.selectNationality") || "Select nationality"}</option>
+                      {NATIONALITY_OPTIONS.map((nationality) => (
+                        <option key={nationality} value={nationality}>
+                          {nationality}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>

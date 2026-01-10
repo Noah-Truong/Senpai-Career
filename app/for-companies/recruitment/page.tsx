@@ -41,11 +41,10 @@ export default function RecruitmentProcessPage() {
       </motion.section>
 
       {/* Introduction */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,20 +63,18 @@ export default function RecruitmentProcessPage() {
       </motion.section>
 
       {/* Process Steps */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-gray-50"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
+          <motion.div
             className="grid md:grid-cols-2 gap-8"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[1, 2, 3, 4, 5, 6].map((step) => (
               <motion.div 
@@ -108,11 +105,10 @@ export default function RecruitmentProcessPage() {
       </motion.section>
 
       {/* Benefits */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -125,12 +121,11 @@ export default function RecruitmentProcessPage() {
             </h2>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="grid md:grid-cols-3 gap-8"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[
               { icon: "M13 10V3L4 14h7v7l9-11h-7z", title: t("recruitmentProcess.benefits.efficiency"), desc: t("recruitmentProcess.benefits.efficiencyDesc") },
@@ -165,11 +160,10 @@ export default function RecruitmentProcessPage() {
       </motion.section>
 
       {/* Call to Action */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-gray-50"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

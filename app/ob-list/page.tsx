@@ -60,11 +60,10 @@ export default function OBVisitPage() {
       </motion.section>
 
       {/* Safety Rules */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -79,18 +78,16 @@ export default function OBVisitPage() {
             className="p-6 mb-6 border-l-4"
             style={{ backgroundColor: '#FEF3C7', borderLeftColor: '#F59E0B' }}
             initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.25 }}
           >
             <p className="font-semibold mb-2" style={{ color: '#374151' }}>{t("obvisit.safety.important")}</p>
-            <motion.ul 
-              className="space-y-2 text-sm" 
+            <motion.ul
+              className="space-y-2 text-sm"
               style={{ color: '#374151' }}
               variants={staggerContainer}
               initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
+              animate="animate"
             >
               {[
                 t("obvisit.safety.1"),
@@ -118,11 +115,10 @@ export default function OBVisitPage() {
       </motion.section>
 
       {/* OB/OG List Section */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -143,12 +139,11 @@ export default function OBVisitPage() {
 
       {/* CTA Section */}
       {!isLoggedIn && (
-        <motion.section 
-          className="py-16 text-white" 
+        <motion.section
+          className="py-16 text-white"
           style={{ backgroundColor: '#0F2A44' }}
           initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, amount: 0.2 }}
+          animate="animate"
           variants={fadeIn}
         >
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -164,12 +159,11 @@ export default function OBVisitPage() {
             >
               {t("obvisit.cta.subtitle")}
             </motion.p>
-            <motion.div 
+            <motion.div
               className="flex flex-col sm:flex-row gap-4 justify-center"
               variants={staggerContainer}
               initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
+              animate="animate"
             >
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link

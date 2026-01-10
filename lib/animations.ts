@@ -1,99 +1,115 @@
 import { Variants } from "framer-motion";
 
-// Smooth easing functions for buttery animations - faster but smooth
-export const smoothEase = [0.4, 0, 0.2, 1]; // Custom cubic bezier
-export const quickEase = [0.25, 0.1, 0.25, 1]; // Faster easing
-export const springConfig = {
+// Check for reduced motion preference
+export const prefersReducedMotion = typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Optimized easing functions - faster and more performant
+export const smoothEase = prefersReducedMotion ? [1, 0, 1, 1] : [0.25, 0.1, 0.25, 1];
+export const quickEase = prefersReducedMotion ? [1, 0, 1, 1] : [0.25, 0.1, 0.25, 1];
+export const instantEase = [1, 0, 1, 1]; // For reduced motion
+
+export const springConfig = prefersReducedMotion ? {
+  type: "tween" as const,
+  duration: 0.1,
+} : {
   type: "spring",
-  stiffness: 400,
+  stiffness: 300,
   damping: 30,
-  mass: 0.6,
+  mass: 0.8,
 };
 
-// Page transition variants
+// Page transition variants - optimized for performance
 export const pageVariants: Variants = {
   initial: {
     opacity: 0,
-    y: 20,
+    y: prefersReducedMotion ? 0 : 10,
   },
   enter: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.4,
+      duration: prefersReducedMotion ? 0.1 : 0.3,
       ease: smoothEase,
-      staggerChildren: 0.1,
+      staggerChildren: prefersReducedMotion ? 0 : 0.05,
     },
   },
   exit: {
     opacity: 0,
-    y: -20,
+    y: prefersReducedMotion ? 0 : -10,
     transition: {
-      duration: 0.3,
+      duration: prefersReducedMotion ? 0.05 : 0.2,
       ease: smoothEase,
     },
   },
 };
 
-// Fade in animation - faster
+// Fade in animation - simplified for better performance
 export const fadeIn: Variants = {
   initial: { opacity: 0 },
   animate: {
     opacity: 1,
     transition: {
-      duration: 0.3,
+      duration: prefersReducedMotion ? 0.1 : 0.25,
       ease: quickEase,
     },
   },
 };
 
-// Slide up animation - faster with swoop
+// Slide up animation - reduced complexity
 export const slideUp: Variants = {
-  initial: { opacity: 0, y: 20, scale: 0.95 },
+  initial: {
+    opacity: 0,
+    y: prefersReducedMotion ? 0 : 15
+  },
   animate: {
     opacity: 1,
     y: 0,
-    scale: 1,
     transition: {
-      duration: 0.3,
+      duration: prefersReducedMotion ? 0.1 : 0.25,
       ease: quickEase,
     },
   },
 };
 
-// Swoop in animation
+// Simplified swoop animation
 export const swoopIn: Variants = {
-  initial: { opacity: 0, y: 30, x: -20, rotate: -2 },
+  initial: {
+    opacity: 0,
+    y: prefersReducedMotion ? 0 : 20
+  },
   animate: {
     opacity: 1,
     y: 0,
-    x: 0,
-    rotate: 0,
     transition: {
-      duration: 0.35,
+      duration: prefersReducedMotion ? 0.1 : 0.3,
       ease: quickEase,
     },
   },
 };
 
-// Slide down animation (for dropdowns)
+// Optimized dropdown animation
 export const slideDown: Variants = {
-  initial: { opacity: 0, y: -10, scale: 0.95 },
+  initial: {
+    opacity: 0,
+    y: prefersReducedMotion ? 0 : -5,
+    scale: prefersReducedMotion ? 1 : 0.98
+  },
   animate: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.2,
+      duration: prefersReducedMotion ? 0.1 : 0.2,
       ease: smoothEase,
     },
   },
   exit: {
     opacity: 0,
-    y: -10,
-    scale: 0.95,
+    y: prefersReducedMotion ? 0 : -5,
+    scale: prefersReducedMotion ? 1 : 0.98,
     transition: {
-      duration: 0.15,
+      duration: prefersReducedMotion ? 0.05 : 0.15,
       ease: smoothEase,
     },
   },
@@ -112,82 +128,89 @@ export const scaleIn: Variants = {
   },
 };
 
-// Stagger children animation - faster
+// Optimized stagger animations - reduced stagger delay
 export const staggerContainer: Variants = {
   initial: {},
   animate: {
     transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.05,
+      staggerChildren: prefersReducedMotion ? 0 : 0.04,
+      delayChildren: prefersReducedMotion ? 0 : 0.02,
     },
   },
 };
 
 export const staggerItem: Variants = {
-  initial: { opacity: 0, y: 15 },
+  initial: {
+    opacity: 0,
+    y: prefersReducedMotion ? 0 : 10
+  },
   animate: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.25,
+      duration: prefersReducedMotion ? 0.1 : 0.2,
       ease: quickEase,
     },
   },
 };
 
-// Hover animations
-export const hoverScale = {
-  scale: 1.05,
+// Simplified hover animations - only when motion is preferred
+export const hoverScale = prefersReducedMotion ? {} : {
+  scale: 1.02,
   transition: {
-    duration: 0.2,
+    duration: 0.15,
     ease: smoothEase,
   },
 };
 
-export const hoverLift = {
-  y: -4,
+export const hoverLift = prefersReducedMotion ? {} : {
+  y: -2,
   transition: {
-    duration: 0.2,
+    duration: 0.15,
     ease: smoothEase,
   },
 };
 
-// Button animations - faster
+// Optimized button animations
 export const buttonVariants: Variants = {
   initial: { scale: 1 },
-  hover: {
-    scale: 1.02,
-    y: -2,
+  hover: prefersReducedMotion ? {} : {
+    scale: 1.01,
+    y: -1,
     transition: {
-      duration: 0.15,
+      duration: 0.12,
       ease: quickEase,
     },
   },
-  tap: {
-    scale: 0.98,
+  tap: prefersReducedMotion ? {} : {
+    scale: 0.97,
     transition: {
-      duration: 0.08,
+      duration: 0.06,
     },
   },
 };
 
-// Card animations - faster
+// Optimized card animations - reduced scale changes for better performance
 export const cardVariants: Variants = {
-  initial: { opacity: 0, y: 15, scale: 0.96 },
+  initial: {
+    opacity: 0,
+    y: prefersReducedMotion ? 0 : 12,
+    scale: prefersReducedMotion ? 1 : 0.98
+  },
   animate: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.25,
+      duration: prefersReducedMotion ? 0.1 : 0.22,
       ease: quickEase,
     },
   },
-  hover: {
-    y: -4,
-    scale: 1.02,
+  hover: prefersReducedMotion ? {} : {
+    y: -2,
+    scale: 1.01,
     transition: {
-      duration: 0.2,
+      duration: 0.18,
       ease: quickEase,
     },
   },

@@ -73,21 +73,19 @@ export default function HowToUsePage() {
       </motion.section>
 
       {/* Tab Navigation */}
-      <motion.section 
-        className="border-b" 
+      <motion.section
+        className="border-b"
         style={{ borderColor: "#E5E7EB" }}
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
+          <motion.div
             className="flex justify-center"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {tabs.map((tab) => (
               <motion.button
@@ -111,11 +109,10 @@ export default function HowToUsePage() {
       </motion.section>
 
       {/* Content Sections */}
-      <motion.div 
+      <motion.div
         className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         {/* Student Guide */}
@@ -414,12 +411,11 @@ export default function HowToUsePage() {
       </motion.div>
 
       {/* FAQ Section */}
-      <motion.section 
-        className="py-16" 
+      <motion.section
+        className="py-16"
         style={{ background: "#F5F7FA" }}
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -430,12 +426,11 @@ export default function HowToUsePage() {
           >
             {t("howto.faq.title")}
           </motion.h2>
-          <motion.div 
+          <motion.div
             className="space-y-4"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[1, 2, 3, 4].map((num) => (
               <motion.details key={num} className="bg-white p-5 rounded-lg shadow-sm group" variants={staggerItem}>
@@ -453,11 +448,10 @@ export default function HowToUsePage() {
       </motion.section>
 
       {/* Contact Section */}
-      <motion.section 
+      <motion.section
         className="py-12 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

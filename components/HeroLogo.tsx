@@ -1,25 +1,23 @@
 "use client";
 
+import Image from "next/image";
+
 export default function HeroLogo() {
   return (
     <div className="flex flex-col items-center justify-center">
       <div className="relative inline-block">
-        {/* Main logo text */}
-        <h1 
-          className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight"
-          style={{
-            fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
-            color: '#0F2A44',
-            letterSpacing: '-0.02em',
-            lineHeight: '1.1',
-          }}
-        >
-          Senpai Career
-        </h1>
-        
+        <Image
+          src="/assets/image (2).png"
+          alt="Senpai Career"
+          width={800}
+          height={150}
+          priority
+          className="h-32 md:h-40 lg:h-48 w-auto"
+        />
+
         {/* Subtle accent underline */}
         <div className="mt-4 flex justify-center">
-          <div 
+          <div
             className="h-1 rounded-full"
             style={{
               width: '120px',

@@ -18,7 +18,7 @@ export default function AboutPage() {
       <Header />
       
       {/* Hero Section */}
-      <AnimatedSection bgColor="light" className="text-center">
+      <AnimatedSection bgColor="light" className="text-center" animateOnView={false}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedHeading size="lg">
             {t("about.hero.title")}
@@ -48,17 +48,16 @@ export default function AboutPage() {
       </AnimatedSection>
 
       {/* Mission Statement */}
-      <AnimatedSection>
+      <AnimatedSection animateOnView={false}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSubheading>
             {t("about.mission.title")}
           </AnimatedSubheading>
-          <motion.div 
+          <motion.div
             className="space-y-4"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             <motion.p 
               style={{ color: '#374151', fontSize: '16px', lineHeight: '1.7' }}
@@ -77,19 +76,18 @@ export default function AboutPage() {
       </AnimatedSection>
 
       {/* Problem Statement */}
-      <AnimatedSection bgColor="light">
+      <AnimatedSection bgColor="light" animateOnView={false}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSubheading>
             {t("about.problem.title")}
           </AnimatedSubheading>
-          <motion.div 
+          <motion.div
             className="space-y-6"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
-            <AnimatedCard variants={cardVariants} whileHover="hover">
+            <AnimatedCard>
               <h3 
                 className="text-xl font-semibold mb-4"
                 style={{ color: '#111827' }}
@@ -117,7 +115,7 @@ export default function AboutPage() {
                 ))}
               </AnimatedList>
             </AnimatedCard>
-            <AnimatedCard variants={cardVariants} whileHover="hover">
+            <AnimatedCard>
               <h3 
                 className="text-xl font-semibold mb-4"
                 style={{ color: '#111827' }}
@@ -203,7 +201,7 @@ export default function AboutPage() {
           <AnimatedSubheading>
             {t("about.market.title")}
           </AnimatedSubheading>
-          <AnimatedCard variants={cardVariants} whileHover="hover">
+          <AnimatedCard>
             <motion.p 
               className="mb-4" 
               style={{ color: '#374151', lineHeight: '1.7' }}

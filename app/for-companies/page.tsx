@@ -40,11 +40,10 @@ export default function ForCompaniesPage() {
       </motion.section>
 
       {/* Benefits for Companies */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,12 +53,11 @@ export default function ForCompaniesPage() {
           >
             {t("companies.why.title")}
           </motion.h2>
-          <motion.div 
+          <motion.div
             className="grid md:grid-cols-2 gap-6"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[
               { icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z", title: t("companies.why.funnel.title"), desc: t("companies.why.funnel.desc") },
@@ -93,12 +91,11 @@ export default function ForCompaniesPage() {
       </motion.section>
 
       {/* How It Works */}
-      <motion.section 
-        className="py-16" 
+      <motion.section
+        className="py-16"
         style={{ background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)' }}
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,12 +105,11 @@ export default function ForCompaniesPage() {
           >
             {t("companies.howItWorks.title")}
           </motion.h2>
-          <motion.div 
+          <motion.div
             className="space-y-6"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[1, 2, 3, 4].map((step) => (
               <motion.div 
@@ -143,11 +139,10 @@ export default function ForCompaniesPage() {
       </motion.section>
 
       {/* Features */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -157,12 +152,11 @@ export default function ForCompaniesPage() {
           >
             {t("companies.features.title")}
           </motion.h2>
-          <motion.div 
+          <motion.div
             className="space-y-4"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[
               { title: t("companies.features.search.title"), desc: t("companies.features.search.desc") },
@@ -202,11 +196,10 @@ export default function ForCompaniesPage() {
 
       {/* CTA Section */}
       {!isLoggedIn && (
-        <motion.section 
+        <motion.section
           className="py-16 bg-[#0F2A44] text-white"
           initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, amount: 0.2 }}
+          animate="animate"
           variants={fadeIn}
         >
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -222,12 +215,11 @@ export default function ForCompaniesPage() {
             >
               {t("companies.cta.subtitle")}
             </motion.p>
-            <motion.div 
+            <motion.div
               className="flex flex-col sm:flex-row gap-4 justify-center"
               variants={staggerContainer}
               initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
+              animate="animate"
             >
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link

@@ -53,11 +53,10 @@ export default function ForeignRecruitmentPage() {
       </motion.section>
 
       {/* Challenges Section */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -70,12 +69,11 @@ export default function ForeignRecruitmentPage() {
             </h2>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[
               { icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", title: t("foreignRecruitment.challenges.visa"), desc: t("foreignRecruitment.challenges.visaDesc") },
@@ -111,11 +109,10 @@ export default function ForeignRecruitmentPage() {
       </motion.section>
 
       {/* Solutions Section */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-gray-50"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -128,12 +125,11 @@ export default function ForeignRecruitmentPage() {
             </h2>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="grid md:grid-cols-2 gap-8"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
             {[
               { icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", title: t("foreignRecruitment.solutions.screening"), desc: t("foreignRecruitment.solutions.screeningDesc") },
@@ -171,11 +167,10 @@ export default function ForeignRecruitmentPage() {
       </motion.section>
 
       {/* Legal Requirements */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -188,14 +183,13 @@ export default function ForeignRecruitmentPage() {
             </h2>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="grid md:grid-cols-2 gap-8"
             variants={staggerContainer}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            animate="animate"
           >
-            <motion.div 
+            <motion.div
               className="space-y-6"
               variants={staggerContainer}
             >
@@ -248,11 +242,10 @@ export default function ForeignRecruitmentPage() {
 
 
       {/* Call to Action */}
-      <motion.section 
+      <motion.section
         className="py-16 bg-white"
         initial="initial"
-        whileInView="animate"
-        viewport={{ once: true, amount: 0.2 }}
+        animate="animate"
         variants={fadeIn}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
