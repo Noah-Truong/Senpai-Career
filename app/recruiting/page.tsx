@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "next-auth/react";
@@ -58,7 +57,6 @@ export default function RecruitingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <motion.div 
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         initial="initial"
@@ -81,7 +79,7 @@ export default function RecruitingPage() {
         {/* Info Section */}
         <motion.div 
           className="p-6 mb-8 border rounded"
-          style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           variants={cardVariants}
           initial="initial"
           whileInView="animate"
@@ -102,7 +100,7 @@ export default function RecruitingPage() {
         {/* Search Bar */}
         <motion.div 
           className="mb-8 p-4 border rounded"
-          style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, delay: 0.1 }}
@@ -145,7 +143,7 @@ export default function RecruitingPage() {
         {loading ? (
           <motion.div 
             className="p-8 text-center border rounded"
-            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.25 }}
@@ -155,7 +153,7 @@ export default function RecruitingPage() {
         ) : filteredListings.length === 0 ? (
           <motion.div 
             className="p-8 text-center border rounded"
-            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
@@ -225,7 +223,7 @@ export default function RecruitingPage() {
                         <span 
                           key={idx} 
                           className="px-2 py-1 rounded text-xs"
-                          style={{ backgroundColor: '#F5F7FA', color: '#374151' }}
+                          style={{ backgroundColor: '#D7FFEF', color: '#374151' }}
                         >
                           {listing.skillsGainedKeys ? t(skillKeyOrSkill) : skillKeyOrSkill}
                         </span>

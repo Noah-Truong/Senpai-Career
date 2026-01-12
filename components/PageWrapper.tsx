@@ -36,7 +36,7 @@ export function AnimatedSection({
   return (
     <motion.section
       className={`py-16 md:py-20 ${className}`}
-      style={{ backgroundColor: bgColor === "light" ? '#F5F7FA' : '#FFFFFF' }}
+      style={{ backgroundColor: bgColor === "light" ? '#D7FFEF' : '#FFFFFF' }}
       initial="initial"
       animate={animateOnView ? undefined : "animate"}
       whileInView={animateOnView ? "animate" : undefined}

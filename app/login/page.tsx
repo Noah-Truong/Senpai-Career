@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
@@ -50,8 +49,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F5F7FA' }}>
-      <Header />
+    <div className="min-h-screen" style={{ backgroundColor: '#D7FFEF' }}>
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <motion.div 
           className="max-w-md w-full space-y-8 bg-white p-8 border rounded"

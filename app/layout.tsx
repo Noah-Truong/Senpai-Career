@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import AppLayout from "@/components/AppLayout";
 
 export const metadata: Metadata = {
   title: "Senpai Career - 留学生の就活にフェアなスタートラインを",
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="ja">
       <body>
         <Providers>
-          {children}
+          <AppLayout>
+            {children}
+          </AppLayout>
         </Providers>
       </body>
     </html>

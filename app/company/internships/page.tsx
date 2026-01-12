@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -88,7 +87,6 @@ export default function CompanyInternshipsPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p>Loading...</p>
         </div>
@@ -98,7 +96,6 @@ export default function CompanyInternshipsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -142,7 +139,10 @@ export default function CompanyInternshipsPage() {
                     <h3 className="text-lg font-semibold mb-2">
                       {(internship as any).titleKey ? t((internship as any).titleKey) : internship.title}
                     </h3>
-                    <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
+                    <span
+                      className="inline-block px-2 py-1 text-xs font-semibold rounded"
+                      style={{ backgroundColor: '#D7FFEF', color: '#0F2A44' }}
+                    >
                       {internship.type === "internship" ? "Internship" : "New Graduate"}
                     </span>
                   </div>
@@ -150,7 +150,9 @@ export default function CompanyInternshipsPage() {
 
                 <div className="mb-4">
                   <p className="text-sm font-semibold text-gray-900 mb-1">
-                    Hourly Wage: ¥{internship.hourlyWage?.toLocaleString()}
+                    {internship.compensationType === "hourly" && `${t("compensation.hourly")}: ¥${internship.hourlyWage?.toLocaleString()}`}
+                    {internship.compensationType === "fixed" && `${t("compensation.fixed")}: ¥${internship.fixedSalary?.toLocaleString()}`}
+                    {internship.compensationType === "other" && `${t("compensation.other")}: ${(internship as any).otherCompensation}`}
                   </p>
                   <p className="text-sm text-gray-700 line-clamp-2">
                     {(internship as any).workDetailsKey ? t((internship as any).workDetailsKey) : internship.workDetails}

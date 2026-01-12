@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -21,8 +20,6 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      
       <section className="relative py-16" style={{
         background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.08) 0%, rgba(245, 159, 193, 0.08) 35%, rgba(111, 211, 238, 0.08) 70%, rgba(76, 195, 230, 0.08) 100%)'
       }}>

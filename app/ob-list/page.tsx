@@ -1,11 +1,11 @@
 "use client";
 
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import OBOGListContent from "@/components/OBOGListContent";
+import SidebarLayout from "@/components/SidebarLayout";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, staggerContainer, staggerItem, buttonVariants } from "@/lib/animations";
 
@@ -15,6 +15,7 @@ export default function OBVisitPage() {
   const isLoggedIn = !!session;
   const [obogUsers, setObogUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     fetch("/api/obog")
@@ -27,16 +28,15 @@ export default function OBVisitPage() {
         console.error("Error loading OB/OG users:", err);
         setLoading(false);
       });
+    setShowRules(true);
   }, []);
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      
       {/* Hero Section */}
       <motion.section 
         className="py-16" 
-        style={{ backgroundColor: '#F5F7FA' }}
+        style={{ backgroundColor: '#D7FFEF' }}
         initial="initial"
         animate="animate"
         variants={fadeIn}
@@ -59,61 +59,7 @@ export default function OBVisitPage() {
         </div>
       </motion.section>
 
-      {/* Safety Rules */}
-      <motion.section
-        className="py-16 bg-white"
-        initial="initial"
-        animate="animate"
-        variants={fadeIn}
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2 
-            className="text-2xl font-bold mb-8" 
-            style={{ color: '#111827' }}
-            variants={slideUp}
-          >
-            {t("obvisit.safety.title")}
-          </motion.h2>
-          <motion.div 
-            className="p-6 mb-6 border-l-4"
-            style={{ backgroundColor: '#FEF3C7', borderLeftColor: '#F59E0B' }}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <p className="font-semibold mb-2" style={{ color: '#374151' }}>{t("obvisit.safety.important")}</p>
-            <motion.ul
-              className="space-y-2 text-sm"
-              style={{ color: '#374151' }}
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-            >
-              {[
-                t("obvisit.safety.1"),
-                t("obvisit.safety.2"),
-                t("obvisit.safety.3"),
-                t("obvisit.safety.4"),
-                t("obvisit.safety.5"),
-                t("obvisit.safety.6"),
-                t("obvisit.safety.7"),
-                t("obvisit.safety.8"),
-              ].map((item, index) => (
-                <motion.li key={index} variants={staggerItem}>
-                  • {item}
-                </motion.li>
-              ))}
-            </motion.ul>
-          </motion.div>
-          <motion.p 
-            style={{ color: '#6B7280' }}
-            variants={slideUp}
-          >
-            {t("obvisit.safety.desc")}
-          </motion.p>
-        </div>
-      </motion.section>
-
+      
       {/* OB/OG List Section */}
       <motion.section
         className="py-16 bg-white"
@@ -203,15 +149,85 @@ export default function OBVisitPage() {
           </div>
         </motion.section>
       )}
+      <div className="flex justify-center py-4">
+        <button
+          onClick={() => setShowRules(true)}
+          className="bg-navy text-white px-6 py-3 rounded-lg hover:bg-blue-600 font-medium shadow-md transition-all"
+        >
+          {t("obvisit.safety.title")}
+        </button>
+      </div>
+      
+      {/* Safety and Rules Popup */}
+      {showRules && (
+        <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 scrollbar-visible">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto scrollbar-visible">
+            {/* Safety Rules */}
+      <motion.section
+        className="pt-2 pb-4 bg-white"
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+      >
+        <div className="max-w-4xl mx-auto">
+          <motion.h2 
+            className="text-2xl font-bold mb-8" 
+            style={{ color: '#111827' }}
+            variants={slideUp}
+          >
+            {t("obvisit.safety.title")}
+          </motion.h2>
+          <motion.div 
+            className="p-6 mb-6 border-l-4"
+            style={{ backgroundColor: '#FEF3C7', borderLeftColor: '#F59E0B' }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <p className="font-semibold mb-2" style={{ color: '#374151' }}>{t("obvisit.safety.important")}</p>
+            <motion.ul
+              className="space-y-2 text-sm"
+              style={{ color: '#374151' }}
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              {[
+                t("obvisit.safety.1"),
+                t("obvisit.safety.2"),
+                t("obvisit.safety.3"),
+                t("obvisit.safety.4"),
+                t("obvisit.safety.5"),
+                t("obvisit.safety.6"),
+                t("obvisit.safety.7"),
+                t("obvisit.safety.8"),
+              ].map((item, index) => (
+                <motion.li key={index} variants={staggerItem}>
+                  • {item}
+                </motion.li>
+              ))}
+            </motion.ul>
+          </motion.div>
+          <motion.p 
+            style={{ color: '#6B7280' }}
+            variants={slideUp}
+          >
+            {t("obvisit.safety.desc")}
+          </motion.p>
+        </div>
+      </motion.section>
 
-      {/* Footer */}
-      <footer className="text-white py-12" style={{ backgroundColor: '#111827' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-white">{t("common.copyright")}</p>
+            
+            <button
+              onClick={() => setShowRules(false)}
+              className="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600"
+            >
+              {t("button.close")}
+            </button>
           </div>
         </div>
-      </footer>
+      )}
+
     </div>
   );
 }

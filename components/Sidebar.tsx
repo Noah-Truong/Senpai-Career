@@ -1,0 +1,555 @@
+"use client";
+
+import Link from "next/link";
+import { useState, useEffect, useCallback } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
+import Avatar from "./Avatar";
+import Logo from "./Logo";
+
+interface Notification {
+  id: string;
+  userId: string;
+  type: "internship" | "new-grad" | "message" | "system";
+  title: string;
+  content: string;
+  link?: string;
+  read: boolean;
+  createdAt: string;
+}
+
+interface SidebarProps {
+  userCredits?: number | null;
+  onCollapse?: (collapsed: boolean) => void;
+}
+
+export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
+  const { data: session } = useSession();
+  const { t } = useLanguage();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+
+  const handleCollapse = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    onCollapse?.(newState);
+  };
+
+  const userRole = session?.user?.role as "student" | "obog" | "company" | "admin" | undefined;
+  const userId = (session?.user as any)?.id;
+
+  // Fetch notifications
+  const loadNotifications = useCallback(async () => {
+    if (!session?.user?.id) return;
+    setLoadingNotifications(true);
+    try {
+      const response = await fetch("/api/notifications");
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unreadCount || 0);
+      }
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      loadNotifications();
+      const interval = setInterval(loadNotifications, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [session?.user?.id, loadNotifications]);
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.read) {
+      try {
+        await fetch("/api/notifications", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notificationId: notification.id }),
+        });
+        setNotifications(prev =>
+          prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
+      }
+    }
+    if (notification.link) {
+      setShowNotifications(false);
+      router.push(notification.link);
+    } else {
+      setShowNotifications(false);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await fetch("/api/notifications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAll: true }),
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
+  };
+
+  const isActiveLink = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
+  const getLinkClasses = (href: string) => {
+    const baseClasses = "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200";
+    if (isActiveLink(href)) {
+      return `${baseClasses} font-medium`;
+    }
+    return `${baseClasses} text-gray-600 hover:text-gray-900`;
+  };
+
+  const getActiveStyle = (href: string) => {
+    if (isActiveLink(href)) {
+      return { backgroundColor: '#D7FFEF', color: '#0D7A4D' };
+    }
+    return {};
+  };
+
+  const getHoverStyle = { backgroundColor: '#F0FFF8' };
+
+  // Navigation items based on role
+  const getNavItems = () => {
+    const commonItems = [
+      {
+        href: `/user/${userId}`,
+        label: t("nav.myPage"),
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        ),
+      },
+    ];
+
+    if (userRole === "student") {
+      return [
+        ...commonItems,
+        {
+          href: "/ob-list",
+          label: t("nav.alumniVisits") || "Alumni Visits",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/internships",
+          label: t("nav.internships") || "Internships",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/recruiting",
+          label: t("nav.newGrad") || "New Grad",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/companies",
+          label: t("nav.companies") || "Companies",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          ),
+        },
+      ];
+    }
+
+    if (userRole === "obog") {
+      return [
+        ...commonItems,
+        {
+          href: "/ob-list",
+          label: t("nav.alumniVisits") || "Alumni Visits",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/internships",
+          label: t("nav.internships") || "Internships",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/recruiting",
+          label: t("nav.newGrad") || "New Grad",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/companies",
+          label: t("nav.companies") || "Companies",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          ),
+        },
+      
+        
+      ];
+    }
+
+    if (userRole === "company") {
+      return [
+        ...commonItems,
+        
+        {
+          href: "/ob-list",
+          label: t("nav.alumniVisits") || "Alumni Visits",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/internships",
+          label: t("nav.internships") || "Internships",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/recruiting",
+          label: t("nav.newGrad") || "New Grad",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/company/internships",
+          label: t("nav.jobListings") || "Job Listings",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/company/profile",
+          label: t("nav.companyProfile") || "Company Profile",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          ),
+        },
+     
+      ];
+    }
+
+    if (userRole === "admin") {
+      return [
+        {
+          href: "/dashboard/admin",
+          label: t("nav.adminDashboard"),
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/admin/reports",
+          label: t("nav.admin/reports"),
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/admin/student-actions",
+          label: t("nav.admin/studentActions") || "Student Actions",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ),
+        },
+    
+      ];
+    }
+
+    return commonItems;
+  };
+
+  const navItems = getNavItems();
+
+  return (
+    <aside
+      className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-40 transition-all duration-300 ${
+        isCollapsed ? "w-16" : "w-64"
+      }`}
+      style={{ boxShadow: "2px 0 8px rgba(0, 0, 0, 0.05)" }}
+    >
+      <div className="flex flex-col h-full">
+        {/* Logo and collapse button */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          {!isCollapsed && (
+            <Link href="/" className="flex items-center">
+              <Logo />
+            </Link>
+          )}
+          <button
+            onClick={handleCollapse}
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg
+              className={`w-5 h-5 transition-transform ${isCollapsed ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* User info */}
+        <div className={`p-4 border-b border-gray-200 ${isCollapsed ? "flex justify-center" : ""}`}>
+          <Link href="/profile" className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
+            <Avatar
+              src={session?.user?.profilePhoto}
+              alt={session?.user?.name || "Profile"}
+              size="md"
+              fallbackText={session?.user?.name}
+            />
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {session?.user?.name}
+                </p>
+                <p className="text-xs text-gray-500 capitalize">{userRole}</p>
+              </div>
+            )}
+          </Link>
+        </div>
+
+        {/* Credits (for non-admin users) */}
+        {userCredits !== null && userRole !== "admin" && (
+          <div className={`px-4 py-3 border-b border-gray-200 ${isCollapsed ? "flex justify-center" : ""}`}>
+            <Link
+              href="/credits"
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors bg-navy ${
+                userCredits === 0
+                  ? "bg-blue-600 text-white hover:bg-blue-700"
+                  : "text-gray-700"
+              }`}
+              style={userCredits !== 0 ? {color: '#0D7A4D' } : {}}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {!isCollapsed && (
+                <span className="text-sm font-medium">
+                  {userCredits === 0 ? (t("nav.buyCredits") || "Buy Credits") : `${userCredits} Credits`}
+                </span>
+              )}
+            </Link>
+          </div>
+        )}
+
+        {/* Notifications */}
+        <div className={`px-4 py-3 border-b border-gray-200`}>
+          <div className={`relative ${isCollapsed ? "flex justify-center" : ""}`}>
+            <button
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                if (!showNotifications) loadNotifications();
+              }}
+              className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-[#F0FFF8] ${isCollapsed ? "justify-center" : ""}`}
+              title={isCollapsed ? t("nav.notifications") : undefined}
+            >
+              <div className="relative">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 h-4 w-4 rounded-full text-xs flex items-center justify-center text-white"
+                    style={{ backgroundColor: '#DC2626', fontSize: '10px' }}
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              {!isCollapsed && (
+                <span className="text-sm font-medium">{t("nav.notifications")}</span>
+              )}
+            </button>
+
+            {/* Notifications dropdown */}
+            <AnimatePresence>
+              {showNotifications && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className={`absolute ${isCollapsed ? "left-full ml-2" : "left-0"} top-full mt-1 w-80 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto`}
+                  style={{ borderColor: '#E5E7EB' }}
+                >
+                  <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: '#E5E7EB' }}>
+                    <h3 className="font-semibold text-gray-900">{t("nav.notifications")}</h3>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={handleMarkAllAsRead}
+                        className="text-sm hover:underline"
+                        style={{ color: '#0F2A44' }}
+                      >
+                        {t("nav.markAllRead") || "Mark all as read"}
+                      </button>
+                    )}
+                  </div>
+                  {loadingNotifications ? (
+                    <div className="p-4 text-center text-gray-500">{t("common.loading")}</div>
+                  ) : notifications.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">{t("nav.noNotifications")}</div>
+                  ) : (
+                    <div>
+                      {notifications.map((notification) => (
+                        <button
+                          key={notification.id}
+                          onClick={() => handleNotificationClick(notification)}
+                          className={`w-full text-left p-4 hover:bg-[#D7FFEF] transition-colors border-b ${
+                            !notification.read ? '' : ''
+                          }`}
+                          style={{
+                            borderColor: '#E5E7EB',
+                            backgroundColor: !notification.read ? '#D7FFEF' : 'transparent'
+                          }}
+                        >
+                          <p className={`text-sm font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            {notification.content}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(notification.createdAt).toLocaleDateString()}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <div className={`relative ${isCollapsed ? "flex justify-center" : ""}`}>
+          <Link href="/messages" 
+        className={`${getLinkClasses('/messages')} hover:bg-[#F0FFF8]`}
+        style={getActiveStyle('/messages')}
+        title={isCollapsed ? t("nav.messages") || "Messages" : undefined}
+        >
+           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+           </svg>
+          {!isCollapsed && <span>{t("nav.messages") || "Messages"}</span>}
+        </Link>
+        </div>
+        </div>
+
+        
+        
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto p-3">
+          <ul className="space-y-1">
+            {navItems.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`${getLinkClasses(item.href)} hover:bg-[#F0FFF8]`}
+                  style={getActiveStyle(item.href)}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  {item.icon}
+                  {!isCollapsed && <span>{item.label}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Bottom section */}
+        <div className="p-3 border-t border-gray-200 space-y-1">
+          {/* Report */}
+          <Link href="/report" 
+          className={`${getLinkClasses('/report')} hover:bg-[#F0FFF8]`}
+          style={getActiveStyle('/report')}
+          title={isCollapsed ? t("nav.report") : undefined}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            {!isCollapsed && <span>{t("nav.report")}</span>}
+          </Link>
+          
+   
+          {/* Sign out */}
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+            title={isCollapsed ? t("nav.signOut") : undefined}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            {!isCollapsed && <span>{t("nav.signOut")}</span>}
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+}

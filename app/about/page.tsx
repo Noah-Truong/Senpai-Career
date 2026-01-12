@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "next-auth/react";
@@ -15,8 +14,6 @@ export default function AboutPage() {
   
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      
       {/* Hero Section */}
       <AnimatedSection bgColor="light" className="text-center" animateOnView={false}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

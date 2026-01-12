@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslated } from "@/lib/translation-helpers";
+import { getTranslated } from "@/lib/translation-helpers";
 import MessageButton from "./MessageButton";
 import Avatar from "./Avatar";
 import ReportButton from "./ReportButton";
@@ -24,8 +24,7 @@ interface OBOGDetailContentProps {
 }
 
 export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
-  const { t } = useLanguage();
-  const { translate } = useTranslated();
+  const { t, language } = useLanguage();
 
   return (
     <div className="card-gradient p-8">
@@ -40,11 +39,13 @@ export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
         />
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <span className={`px-3 py-1 rounded text-sm font-semibold ${
-              obog.type === "working-professional" 
-                ? "bg-blue-100 text-blue-800" 
-                : "bg-green-100 text-green-800"
-            }`}>
+            <span
+              className="px-3 py-1 rounded text-sm font-semibold"
+              style={{
+                backgroundColor: obog.type === "working-professional" ? '#D7FFEF' : '#D1FAE5',
+                color: obog.type === "working-professional" ? '#0F2A44' : '#059669'
+              }}
+            >
               {obog.type === "working-professional" ? t("obogDetail.workingProfessional") : t("obogDetail.jobOfferHolder")}
             </span>
           </div>
@@ -59,7 +60,7 @@ export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border-l-4" style={{
           borderImage: 'linear-gradient(135deg, #f26aa3 0%, #f59fc1 35%, #6fd3ee 70%, #4cc3e6 100%) 1'
         }}>
-          <p className="text-lg italic text-gray-800">{translate(obog.oneLineMessage)}</p>
+          <p className="text-lg italic text-gray-800">{getTranslated(obog.oneLineMessage, language)}</p>
         </div>
       )}
 

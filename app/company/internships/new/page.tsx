@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function NewInternshipPage() {
@@ -18,7 +17,10 @@ export default function NewInternshipPage() {
   const [formData, setFormData] = useState({
     type: "internship" as "internship" | "new-grad",
     title: "",
+    compensationType: "hourly" as "hourly" | "fixed" | "other",
     hourlyWage: "",
+    fixedSalary: "",
+    otherCompensation: "",
     workDetails: "",
     skillsGained: "",
     whyThisCompany: "",
@@ -55,6 +57,19 @@ export default function NewInternshipPage() {
         .map(s => s.trim())
         .filter(s => s.length > 0);
 
+      // Prepare compensation data based on type
+      let compensationData: any = {
+        compensationType: formData.compensationType,
+      };
+
+      if (formData.compensationType === "hourly") {
+        compensationData.hourlyWage = parseFloat(formData.hourlyWage);
+      } else if (formData.compensationType === "fixed") {
+        compensationData.fixedSalary = parseFloat(formData.fixedSalary);
+      } else if (formData.compensationType === "other") {
+        compensationData.otherCompensation = formData.otherCompensation;
+      }
+
       const response = await fetch("/api/internships", {
         method: "POST",
         headers: {
@@ -62,7 +77,7 @@ export default function NewInternshipPage() {
         },
         body: JSON.stringify({
           ...formData,
-          hourlyWage: parseFloat(formData.hourlyWage),
+          ...compensationData,
           skillsGained,
         }),
       });
@@ -88,7 +103,6 @@ export default function NewInternshipPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p>Loading...</p>
         </div>
@@ -98,7 +112,6 @@ export default function NewInternshipPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ color: '#000000' }}>
@@ -164,22 +177,83 @@ export default function NewInternshipPage() {
               </div>
 
               <div>
-                <label htmlFor="hourlyWage" className="block text-sm font-medium text-gray-700 mb-2">
-                  Hourly Wage (¥) *
+                <label htmlFor="compensationType" className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("form.compensationType")} *
                 </label>
-                <input
-                  type="number"
-                  id="hourlyWage"
-                  name="hourlyWage"
+                <select
+                  id="compensationType"
+                  name="compensationType"
                   required
-                  min="0"
-                  step="1"
-                  value={formData.hourlyWage}
+                  value={formData.compensationType}
                   onChange={handleChange}
-                  placeholder="1500"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-4"
                   style={{ color: '#000000' }}
-                />
+                >
+                  <option value="hourly">{t("form.compensationHourly")}</option>
+                  <option value="fixed">{t("form.compensationFixed")}</option>
+                  <option value="other">{t("form.compensationOther")}</option>
+                </select>
+
+                {formData.compensationType === "hourly" && (
+                  <div>
+                    <label htmlFor="hourlyWage" className="block text-sm font-medium text-gray-700 mb-2">
+                      {t("form.hourlyWage")} *
+                    </label>
+                    <input
+                      type="number"
+                      id="hourlyWage"
+                      name="hourlyWage"
+                      required
+                      min="0"
+                      step="1"
+                      value={formData.hourlyWage}
+                      onChange={handleChange}
+                      placeholder="1500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      style={{ color: '#000000' }}
+                    />
+                  </div>
+                )}
+
+                {formData.compensationType === "fixed" && (
+                  <div>
+                    <label htmlFor="fixedSalary" className="block text-sm font-medium text-gray-700 mb-2">
+                      {t("form.fixedSalary")} *
+                    </label>
+                    <input
+                      type="number"
+                      id="fixedSalary"
+                      name="fixedSalary"
+                      required
+                      min="0"
+                      step="10000"
+                      value={formData.fixedSalary}
+                      onChange={handleChange}
+                      placeholder="3000000"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      style={{ color: '#000000' }}
+                    />
+                  </div>
+                )}
+
+                {formData.compensationType === "other" && (
+                  <div>
+                    <label htmlFor="otherCompensation" className="block text-sm font-medium text-gray-700 mb-2">
+                      {t("form.otherCompensation")} *
+                    </label>
+                    <textarea
+                      id="otherCompensation"
+                      name="otherCompensation"
+                      required
+                      rows={3}
+                      value={formData.otherCompensation}
+                      onChange={handleChange}
+                      placeholder="Describe the compensation package (e.g., commission-based, performance bonuses, etc.)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      style={{ color: '#000000' }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

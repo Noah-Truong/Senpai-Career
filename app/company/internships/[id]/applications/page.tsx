@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
 import Link from "next/link";
@@ -67,7 +66,6 @@ export default function ApplicationsPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p>{t("common.loading")}</p>
         </div>
@@ -77,7 +75,6 @@ export default function ApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link href="/company/internships" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
           ← {t("button.backToListings") || "Back to Listings"}

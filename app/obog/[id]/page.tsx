@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
-import Header from "@/components/Header";
+import SidebarLayout from "@/components/SidebarLayout";
 import { getOBOGById } from "@/lib/users";
 import { notFound } from "next/navigation";
 import OBOGDetailContent from "@/components/OBOGDetailContent";
@@ -19,12 +19,11 @@ export default async function OBOGDetailPage({ params }: { params: { id: string 
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <SidebarLayout role="student">
+      <div className="max-w-4xl mx-auto">
         <OBOGDetailContent obog={obog} />
       </div>
-    </div>
+    </SidebarLayout>
   );
 }
 

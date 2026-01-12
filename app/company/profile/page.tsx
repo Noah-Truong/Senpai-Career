@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CompanyProfilePage() {
@@ -135,7 +134,6 @@ export default function CompanyProfilePage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
@@ -145,7 +143,6 @@ export default function CompanyProfilePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>{t("company.profile.title") || "Company Profile"}</h1>
         <p className="mb-8" style={{ color: '#6B7280' }}>

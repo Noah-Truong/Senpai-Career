@@ -5,19 +5,27 @@
    ============================================ */
 :root {
   /* Primary Colors */
-  --color-navy: #0F2A44;
+  --color-navy: #000080;
   --color-navy-light: #1A3A5C;
   --color-navy-dark: #0A1E32;
-  
+
+  /* Friendly Accent - Soft Mint */
+  --color-mint: #D7FFEF;
+  --color-mint-dark: #B8F5DC;
+  --color-mint-darker: #7BE8C1;
+  --color-mint-text: #0D7A4D;
+
   /* Background Colors */
   --color-bg-white: #FFFFFF;
-  --color-bg-light: #F5F7FA;
+  --color-bg-light: #D7FFEF;
+  --color-bg-mint: #D7FFEF;
   --color-bg-muted: #EEF1F5;
-  
+  --color-bg-navy: #000080;
+
   /* Accent Color (CTA only) */
-  --color-accent: #2563EB;
-  --color-accent-hover: #1D4ED8;
-  --color-accent-light: #3B82F6;
+  --color-accent: #0F2A44;
+  --color-accent-hover: #1A3A5C;
+  --color-accent-light: #0F2A44;
   
   /* Text Colors */
   --text-heading: #111827;
@@ -131,6 +139,18 @@ a, button, input, textarea, select {
   .bg-light {
     background-color: var(--color-bg-light);
   }
+
+  .bg-mint {
+    background-color: var(--color-mint);
+  }
+
+  .text-mint {
+    color: var(--color-mint-text);
+  }
+
+  .border-mint {
+    border-color: var(--color-mint-dark);
+  }
   
   /* Active navigation indicator */
   .nav-active {
@@ -169,15 +189,15 @@ a, button, input, textarea, select {
    COMPONENT CLASSES
    ============================================ */
 @layer components {
-  /* Primary Button - Accent Blue */
+  /* Primary Button - Navy */
   .btn-primary {
     @apply px-4 py-2 text-white font-medium transition-all;
-    background-color: var(--color-accent);
+    background-color: var(--color-navy);
     border-radius: var(--radius-md);
   }
-  
+
   .btn-primary:hover {
-    background-color: var(--color-accent-hover);
+    background-color: var(--color-navy-light);
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }
@@ -216,12 +236,12 @@ a, button, input, textarea, select {
   .btn-tertiary {
     @apply px-4 py-2 font-medium transition-all;
     background-color: transparent;
-    color: var(--color-accent);
+    color: var(--color-navy);
     border-radius: var(--radius-md);
   }
-  
+
   .btn-tertiary:hover {
-    background-color: var(--color-bg-light);
+    background-color: var(--color-mint);
   }
   
   /* Card - Sharp, professional */
@@ -236,9 +256,26 @@ a, button, input, textarea, select {
   
   .card:hover {
     box-shadow: var(--shadow-md);
-    border-color: var(--border-strong);
+    border-color: var(--color-mint-dark);
   }
-  
+
+  /* Card with mint accent - friendly feel */
+  .card-mint {
+    @apply p-6;
+    background-color: var(--color-bg-white);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+    border-left: 3px solid var(--color-mint-darker);
+  }
+
+  .card-mint:hover {
+    box-shadow: var(--shadow-md);
+    background-color: var(--color-mint);
+    border-color: var(--color-mint-dark);
+  }
+
   .card-gradient {
     @apply p-6;
     background-color: var(--color-bg-light);
@@ -251,7 +288,34 @@ a, button, input, textarea, select {
     box-shadow: var(--shadow-md);
     border-color: var(--border-strong);
   }
-  
+
+  /* Section with mint background - friendly feel */
+  .section-mint {
+    background-color: var(--color-mint);
+  }
+
+  /* Success/highlight badge with mint */
+  .badge-mint {
+    @apply px-3 py-1 text-sm font-medium rounded-full;
+    background-color: var(--color-mint);
+    color: var(--color-mint-text);
+  }
+
+  /* Alert/notification with mint - friendly success */
+  .alert-success {
+    @apply p-4 rounded-lg;
+    background-color: var(--color-mint);
+    border: 1px solid var(--color-mint-dark);
+    color: var(--color-mint-text);
+  }
+
+  /* Highlight text with mint background */
+  .highlight-mint {
+    background-color: var(--color-mint);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+  }
+
   /* Navigation wrapper */
   .nav-button-wrapper {
     display: inline-flex;

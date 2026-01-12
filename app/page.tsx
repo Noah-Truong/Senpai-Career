@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "next-auth/react";
@@ -37,13 +36,11 @@ export default function Home() {
   const isLoggedIn = !!session;
   
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
-      
+    <div className="min-h-screen">
       {/* Hero Section */}
       <motion.section 
         className="py-20 md:py-28"
-        style={{ backgroundColor: '#F5F7FA' }}
+        style={{ backgroundColor: '#D7FFEF' }}
         initial="initial"
         animate="animate"
         variants={fadeIn}
@@ -60,7 +57,7 @@ export default function Home() {
             </motion.div>
             <motion.p 
               className="text-lg md:text-xl mb-8 max-w-2xl mx-auto"
-              style={{ color: '#374151' }}
+              style={{ color: ' #374151' }}
               variants={staggerItem}
             >
               {t("home.hero.subtitle")}
@@ -101,7 +98,7 @@ export default function Home() {
       {/* Our Mission */}
       <motion.section 
         className="py-16 md:py-20" 
-        style={{ backgroundColor: '#F5F7FA' }}
+        style={{ backgroundColor: '#D7FFEF' }}
         initial="initial"
         whileInView="animate"
         viewport={{ once: true, amount: 0.2 }}
@@ -250,7 +247,7 @@ export default function Home() {
       {/* Career Journey Flow */}
       <motion.section 
         className="py-16 md:py-20" 
-        style={{ backgroundColor: '#F5F7FA' }}
+        style={{ backgroundColor: '#D7FFEF' }}
         initial="initial"
         whileInView="animate"
         viewport={{ once: true, amount: 0.2 }}

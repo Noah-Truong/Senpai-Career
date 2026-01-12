@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Header from "@/components/Header";
 
 export default function ForgotPasswordPage() {
   const { t } = useLanguage();
@@ -78,9 +78,12 @@ export default function ForgotPasswordPage() {
               </div>
               
               {resetUrl && (
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
+                <div
+                  className="px-4 py-3 rounded border"
+                  style={{ backgroundColor: '#D7FFEF', borderColor: '#B8F5DC', color: '#0F2A44' }}
+                >
                   <p className="text-sm font-medium mb-2">Development Mode - Reset Link:</p>
-                  <Link 
+                  <Link
                     href={resetUrl}
                     className="text-sm underline break-all block"
                   >
@@ -116,9 +119,9 @@ export default function ForgotPasswordPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:z-10 sm:text-sm"
+                  style={{ borderRadius: '6px', color: '#000000' }}
                   placeholder={t("form.emailPlaceholder")}
-                  style={{ color: '#000000' }}
                 />
               </div>
 

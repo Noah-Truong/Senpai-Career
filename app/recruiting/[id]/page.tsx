@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import CompanyLogo from "@/components/CompanyLogo";
 import Link from "next/link";
@@ -123,7 +122,6 @@ export default function RecruitingDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p>{t("common.loading")}</p>
         </div>
@@ -134,7 +132,6 @@ export default function RecruitingDetailPage() {
   if (error || !listing) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-red-600">{error || "Listing not found"}</p>
           <Link href="/recruiting" className="btn-primary mt-4 inline-block">
@@ -147,7 +144,6 @@ export default function RecruitingDetailPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link href="/recruiting" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
           ← {t("button.backToListings") || "Back to Listings"}

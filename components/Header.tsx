@@ -98,7 +98,11 @@ function NavDropdown({
   );
 }
 
-export default function Header() {
+interface HeaderProps {
+  minimal?: boolean; // For logged-in users with sidebar - only show notifications/messages
+}
+
+export default function Header({ minimal = false }: HeaderProps) {
   const { data: session } = useSession();
   const { t } = useLanguage();
   const router = useRouter();
@@ -219,10 +223,103 @@ export default function Header() {
     { href: "/for-companies/foreign-nationals", label: t("nav.foreignRecruitment") || "Foreign National Recruitment" },
   ];
 
+  // Minimal mode for logged-in users with sidebar - only notifications and messages
+  if (minimal && isLoggedIn) {
+    return (
+      <div className="flex items-center gap-2">
+        {/* Notifications */}
+        <div className="relative">
+          <button
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              if (!showNotifications) loadNotifications();
+            }}
+            className="p-2 text-gray-500 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
+            style={{ color: '#6B7280' }}
+            title={t("nav.notifications")}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            {unreadCount > 0 && (
+              <span
+                className="absolute top-0 right-0 h-4 w-4 rounded-full text-xs flex items-center justify-center text-white"
+                style={{ backgroundColor: '#DC2626', fontSize: '10px' }}
+              >
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Notifications dropdown */}
+          {showNotifications && (
+            <div
+              className="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+              style={{ borderColor: '#E5E7EB' }}
+            >
+              <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: '#E5E7EB' }}>
+                <h3 className="font-semibold text-gray-900">{t("nav.notifications")}</h3>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="text-sm hover:underline"
+                    style={{ color: '#2563EB' }}
+                  >
+                    {t("nav.markAllRead") || "Mark all as read"}
+                  </button>
+                )}
+              </div>
+              {loadingNotifications ? (
+                <div className="p-4 text-center text-gray-500">{t("common.loading")}</div>
+              ) : notifications.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">{t("nav.noNotifications")}</div>
+              ) : (
+                <div>
+                  {notifications.map((notification) => (
+                    <button
+                      key={notification.id}
+                      onClick={() => handleNotificationClick(notification)}
+                      className={`w-full text-left p-4 hover:bg-gray-50 transition-colors border-b ${
+                        !notification.read ? 'bg-blue-50' : ''
+                      }`}
+                      style={{ borderColor: '#E5E7EB' }}
+                    >
+                      <p className={`text-sm font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                        {notification.title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {notification.content}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(notification.createdAt).toLocaleDateString()}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Messages */}
+        <button
+          onClick={() => router.push("/messages")}
+          className="p-2 text-gray-500 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
+          style={{ color: '#6B7280' }}
+          title={t("nav.messages")}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <header 
+    <header
       className="sticky top-0 z-50 bg-white border-b"
-      style={{ 
+      style={{
         borderColor: '#E5E7EB',
         boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
       }}
@@ -234,121 +331,42 @@ export default function Header() {
             <Logo />
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
-            {!isLoggedIn ? (
-              <>
-                <Link 
-                  href="/" 
-                  className={getLinkClasses("/")}
-                  style={{ color: isActiveLink("/") ? '#0F2A44' : '#374151' }}
-                >
-                  {t("nav.home") || "Home"}
-                </Link>
-                <Link 
-                  href="/about" 
-                  className={getLinkClasses("/about")}
-                  style={{ color: isActiveLink("/about") ? '#0F2A44' : '#374151' }}
-                >
-                  {t("nav.about") || "Service Overview"}
-                </Link>
-                <NavDropdown 
-                  label={t("nav.forStudents") || "For Students"} 
-                  items={studentMenuItems}
-                  isActive={pathname.startsWith("/about/ob-visit") || pathname.startsWith("/internships") || pathname.startsWith("/recruiting")}
-                />
-                <NavDropdown 
-                  label={t("nav.forCompaniesNav") || "For Companies"} 
-                  items={companyMenuItems}
-                  isActive={pathname.startsWith("/for-companies")}
-                />
-                <Link 
-                  href="/how-to-use" 
-                  className={getLinkClasses("/how-to-use")}
-                  style={{ color: isActiveLink("/how-to-use") ? '#0F2A44' : '#374151' }}
-                >
-                  {t("nav.howToUse") || "How to Use"}
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link 
-                  href="/" 
-                  className={getLinkClasses("/")}
-                  style={{ color: isActiveLink("/") ? '#0F2A44' : '#374151' }}
-                >
-                  {t("nav.home") || "Home"}
-                </Link>
-                {userRole === "company" && (
-                  <>
-                    
-                    <Link href="/company/profile" className={getLinkClasses("/company/profile")} style={{ color: isActiveLink("/company/profile") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.companyProfile") || "Company Profile"}
-                    </Link>
-                    <Link href="/company/internships" className={getLinkClasses("/company/internships")} style={{ color: isActiveLink("/company/internships") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.jobListings") || "Job Listings"}
-                    </Link>
-                    <Link href="/companies" className={getLinkClasses("/companies")} style={{ color: isActiveLink("/companies") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.companies") || "Companies"}
-                    </Link>
-                    <Link href="/company/students" className={getLinkClasses("/company/students")} style={{ color: isActiveLink("/company/students") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.studentList")}
-                    </Link>
-                    <Link href={`/user/${(session?.user as any)?.id}`} className={getLinkClasses(`/user/${(session?.user as any)?.id}`)} style={{ color: isActiveLink(`/user/${(session?.user as any)?.id}`) ? '#0F2A44' : '#374151' }}>
-                      {t("nav.myPage")}
-                    </Link>
-                  </>
-                )}
-                {userRole === "student" && (
-                  <>
-                   
-                    <Link href="/ob-list" className={getLinkClasses("/ob-list")} style={{ color: isActiveLink("/ob-list") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.alumniVisits") || "Alumni Visits"}
-                    </Link>
-                    <Link href="/internships" className={getLinkClasses("/internships")} style={{ color: isActiveLink("/internships") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.internships") || "Internships"}
-                    </Link>
-                    <Link href="/recruiting" className={getLinkClasses("/recruiting")} style={{ color: isActiveLink("/recruiting") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.newGrad") || "New Grad"}
-                    </Link>
-                    <Link href="/companies" className={getLinkClasses("/companies")} style={{ color: isActiveLink("/companies") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.companies") || "Companies"}
-                    </Link>
-                    <Link href={`/user/${(session?.user as any)?.id}`} className={getLinkClasses(`/user/${(session?.user as any)?.id}`)} style={{ color: isActiveLink(`/user/${(session?.user as any)?.id}`) ? '#0F2A44' : '#374151' }}>
-                      {t("nav.myPage")}
-                    </Link>
-                  </>
-                )}
-                {userRole === "obog" && (
-                  <>
-                    
-                    <Link href="/about" className={getLinkClasses("/about")} style={{ color: isActiveLink("/about") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.about")}
-                    </Link>
-                    <Link href="/report" className={getLinkClasses("/report")} style={{ color: isActiveLink("/report") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.report")}
-                    </Link>
-                    <Link href={`/user/${(session?.user as any)?.id}`} className={getLinkClasses(`/user/${(session?.user as any)?.id}`)} style={{ color: isActiveLink(`/user/${(session?.user as any)?.id}`) ? '#0F2A44' : '#374151' }}>
-                      {t("nav.myPage")}
-                    </Link>
-                  </>
-                )}
-                {userRole === "admin" && (
-                  <>
-                    <Link href="/admin/dashboard" className={getLinkClasses("/admin/dashboard")} style={{ color: isActiveLink("/admin/dashboard") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.adminDashboard")}
-                    </Link>
-                    <Link href="/admin/reports" className={getLinkClasses("/admin/reports")} style={{ color: isActiveLink("/admin/reports") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.admin/reports")}
-                    </Link>
-                    <Link href="/admin/student-actions" className={getLinkClasses("/admin/student-actions")} style={{ color: isActiveLink("/admin/student-actions") ? '#0F2A44' : '#374151' }}>
-                      {t("nav.admin/studentActions") || "Student Actions"}
-                    </Link>
-                  </>
-                )}
-              </>
-            )}
-          </nav>
+          {/* Desktop Navigation - Only shown when NOT logged in */}
+          {!isLoggedIn && (
+            <nav className="hidden md:flex items-center gap-1">
+              <Link
+                href="/"
+                className={getLinkClasses("/")}
+                style={{ color: isActiveLink("/") ? '#0F2A44' : '#374151' }}
+              >
+                {t("nav.home") || "Home"}
+              </Link>
+              <Link
+                href="/about"
+                className={getLinkClasses("/about")}
+                style={{ color: isActiveLink("/about") ? '#0F2A44' : '#374151' }}
+              >
+                {t("nav.about") || "Service Overview"}
+              </Link>
+              <NavDropdown
+                label={t("nav.forStudents") || "For Students"}
+                items={studentMenuItems}
+                isActive={pathname.startsWith("/about/ob-visit") || pathname.startsWith("/internships") || pathname.startsWith("/recruiting")}
+              />
+              <NavDropdown
+                label={t("nav.forCompaniesNav") || "For Companies"}
+                items={companyMenuItems}
+                isActive={pathname.startsWith("/for-companies")}
+              />
+              <Link
+                href="/how-to-use"
+                className={getLinkClasses("/how-to-use")}
+                style={{ color: isActiveLink("/how-to-use") ? '#0F2A44' : '#374151' }}
+              >
+                {t("nav.howToUse") || "How to Use"}
+              </Link>
+            </nav>
+          )}
 
           {/* Right side actions */}
           <div className="flex items-center gap-3">
@@ -369,22 +387,23 @@ export default function Header() {
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                 {/* Notifications */}
-                 <div className="relative">
+              <div className="flex items-center gap-2">
+                {/* Notifications - Top right corner */}
+                <div className="relative">
                   <button
                     onClick={() => {
                       setShowNotifications(!showNotifications);
                       if (!showNotifications) loadNotifications();
                     }}
-                    className="p-2 text-gray-500 hover:text-navy hover:bg-gray-50 rounded transition-colors"
+                    className="p-2 text-gray-500 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
                     style={{ color: '#6B7280' }}
+                    title={t("nav.notifications")}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     {unreadCount > 0 && (
-                      <span 
+                      <span
                         className="absolute top-0 right-0 h-4 w-4 rounded-full text-xs flex items-center justify-center text-white"
                         style={{ backgroundColor: '#DC2626', fontSize: '10px' }}
                       >
@@ -395,9 +414,9 @@ export default function Header() {
 
                   {/* Notifications dropdown */}
                   {showNotifications && (
-                    <div 
-                      className="absolute right-0 mt-2 w-80 bg-white border rounded shadow-lg z-50 max-h-96 overflow-y-auto"
-                      style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+                    <div
+                      className="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+                      style={{ borderColor: '#E5E7EB' }}
                     >
                       <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: '#E5E7EB' }}>
                         <h3 className="font-semibold text-gray-900">{t("nav.notifications")}</h3>
@@ -443,53 +462,17 @@ export default function Header() {
                   )}
                 </div>
 
-                {/* Messages */}
+                {/* Messages - Top right corner */}
                 <button
                   onClick={() => router.push("/messages")}
-                  className="p-2 text-gray-500 hover:text-navy hover:bg-gray-50 rounded transition-colors"
+                  className="p-2 text-gray-500 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
                   style={{ color: '#6B7280' }}
+                  title={t("nav.messages")}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </button>
-
-                {/* User info */}
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 transition-colors"
-                >
-                  <Avatar
-                    src={session.user?.profilePhoto}
-                    alt={session.user?.name || "Profile"}
-                    size="sm"
-                    fallbackText={session.user?.name}
-                  />
-                </Link>
-
-                
-
-                {/* Credits */}
-                {userCredits !== null && (
-                  <button
-                    onClick={() => router.push("/credits")}
-                    className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                      userCredits === 0 
-                        ? "btn-primary" 
-                        : ""
-                    }`}
-                    style={userCredits === 0 ? {} : { 
-                      backgroundColor: '#F5F7FA',
-                      color: '#374151',
-                      border: '1px solid #E5E7EB'
-                    }}
-                  >
-                    {userCredits === 0 ? (t("nav.buyCredits") || "Buy Credits") : `${userCredits} Credits`}
-                  </button>
-                )}
-                
-               
-                
               </div>
             )}
 

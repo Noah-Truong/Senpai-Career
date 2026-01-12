@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 
@@ -121,7 +120,6 @@ export default function ReportPage() {
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
@@ -180,8 +178,7 @@ export default function ReportPage() {
   ];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F5F7FA' }}>
-      <Header />
+    <div className="min-h-screen" style={{ backgroundColor: '#D7FFEF' }}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-8">

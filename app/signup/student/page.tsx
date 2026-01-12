@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
@@ -131,8 +130,7 @@ export default function StudentSignupPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F5F7FA' }}>
-      <Header />
+    <div className="min-h-screen" style={{ backgroundColor: '#D7FFEF' }}>
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div 
           className="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto bg-white p-8 border rounded"

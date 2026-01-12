@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "@/components/Avatar";
 import Link from "next/link";
@@ -45,7 +44,6 @@ export default function PublicProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-gray-600">{t("common.loading")}</p>
         </div>
@@ -56,7 +54,6 @@ export default function PublicProfilePage() {
   if (error || !user) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card-gradient p-8 text-center">
             <p className="text-gray-700 text-lg mb-4">{error || t("profile.notFound")}</p>
@@ -75,18 +72,12 @@ export default function PublicProfilePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header with Edit Link if own profile */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold" style={{ color: '#111827' }}>
             {isCompany ? (user.companyName || t("myPage.companyProfile")) : t("myPage.publicProfile")}
           </h1>
-          {isOwnProfile && (
-            <Link href="/profile" className="btn-primary">
-              {t("profile.edit")}
-            </Link>
-          )}
         </div>
 
         {/* Profile Card */}
@@ -151,8 +142,8 @@ export default function PublicProfilePage() {
           {/* One Line Message (for OB/OG and Company) */}
           {(isOBOG || isCompany) && user.oneLineMessage && (
             <div className="p-4 rounded-lg border-l-4 mb-6" style={{
-              backgroundColor: '#F5F7FA',
-              borderLeftColor: '#2563EB'
+              backgroundColor: '#D7FFEF',
+              borderLeftColor: '#0F2A44'
             }}>
               <p className="text-lg italic" style={{ color: '#374151' }}>
                 "{getTranslated(user.oneLineMessage, language)}"

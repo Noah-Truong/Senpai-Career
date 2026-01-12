@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
@@ -32,11 +31,9 @@ export default function OBVisitPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-    
     <motion.section 
       className="py-16"
-      style={{ background: '#F5F7FA' }}
+      style={{ background: '#D7FFEF' }}
       initial="initial"
       animate="animate"
       variants={fadeIn}
@@ -124,7 +121,7 @@ export default function OBVisitPage() {
       {/* Profile Types */}
       <motion.section
         className="py-16"
-        style={{ background: '#F5F7FA' }}
+        style={{ background: '#D7FFEF' }}
         initial="initial"
         animate="animate"
         variants={fadeIn}

@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "next-auth/react";
@@ -11,8 +10,6 @@ export default function ForOBOGPage() {
   const isLoggedIn = !!session;
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      
       {/* Hero Section */}
       <section className="py-16" style={{
         background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.08) 0%, rgba(245, 159, 193, 0.08) 35%, rgba(111, 211, 238, 0.08) 70%, rgba(76, 195, 230, 0.08) 100%)'

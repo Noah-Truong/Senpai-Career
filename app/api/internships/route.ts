@@ -56,12 +56,32 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, hourlyWage, workDetails, skillsGained, whyThisCompany, type } = body;
+    const { title, compensationType, hourlyWage, fixedSalary, otherCompensation, workDetails, skillsGained, whyThisCompany, type } = body;
 
     // Validate required fields
-    if (!title || !hourlyWage || !workDetails || !type) {
+    if (!title || !compensationType || !workDetails || !type) {
       return NextResponse.json(
-        { error: "Missing required fields: title, hourlyWage, workDetails, and type are required" },
+        { error: "Missing required fields: title, compensationType, workDetails, and type are required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate compensation data based on type
+    if (compensationType === "hourly" && !hourlyWage) {
+      return NextResponse.json(
+        { error: "Hourly wage is required for hourly compensation type" },
+        { status: 400 }
+      );
+    }
+    if (compensationType === "fixed" && !fixedSalary) {
+      return NextResponse.json(
+        { error: "Fixed salary is required for fixed compensation type" },
+        { status: 400 }
+      );
+    }
+    if (compensationType === "other" && !otherCompensation) {
+      return NextResponse.json(
+        { error: "Compensation description is required for other compensation type" },
         { status: 400 }
       );
     }
@@ -78,7 +98,10 @@ export async function POST(request: NextRequest) {
     const newInternship = saveInternship({
       companyId: session.user.id,
       title,
-      hourlyWage: parseFloat(hourlyWage),
+      compensationType,
+      ...(compensationType === "hourly" && { hourlyWage: parseFloat(hourlyWage) }),
+      ...(compensationType === "fixed" && { fixedSalary: parseFloat(fixedSalary) }),
+      ...(compensationType === "other" && { otherCompensation }),
       workDetails,
       skillsGained: skillsGained || [],
       whyThisCompany: whyThisCompany || "",

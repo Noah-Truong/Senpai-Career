@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
@@ -53,7 +52,6 @@ export default function MessagesPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
@@ -63,14 +61,13 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>{t("messages.title")}</h1>
         
         {threads.length === 0 ? (
           <div 
             className="p-8 text-center border rounded"
-            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           >
             <p className="text-lg mb-4" style={{ color: '#374151' }}>{t("messages.empty")}</p>
             {role === "student" && (

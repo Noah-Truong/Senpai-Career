@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "next-auth/react";
@@ -56,7 +55,6 @@ export default function InternshipPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <motion.div 
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         initial="initial"
@@ -79,7 +77,7 @@ export default function InternshipPage() {
         {/* Info Section */}
         <motion.div 
           className="p-6 mb-8 border rounded"
-          style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           variants={cardVariants}
           initial="initial"
           whileInView="animate"
@@ -112,7 +110,7 @@ export default function InternshipPage() {
         {/* Search Bar */}
         <motion.div 
           className="mb-8 p-4 border rounded"
-          style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, delay: 0.1 }}
@@ -157,14 +155,14 @@ export default function InternshipPage() {
         {loading ? (
           <div 
             className="p-8 text-center border rounded"
-            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           >
             <p style={{ color: '#6B7280' }}>{t("common.loading") || "Loading internships..."}</p>
           </div>
         ) : filteredInternships.length === 0 ? (
           <div 
             className="p-8 text-center border rounded"
-            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           >
             <p className="text-lg mb-4" style={{ color: '#374151' }}>
               {searchTerm ? (t("internship.noResults") || "No internships found matching your search.") : t("internship.empty.title")}
@@ -218,7 +216,9 @@ export default function InternshipPage() {
                 
                 <div className="mb-4">
                   <p className="text-sm font-medium mb-1" style={{ color: '#0F2A44' }}>
-                    {t("label.hourlyWage")}: ¥{internship.hourlyWage?.toLocaleString()}
+                    {internship.compensationType === "hourly" && `${t("compensation.hourly")}: ¥${internship.hourlyWage?.toLocaleString()}/hr`}
+                    {internship.compensationType === "fixed" && `${t("compensation.fixed")}: ¥${internship.fixedSalary?.toLocaleString()}/year`}
+                    {internship.compensationType === "other" && `${t("compensation.other")}: ${internship.otherCompensation}`}
                   </p>
                   <p className="text-sm line-clamp-2" style={{ color: '#6B7280' }}>
                     {internship.workDetailsKey ? t(internship.workDetailsKey) : internship.workDetails}
@@ -232,7 +232,7 @@ export default function InternshipPage() {
                         <span 
                           key={idx} 
                           className="px-2 py-1 rounded text-xs"
-                          style={{ backgroundColor: '#F5F7FA', color: '#374151' }}
+                          style={{ backgroundColor: '#D7FFEF', color: '#374151' }}
                         >
                           {internship.skillsGainedKeys ? t(skillKeyOrSkill) : skillKeyOrSkill}
                         </span>

@@ -116,7 +116,10 @@ export interface InternshipListing {
   id: string;
   companyId: string;
   title: string;
-  hourlyWage: number;
+  compensationType: "hourly" | "fixed" | "other";
+  hourlyWage?: number;
+  fixedSalary?: number;
+  otherCompensation?: string;
   workDetails: string;
   skillsGained: string[];
   whyThisCompany: string;

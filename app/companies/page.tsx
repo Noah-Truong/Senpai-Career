@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
@@ -70,7 +69,6 @@ export default function CompaniesPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
@@ -92,7 +90,6 @@ export default function CompaniesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <motion.div 
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         initial="initial"
@@ -110,7 +107,7 @@ export default function CompaniesPage() {
         {/* Search Bar */}
         <motion.div 
           className="mb-8 p-4 border rounded"
-          style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, delay: 0.1 }}
@@ -157,7 +154,7 @@ export default function CompaniesPage() {
         {filteredCompanies.length === 0 ? (
           <motion.div 
             className="p-8 text-center border rounded"
-            style={{ backgroundColor: '#F5F7FA', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}

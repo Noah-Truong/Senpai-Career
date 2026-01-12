@@ -3,14 +3,20 @@
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
 
+// Options for multi-select dropdowns (same as signup pages)
+const languageOptions = ["Japanese", "English", "Chinese", "Korean", "Spanish", "French", "German", "Portuguese"];
+const interestOptions = ["Technology", "Finance", "Consulting", "Marketing", "Engineering", "Design", "Healthcare", "Education"];
+const skillOptions = ["Programming", "Data Analysis", "Project Management", "Design", "Marketing", "Sales", "Research", "Writing"];
+const topicOptions = ["Career Change", "Job Search Strategy", "Interview Preparation", "Resume/CV Writing", "Industry Insights", "Networking", "Salary Negotiation", "Work-Life Balance"];
+
 export default function ProfilePage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -46,13 +52,14 @@ export default function ProfilePage() {
       const data = await response.json();
       const processedUser = {
         ...data.user,
-        desiredIndustry: data.user.desiredIndustry
+        desiredIndustry: data.user.role === 'student' && data.user.desiredIndustry
           ? (typeof data.user.desiredIndustry === 'string'
               ? data.user.desiredIndustry.split(', ').filter(Boolean)
               : Array.isArray(data.user.desiredIndustry)
                 ? data.user.desiredIndustry
                 : [])
-          : []
+          : [],
+        oneLineMessage: getTranslated(data.user.oneLineMessage, language)
       };
       setUser(processedUser);
       setFormData(processedUser);
@@ -137,9 +144,11 @@ export default function ProfilePage() {
         },
         body: JSON.stringify({
           ...formData,
-          desiredIndustry: Array.isArray(formData.desiredIndustry)
-            ? formData.desiredIndustry.join(", ")
-            : formData.desiredIndustry
+          ...(formData.role === 'student' && {
+            desiredIndustry: Array.isArray(formData.desiredIndustry)
+              ? formData.desiredIndustry.join(", ")
+              : formData.desiredIndustry
+          })
         }),
       });
 
@@ -190,35 +199,29 @@ export default function ProfilePage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-white">
-        <Header />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>{t("common.loading")}</p>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <p>{t("common.loading")}</p>
       </div>
     );
   }
 
   if (!user && !loading) {
     return (
-      <div className="min-h-screen bg-white">
-        <Header />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="card-gradient p-8 text-center">
-            <p className="text-gray-700 text-lg mb-4">{t("profile.notFound")}</p>
-            {error && (
-              <p className="text-red-600 text-sm mt-2">{error}</p>
-            )}
-            <p className="text-gray-600 text-sm mt-4 mb-6">
-              {t("profile.notFoundHint") || "Please try logging out and logging back in, or contact support if the issue persists."}
-            </p>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="btn-primary"
-            >
-              {t("nav.signOut") || "Sign Out"}
-            </button>
-          </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="card-gradient p-8 text-center">
+          <p className="text-gray-700 text-lg mb-4">{t("profile.notFound")}</p>
+          {error && (
+            <p className="text-red-600 text-sm mt-2">{error}</p>
+          )}
+          <p className="text-gray-600 text-sm mt-4 mb-6">
+            {t("profile.notFoundHint") || "Please try logging out and logging back in, or contact support if the issue persists."}
+          </p>
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="btn-primary"
+          >
+            {t("nav.signOut") || "Sign Out"}
+          </button>
         </div>
       </div>
     );
@@ -230,7 +233,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+     
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>{t("profile.title")}</h1>
@@ -268,18 +271,20 @@ export default function ProfilePage() {
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
+                  {isStudent || isCompany &&(
                   <span className={`px-3 py-1 rounded text-sm font-semibold ${
                     user.role === "student" ? "bg-blue-100 text-blue-800" :
-                    user.role === "obog" ? "bg-green-100 text-green-800" :
+                
                     user.role === "company" ? "bg-purple-100 text-purple-800" :
                     "bg-gray-100 text-gray-800"
                   }`}>
                     {user.role?.charAt(0).toUpperCase() + user.role?.slice(1) || "User"}
                   </span>
+                  )}
                   {isOBOG && user.type && (
                     <span className={`px-3 py-1 rounded text-sm font-semibold ${
-                      user.type === "working-professional" 
-                        ? "bg-blue-100 text-blue-800" 
+                      user.type === "working-professional"
+                        ? "bg-blue-100 text-blue-800"
                         : "bg-green-100 text-green-800"
                     }`}>
                       {user.type === "working-professional" ? t("obogDetail.workingProfessional") : t("obogDetail.jobOfferHolder")}
@@ -313,10 +318,7 @@ export default function ProfilePage() {
                   <span className="text-gray-600">{t("form.email")}:</span>
                   <span className="ml-2 text-gray-900 font-medium">{user.email}</span>
                 </div>
-                <div>
-                  <span className="text-gray-600">{t("profile.role")}:</span>
-                  <span className="ml-2 text-gray-900 font-medium capitalize">{user.role}</span>
-                </div>
+                
                 {user.createdAt && (
                   <div>
                     <span className="text-gray-600">{t("profile.memberSince")}:</span>
@@ -439,11 +441,11 @@ export default function ProfilePage() {
                   )}
                   {user.oneLineMessage && (
                     <div className="p-4 rounded-lg border-l-4" style={{
-                      backgroundColor: '#F5F7FA',
-                      borderLeftColor: '#2563EB'
+                      backgroundColor: '#D7FFEF',
+                      borderLeftColor: '#0F2A44'
                     }}>
                       <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("form.oneLineMessage")}</h3>
-                      <p className="text-lg italic" style={{ color: '#374151' }}>{user.oneLineMessage}</p>
+                      <p className="text-lg italic" style={{ color: '#374151' }}>{getTranslated(user.oneLineMessage, language)}</p>
                     </div>
                   )}
                   {user.studentEraSummary && (
@@ -675,51 +677,39 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <label htmlFor="languages" className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("form.languages")} *
-                    </label>
-                    <input
-                      type="text"
-                      id="languages"
-                      name="languages"
+                    <MultiSelectDropdown
+                      options={languageOptions}
+                      selected={Array.isArray(formData.languages) ? formData.languages : []}
+                      onChange={(selected) => setFormData({ ...formData, languages: selected })}
+                      label={t("form.languages")}
                       required
-                      value={Array.isArray(formData.languages) ? formData.languages.join(", ") : (formData.languages || "")}
-                      onChange={handleChange}
                       placeholder={t("form.languagesPlaceholder")}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      style={{ color: '#000000' }}
+                      allowOther={true}
+                      otherPlaceholder="Enter other language"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="interests" className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("form.interests")}
-                    </label>
-                    <input
-                      type="text"
-                      id="interests"
-                      name="interests"
-                      value={Array.isArray(formData.interests) ? formData.interests.join(", ") : (formData.interests || "")}
-                      onChange={handleChange}
+                    <MultiSelectDropdown
+                      options={interestOptions}
+                      selected={Array.isArray(formData.interests) ? formData.interests : []}
+                      onChange={(selected) => setFormData({ ...formData, interests: selected })}
+                      label={t("form.interests")}
                       placeholder={t("form.interestsPlaceholder")}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      style={{ color: '#000000' }}
+                      allowOther={true}
+                      otherPlaceholder="Enter other interest"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="skills" className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("form.skills")}
-                    </label>
-                    <input
-                      type="text"
-                      id="skills"
-                      name="skills"
-                      value={Array.isArray(formData.skills) ? formData.skills.join(", ") : (formData.skills || "")}
-                      onChange={handleChange}
+                    <MultiSelectDropdown
+                      options={skillOptions}
+                      selected={Array.isArray(formData.skills) ? formData.skills : []}
+                      onChange={(selected) => setFormData({ ...formData, skills: selected })}
+                      label={t("form.skills")}
                       placeholder={t("form.skillsPlaceholder")}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      style={{ color: '#000000' }}
+                      allowOther={true}
+                      otherPlaceholder="Enter other skill"
                     />
                   </div>
 
@@ -813,36 +803,28 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <label htmlFor="languages" className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("form.languages")} *
-                    </label>
-                    <input
-                      type="text"
-                      id="languages"
-                      name="languages"
+                    <MultiSelectDropdown
+                      options={languageOptions}
+                      selected={Array.isArray(formData.languages) ? formData.languages : []}
+                      onChange={(selected) => setFormData({ ...formData, languages: selected })}
+                      label={t("form.languages")}
                       required
-                      value={Array.isArray(formData.languages) ? formData.languages.join(", ") : (formData.languages || "")}
-                      onChange={handleChange}
                       placeholder={t("form.languagesPlaceholder")}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      style={{ color: '#000000' }}
+                      allowOther={true}
+                      otherPlaceholder="Enter other language"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="topics" className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("form.topics")} *
-                    </label>
-                    <input
-                      type="text"
-                      id="topics"
-                      name="topics"
+                    <MultiSelectDropdown
+                      options={topicOptions}
+                      selected={Array.isArray(formData.topics) ? formData.topics : []}
+                      onChange={(selected) => setFormData({ ...formData, topics: selected })}
+                      label={t("form.topics")}
                       required
-                      value={Array.isArray(formData.topics) ? formData.topics.join(", ") : (formData.topics || "")}
-                      onChange={handleChange}
                       placeholder={t("form.topicsPlaceholder")}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      style={{ color: '#000000' }}
+                      allowOther={true}
+                      otherPlaceholder="Enter other topic"
                     />
                   </div>
 

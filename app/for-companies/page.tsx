@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "next-auth/react";
@@ -13,12 +12,10 @@ export default function ForCompaniesPage() {
   const isLoggedIn = !!session;
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      
       {/* Hero Section */}
       <motion.section 
         className="py-16" 
-        style={{ background: '#F5F7FA' }}
+        style={{ background: '#D7FFEF' }}
         initial="initial"
         animate="animate"
         variants={fadeIn}

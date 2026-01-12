@@ -177,7 +177,7 @@ export default function AdminUsersPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y" style={{ borderColor: '#E5E7EB' }}>
-            <thead style={{ backgroundColor: '#F5F7FA' }}>
+            <thead style={{ backgroundColor: '#D7FFEF' }}>
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>User</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Email</th>
@@ -289,7 +289,7 @@ export default function AdminUsersPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y" style={{ borderColor: '#E5E7EB' }}>
-            <thead style={{ backgroundColor: '#F5F7FA' }}>
+            <thead style={{ backgroundColor: '#D7FFEF' }}>
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Email</th>

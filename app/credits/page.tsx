@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { loadStripe } from "@stripe/stripe-js";
 
@@ -110,7 +109,6 @@ export default function CreditsPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
@@ -123,7 +121,6 @@ export default function CreditsPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>Pricing</h1>
 
@@ -153,7 +150,7 @@ export default function CreditsPage() {
           <div className="space-y-3">
             <div 
               className="flex items-center justify-between p-3 rounded"
-              style={{ backgroundColor: '#F5F7FA' }}
+              style={{ backgroundColor: '#D7FFEF' }}
             >
               <span className="font-bold" style={{ color: '#111827' }}>Rate:</span>
               <span className="text-lg font-semibold" style={{ color: '#111827' }}>
@@ -235,7 +232,7 @@ export default function CreditsPage() {
             {/* Recurring Payment Option */}
             <div 
               className="flex items-center p-4 rounded"
-              style={{ backgroundColor: '#F5F7FA' }}
+              style={{ backgroundColor: '#D7FFEF' }}
             >
               <input
                 type="checkbox"

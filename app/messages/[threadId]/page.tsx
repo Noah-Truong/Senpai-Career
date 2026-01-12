@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
@@ -110,7 +109,6 @@ export default function MessageThreadPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
-        <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
@@ -120,7 +118,6 @@ export default function MessageThreadPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div 
           className="p-6 mb-4 bg-white border rounded"
@@ -196,7 +193,7 @@ export default function MessageThreadPage() {
                     <div
                       className="max-w-xs lg:max-w-md px-4 py-2 rounded"
                       style={{
-                        backgroundColor: isOwn ? '#0F2A44' : '#F5F7FA',
+                        backgroundColor: isOwn ? '#0F2A44' : '#D7FFEF',
                         color: isOwn ? '#FFFFFF' : '#111827',
                         borderRadius: '6px'
                       }}

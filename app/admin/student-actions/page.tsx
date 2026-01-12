@@ -231,10 +231,13 @@ export default function StudentActionsPage() {
                   onClick={() => setSelectedStudent(student)}
                   className={`w-full text-left p-4 border-b transition-colors ${
                     selectedStudent?.id === student.id
-                      ? "bg-blue-50"
+                      ? ""
                       : "hover:bg-gray-50"
                   }`}
-                  style={{ borderColor: '#E5E7EB' }}
+                  style={{
+                    backgroundColor: selectedStudent?.id === student.id ? '#D7FFEF' : undefined,
+                    borderColor: '#E5E7EB'
+                  }}
                 >
                   <p className="font-medium" style={{ color: '#111827' }}>{student.name}</p>
                   <p className="text-sm" style={{ color: '#6B7280' }}>{student.email}</p>
@@ -295,9 +298,9 @@ export default function StudentActionsPage() {
                   <div className="space-y-3">
                     {selectedStudent.actions.map((action) => (
                       <div 
-                        key={action.id} 
+                        key={action.id}
                         className="flex items-start gap-4 p-4 rounded"
-                        style={{ backgroundColor: '#F5F7FA' }}
+                        style={{ backgroundColor: '#D7FFEF' }}
                       >
                         <div className="flex-shrink-0 mt-1">
                           {getActionIcon(action.type)}

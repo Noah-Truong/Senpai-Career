@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslated } from "@/lib/translation-helpers";
+import { getTranslated } from "@/lib/translation-helpers";
 import Avatar from "./Avatar";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
@@ -27,8 +27,7 @@ interface OBOGListContentProps {
 }
 
 export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
-  const { t } = useLanguage();
-  const { translate } = useTranslated();
+  const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "working-professional" | "job-offer-holder">("all");
 
@@ -106,10 +105,13 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
             <motion.button
               onClick={() => setTypeFilter("working-professional")}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                typeFilter === "working-professional" 
-                  ? "bg-blue-500 text-white" 
+                typeFilter === "working-professional"
+                  ? "text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
+              style={{
+                backgroundColor: typeFilter === "working-professional" ? '#0F2A44' : undefined
+              }}
               variants={buttonVariants}
               whileHover="hover"
               whileTap="tap"
@@ -192,7 +194,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
               </div>
               
               <div className="mb-4">
-                <p className="text-sm text-gray-700 mb-3 line-clamp-2">{obog.oneLineMessage ? translate(obog.oneLineMessage) : ""}</p>
+                <p className="text-sm text-gray-700 mb-3 line-clamp-2">{obog.oneLineMessage ? getTranslated(obog.oneLineMessage, language) : ""}</p>
                 {obog.topics && obog.topics.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {obog.topics.slice(0, 3).map((topic, idx) => (

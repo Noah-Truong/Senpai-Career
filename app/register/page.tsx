@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -75,12 +74,10 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      
       {/* Hero Section */}
       <motion.section 
         className="py-12 md:py-16" 
-        style={{ backgroundColor: '#F5F7FA' }}
+        style={{ backgroundColor: '#D7FFEF' }}
         initial="initial"
         animate="animate"
         variants={fadeIn}
