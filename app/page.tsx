@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import HeroLogo from "@/components/HeroLogo";
 import { motion } from "framer-motion";
 import { Suspense, lazy, memo } from "react";

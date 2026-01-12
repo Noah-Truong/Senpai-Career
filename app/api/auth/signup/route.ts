@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveUser, readUsers } from "@/lib/users";
+import { createClient } from "@/lib/supabase/server";
 import { UserRole } from "@/types";
 import { createMultilingualContent } from "@/lib/translate";
 
@@ -39,72 +39,187 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user based on role
-    const userData: any = {
+    const supabase = await createClient();
+
+    // Create auth user with Supabase
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          name,
+          role,
+        },
+      },
+    });
+
+    if (authError) {
+      console.error("Supabase auth error:", authError);
+      if (authError.message.includes("already registered")) {
+        return NextResponse.json(
+          { error: "User with this email already exists" },
+          { status: 409 }
+        );
+      }
+      return NextResponse.json(
+        { error: authError.message },
+        { status: 400 }
+      );
+    }
+
+    if (!authData.user) {
+      return NextResponse.json(
+        { error: "Failed to create user" },
+        { status: 500 }
+      );
+    }
+
+    const userId = authData.user.id;
+
+    // Insert into users table
+    const { error: userError } = await supabase.from("users").insert({
+      id: userId,
+      email,
+      password_hash: "", // Supabase handles password, we don't need to store it
       name,
       role,
-      ...profileData,
-    };
+      credits: 0,
+      strikes: role === "student" ? 0 : null,
+      is_banned: role === "student" ? false : null,
+    });
 
-    // Add role-specific defaults and translate multilingual fields
+    if (userError) {
+      console.error("User insert error:", userError);
+      // Cleanup: delete auth user if we can't create the user record
+      await supabase.auth.admin?.deleteUser(userId);
+      return NextResponse.json(
+        { error: "Failed to create user profile" },
+        { status: 500 }
+      );
+    }
+
+    // Create role-specific profile
     if (role === "student") {
-      userData.strikes = 0;
-      userData.isBanned = false;
-      userData.credits = 0;
+      const { error: profileError } = await supabase.from("student_profiles").insert({
+        id: userId,
+        nickname: profileData.nickname || "",
+        university: profileData.university || "",
+        year: profileData.year || null,
+        nationality: profileData.nationality || "",
+        jlpt_level: profileData.jlptLevel || "",
+        languages: profileData.languages || [],
+        interests: profileData.interests || [],
+        skills: profileData.skills || [],
+        desired_industry: profileData.desiredIndustry || "",
+        profile_photo: profileData.profilePhoto || null,
+      });
+      if (profileError) {
+        console.error("Student profile insert error:", profileError);
+      }
+    } else if (role === "obog") {
+      // Translate OB/OG multilingual fields
+      let oneLineMessage = profileData.oneLineMessage;
+      let studentEraSummary = profileData.studentEraSummary;
+
+      if (oneLineMessage && typeof oneLineMessage === "string" && oneLineMessage.trim()) {
+        try {
+          oneLineMessage = await createMultilingualContent(oneLineMessage);
+        } catch (error) {
+          console.error("Translation error for oneLineMessage:", error);
+        }
+      }
+
+      if (studentEraSummary && typeof studentEraSummary === "string" && studentEraSummary.trim()) {
+        try {
+          studentEraSummary = await createMultilingualContent(studentEraSummary);
+        } catch (error) {
+          console.error("Translation error for studentEraSummary:", error);
+        }
+      }
+
+      const { error: profileError } = await supabase.from("obog_profiles").insert({
+        id: userId,
+        nickname: profileData.nickname || "",
+        type: profileData.type || "working-professional",
+        university: profileData.university || "",
+        company: profileData.company || "",
+        nationality: profileData.nationality || "",
+        languages: profileData.languages || [],
+        topics: profileData.topics || [],
+        one_line_message: oneLineMessage || null,
+        student_era_summary: studentEraSummary || null,
+        profile_photo: profileData.profilePhoto || null,
+      });
+      if (profileError) {
+        console.error("OBOG profile insert error:", profileError);
+      }
     } else if (role === "company") {
-      userData.credits = 0;
-      
       // Translate company multilingual fields
-      const companyMultilingualFields = ['overview', 'internshipDetails', 'newGradDetails', 'idealCandidate', 'sellingPoints', 'oneLineMessage'];
+      let overview = profileData.overview;
+      let internshipDetails = profileData.internshipDetails;
+      let newGradDetails = profileData.newGradDetails;
+      let idealCandidate = profileData.idealCandidate;
+      let sellingPoints = profileData.sellingPoints;
+
+      const companyMultilingualFields = [
+        { key: "overview", value: overview },
+        { key: "internshipDetails", value: internshipDetails },
+        { key: "newGradDetails", value: newGradDetails },
+        { key: "idealCandidate", value: idealCandidate },
+        { key: "sellingPoints", value: sellingPoints },
+      ];
+
       for (const field of companyMultilingualFields) {
-        if (userData[field] && typeof userData[field] === 'string' && userData[field].trim()) {
+        if (field.value && typeof field.value === "string" && field.value.trim()) {
           try {
-            userData[field] = await createMultilingualContent(userData[field]);
+            const translated = await createMultilingualContent(field.value);
+            if (field.key === "overview") overview = translated;
+            if (field.key === "internshipDetails") internshipDetails = translated;
+            if (field.key === "newGradDetails") newGradDetails = translated;
+            if (field.key === "idealCandidate") idealCandidate = translated;
+            if (field.key === "sellingPoints") sellingPoints = translated;
           } catch (error) {
-            console.error(`Translation error for ${field}:`, error);
-            // Continue with plain string if translation fails
+            console.error(`Translation error for ${field.key}:`, error);
           }
         }
       }
-    } else if (role === "obog") {
-      userData.credits = 0;
-      
-      // Translate OB/OG multilingual fields
-      const obogMultilingualFields = ['oneLineMessage', 'studentEraSummary'];
-      for (const field of obogMultilingualFields) {
-        if (userData[field] && typeof userData[field] === 'string' && userData[field].trim()) {
-          try {
-            userData[field] = await createMultilingualContent(userData[field]);
-          } catch (error) {
-            console.error(`Translation error for ${field}:`, error);
-            // Continue with plain string if translation fails
-          }
-        }
+
+      const { error: profileError } = await supabase.from("company_profiles").insert({
+        id: userId,
+        company_name: profileData.companyName || "",
+        contact_name: profileData.contactName || name,
+        overview: overview || null,
+        work_location: profileData.workLocation || "",
+        hourly_wage: profileData.hourlyWage || null,
+        weekly_hours: profileData.weeklyHours || null,
+        selling_points: sellingPoints || null,
+        ideal_candidate: idealCandidate || null,
+        internship_details: internshipDetails || null,
+        new_grad_details: newGradDetails || null,
+        logo: profileData.logo || null,
+      });
+      if (profileError) {
+        console.error("Company profile insert error:", profileError);
       }
     }
 
-    const user = await saveUser(userData);
-
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = user;
     return NextResponse.json(
-      { user: userWithoutPassword, message: "User created successfully" },
+      {
+        user: {
+          id: userId,
+          email,
+          name,
+          role,
+        },
+        message: "User created successfully",
+      },
       { status: 201 }
     );
   } catch (error: any) {
     console.error("Signup API error:", error);
-    if (error.message && error.message.includes("already exists")) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 409 }
-      );
-    }
     return NextResponse.json(
       { error: error.message || "Failed to create user. Please try again." },
       { status: 500 }
     );
   }
 }
-

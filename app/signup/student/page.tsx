@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/client";
 
 export default function StudentSignupPage() {
   const { t } = useLanguage();
+  const router = useRouter();
+  const supabase = createClient();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -32,7 +34,7 @@ export default function StudentSignupPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -91,23 +93,22 @@ export default function StudentSignupPage() {
 
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Auto-login with Supabase
       try {
-        const signInResult = await signIn("credentials", {
-          redirect: false,
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
-          callbackUrl: "/",
         });
 
-        if (signInResult?.ok) {
-          router.push("/");
-          router.refresh();
-        } else if (signInResult?.error) {
-          console.log("Auto-login failed:", signInResult.error);
+        if (signInError) {
+          console.log("Auto-login failed:", signInError);
           setError("Account created successfully! Redirecting to login page...");
           setTimeout(() => {
             router.push("/login");
           }, 2000);
+        } else if (signInData?.user) {
+          router.push("/");
+          router.refresh();
         } else {
           setError("Account created successfully! Redirecting to login page...");
           setTimeout(() => {

@@ -1,10 +1,15 @@
-import NextAuth from "next-auth";
-import { authOptions } from "@/lib/auth";
+// This route is deprecated - auth is now handled by Supabase
+// Keeping for backward compatibility during migration
 
-// NextAuth v5 beta - NextAuth returns an object with handlers, auth, signIn, signOut
-// We need to destructure handlers first, then GET and POST from handlers
-export const { handlers } = NextAuth(authOptions);
+import { NextResponse } from "next/server";
 
-// Export GET and POST from handlers
-export const { GET, POST } = handlers;
+export async function GET() {
+  return NextResponse.redirect(new URL("/login", process.env.NEXTAUTH_URL || "http://localhost:3000"));
+}
 
+export async function POST() {
+  return NextResponse.json(
+    { error: "NextAuth is deprecated. Please use the new Supabase auth endpoints." },
+    { status: 410 }
+  );
+}

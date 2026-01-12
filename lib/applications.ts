@@ -1,77 +1,134 @@
-import fs from "fs";
-import path from "path";
+import { createClient } from "@/lib/supabase/server";
 import { Application } from "@/types";
-
-const APPLICATIONS_FILE = path.join(process.cwd(), "data", "applications.json");
-
-// Ensure data directory exists
-const ensureDataDir = () => {
-  const dataDir = path.dirname(APPLICATIONS_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  if (!fs.existsSync(APPLICATIONS_FILE)) {
-    fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify([], null, 2));
-  }
-};
 
 export interface ApplicationData extends Omit<Application, "createdAt"> {
   createdAt: string;
 }
 
-export const readApplications = (): ApplicationData[] => {
-  ensureDataDir();
-  try {
-    const data = fs.readFileSync(APPLICATIONS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
+// Helper to transform database row to ApplicationData
+function transformApplication(row: any): ApplicationData {
+  return {
+    id: row.id,
+    listingId: row.internship_id,
+    applicantId: row.user_id,
+    coverLetter: row.cover_letter,
+    resumeUrl: row.resume_url,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+export const readApplications = async (): Promise<ApplicationData[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error reading applications:", error);
     return [];
   }
+
+  return data.map(transformApplication);
 };
 
-export const saveApplication = (applicationData: Omit<ApplicationData, "id" | "createdAt">): ApplicationData => {
-  ensureDataDir();
-  const applications = readApplications();
+export const saveApplication = async (
+  applicationData: Omit<ApplicationData, "id" | "createdAt">
+): Promise<ApplicationData> => {
+  const supabase = await createClient();
+  const applicationId = `app_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  const newApplication: ApplicationData = {
-    ...applicationData,
-    id: `app_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    createdAt: new Date().toISOString(),
-  };
+  const { data, error } = await supabase
+    .from("applications")
+    .insert({
+      id: applicationId,
+      internship_id: applicationData.listingId,
+      user_id: applicationData.applicantId,
+      cover_letter: applicationData.coverLetter,
+      resume_url: applicationData.resumeUrl,
+      status: applicationData.status || "pending",
+    })
+    .select()
+    .single();
 
-  applications.push(newApplication);
-  fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify(applications, null, 2));
+  if (error) {
+    console.error("Error saving application:", error);
+    throw new Error("Failed to create application");
+  }
 
-  return newApplication;
+  return transformApplication(data);
 };
 
-export const getApplicationById = (id: string): ApplicationData | undefined => {
-  return readApplications().find(a => a.id === id);
+export const getApplicationById = async (id: string): Promise<ApplicationData | undefined> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return undefined;
+  }
+
+  return transformApplication(data);
 };
 
-export const getApplicationsByListingId = (listingId: string): ApplicationData[] => {
-  return readApplications().filter(a => a.listingId === listingId);
+export const getApplicationsByListingId = async (listingId: string): Promise<ApplicationData[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("internship_id", listingId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error reading listing applications:", error);
+    return [];
+  }
+
+  return data.map(transformApplication);
 };
 
-export const getApplicationsByApplicantId = (applicantId: string): ApplicationData[] => {
-  return readApplications().filter(a => a.applicantId === applicantId);
+export const getApplicationsByApplicantId = async (applicantId: string): Promise<ApplicationData[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("user_id", applicantId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error reading applicant applications:", error);
+    return [];
+  }
+
+  return data.map(transformApplication);
 };
 
-export const updateApplication = (applicationId: string, updates: Partial<Omit<ApplicationData, "id" | "createdAt" | "listingId" | "applicantId">>): ApplicationData => {
-  ensureDataDir();
-  const applications = readApplications();
-  const applicationIndex = applications.findIndex(a => a.id === applicationId);
+export const updateApplication = async (
+  applicationId: string,
+  updates: Partial<Omit<ApplicationData, "id" | "createdAt" | "listingId" | "applicantId">>
+): Promise<ApplicationData> => {
+  const supabase = await createClient();
 
-  if (applicationIndex === -1) {
+  const updateData: any = {};
+  if (updates.coverLetter !== undefined) updateData.cover_letter = updates.coverLetter;
+  if (updates.resumeUrl !== undefined) updateData.resume_url = updates.resumeUrl;
+  if (updates.status !== undefined) updateData.status = updates.status;
+
+  const { data, error } = await supabase
+    .from("applications")
+    .update(updateData)
+    .eq("id", applicationId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    console.error("Error updating application:", error);
     throw new Error("Application not found");
   }
 
-  applications[applicationIndex] = {
-    ...applications[applicationIndex],
-    ...updates,
-  };
-
-  fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify(applications, null, 2));
-  return applications[applicationIndex];
+  return transformApplication(data);
 };
-

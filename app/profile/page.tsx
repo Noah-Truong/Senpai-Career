@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/client";
 
 // Options for multi-select dropdowns (same as signup pages)
 const languageOptions = ["Japanese", "English", "Chinese", "Korean", "Spanish", "French", "German", "Portuguese"];
@@ -19,6 +20,13 @@ export default function ProfilePage() {
   const { t, language } = useLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
+  const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -188,8 +196,7 @@ export default function ProfilePage() {
       }
 
       // Sign out and redirect to home page
-      await signOut({ callbackUrl: "/" });
-      router.push("/");
+      await handleSignOut();
     } catch (err: any) {
       setError(err.message || "Failed to delete account");
       setDeleting(false);
@@ -217,7 +224,7 @@ export default function ProfilePage() {
             {t("profile.notFoundHint") || "Please try logging out and logging back in, or contact support if the issue persists."}
           </p>
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={handleSignOut}
             className="btn-primary"
           >
             {t("nav.signOut") || "Sign Out"}
@@ -956,7 +963,7 @@ export default function ProfilePage() {
             </h3>
           
           <button
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={handleSignOut}
                 className="btn-secondary text-sm"
               >
                 {t("nav.signOut")}

@@ -1,98 +1,141 @@
-import fs from "fs";
-import path from "path";
+import { createClient } from "@/lib/supabase/server";
 import { Notification } from "@/types";
 import { v4 as uuidv4 } from "uuid";
-
-const NOTIFICATIONS_FILE = path.join(process.cwd(), "data", "notifications.json");
-
-const ensureDataDir = () => {
-  const dataDir = path.dirname(NOTIFICATIONS_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  if (!fs.existsSync(NOTIFICATIONS_FILE)) {
-    fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify([], null, 2));
-  }
-};
 
 export interface NotificationData extends Omit<Notification, "createdAt"> {
   createdAt: string;
 }
 
-export const readNotifications = (): NotificationData[] => {
-  ensureDataDir();
-  try {
-    const data = fs.readFileSync(NOTIFICATIONS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
+// Helper to transform database row to NotificationData
+function transformNotification(row: any): NotificationData {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    type: row.type,
+    title: row.title,
+    content: row.content,
+    link: row.link,
+    read: row.read,
+    createdAt: row.created_at,
+  };
+}
+
+export const readNotifications = async (): Promise<NotificationData[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error reading notifications:", error);
     return [];
   }
+
+  return data.map(transformNotification);
 };
 
-export const saveNotification = (notificationData: Omit<NotificationData, "id" | "createdAt" | "read">): NotificationData => {
-  ensureDataDir();
-  const notifications = readNotifications();
+export const saveNotification = async (
+  notificationData: Omit<NotificationData, "id" | "createdAt" | "read">
+): Promise<NotificationData> => {
+  const supabase = await createClient();
+  const notificationId = uuidv4();
 
-  const newNotification: NotificationData = {
-    ...notificationData,
-    id: uuidv4(),
-    read: false,
-    createdAt: new Date().toISOString(),
-  };
+  const { data, error } = await supabase
+    .from("notifications")
+    .insert({
+      id: notificationId,
+      user_id: notificationData.userId,
+      type: notificationData.type,
+      title: notificationData.title,
+      content: notificationData.content,
+      link: notificationData.link,
+      read: false,
+    })
+    .select()
+    .single();
 
-  notifications.push(newNotification);
-  fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(notifications, null, 2));
+  if (error) {
+    console.error("Error saving notification:", error);
+    throw new Error("Failed to create notification");
+  }
 
-  return newNotification;
+  return transformNotification(data);
 };
 
-export const getNotificationsByUserId = (userId: string): NotificationData[] => {
-  const notifications = readNotifications();
-  return notifications.filter(n => n.userId === userId).sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+export const getNotificationsByUserId = async (userId: string): Promise<NotificationData[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error reading user notifications:", error);
+    return [];
+  }
+
+  return data.map(transformNotification);
 };
 
-export const getUnreadNotificationsCount = (userId: string): number => {
-  const notifications = getNotificationsByUserId(userId);
-  return notifications.filter(n => !n.read).length;
+export const getUnreadNotificationsCount = async (userId: string): Promise<number> => {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("read", false);
+
+  if (error) {
+    console.error("Error counting unread notifications:", error);
+    return 0;
+  }
+
+  return count || 0;
 };
 
-export const markNotificationAsRead = (notificationId: string): NotificationData | undefined => {
-  ensureDataDir();
-  const notifications = readNotifications();
-  const index = notifications.findIndex(n => n.id === notificationId);
+export const markNotificationAsRead = async (notificationId: string): Promise<NotificationData | undefined> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("notifications")
+    .update({ read: true })
+    .eq("id", notificationId)
+    .select()
+    .single();
 
-  if (index === -1) {
+  if (error || !data) {
+    console.error("Error marking notification as read:", error);
     return undefined;
   }
 
-  notifications[index].read = true;
-  fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(notifications, null, 2));
-  return notifications[index];
+  return transformNotification(data);
 };
 
-export const markAllNotificationsAsRead = (userId: string): void => {
-  ensureDataDir();
-  const notifications = readNotifications();
-  notifications.forEach(n => {
-    if (n.userId === userId && !n.read) {
-      n.read = true;
-    }
-  });
-  fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(notifications, null, 2));
-};
+export const markAllNotificationsAsRead = async (userId: string): Promise<void> => {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("notifications")
+    .update({ read: true })
+    .eq("user_id", userId)
+    .eq("read", false);
 
-export const deleteNotification = (notificationId: string): boolean => {
-  ensureDataDir();
-  const notifications = readNotifications();
-  const initialLength = notifications.length;
-  const filtered = notifications.filter(n => n.id !== notificationId);
-  
-  if (filtered.length < initialLength) {
-    fs.writeFileSync(NOTIFICATIONS_FILE, JSON.stringify(filtered, null, 2));
-    return true;
+  if (error) {
+    console.error("Error marking all notifications as read:", error);
   }
-  return false;
 };
 
+export const deleteNotification = async (notificationId: string): Promise<boolean> => {
+  const supabase = await createClient();
+  const { error, count } = await supabase
+    .from("notifications")
+    .delete()
+    .eq("id", notificationId);
+
+  if (error) {
+    console.error("Error deleting notification:", error);
+    return false;
+  }
+
+  return true;
+};

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const role = searchParams.get("role");
 
-    let users = readUsers();
+    let users = await readUsers();
     
     // Filter by role if specified
     if (role) {

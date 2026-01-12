@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const users = readUsers();
+    const users = await readUsers();
     const user = users.find((u: any) => u.id === id);
 
     if (!user) {

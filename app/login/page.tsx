@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, buttonVariants } from "@/lib/animations";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,19 +23,14 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        redirect: false,
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (result?.error) {
-        if (result.error === "CredentialsSignin") {
-          setError(t("login.error"));
-        } else {
-          setError(t("login.errorGeneric"));
-        }
-      } else if (result?.ok) {
+      if (signInError) {
+        setError(t("login.error"));
+      } else if (data?.user) {
         router.push("/");
         router.refresh();
       } else {

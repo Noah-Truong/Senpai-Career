@@ -5,11 +5,12 @@ import { getUserById } from "@/lib/users";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const internships = readInternships();
-    const internship = internships.find(i => i.id === params.id);
+    const { id } = await params;
+    const internships = await readInternships();
+    const internship = internships.find(i => i.id === id);
 
     if (!internship) {
       return NextResponse.json(
@@ -18,7 +19,7 @@ export async function GET(
       );
     }
 
-    const company = getUserById(internship.companyId);
+    const company = await getUserById(internship.companyId);
     const internshipWithCompany = {
       ...internship,
       companyName: company?.companyName || "Unknown Company",
@@ -37,7 +38,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -110,7 +111,8 @@ export async function PUT(
       updateData.fixedSalary = undefined;
     }
 
-    const updatedInternship = updateInternship(params.id, updateData);
+    const { id } = await params;
+    const updatedInternship = await updateInternship(id, updateData);
 
     if (!updatedInternship) {
       return NextResponse.json(
@@ -142,7 +144,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -161,8 +163,9 @@ export async function DELETE(
       );
     }
 
-    const internships = readInternships();
-    const internship = internships.find(i => i.id === params.id);
+    const { id } = await params;
+    const internships = await readInternships();
+    const internship = internships.find(i => i.id === id);
 
     if (!internship) {
       return NextResponse.json(
@@ -180,7 +183,7 @@ export async function DELETE(
 
     // Delete logic would go here - for now, we'll use the lib function
     const { deleteInternship } = await import("@/lib/internships");
-    deleteInternship(params.id);
+    await deleteInternship(id);
 
     return NextResponse.json({ message: "Internship listing deleted successfully" });
   } catch (error: any) {

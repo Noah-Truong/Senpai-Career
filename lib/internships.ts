@@ -1,85 +1,153 @@
-import fs from "fs";
-import path from "path";
+import { createClient } from "@/lib/supabase/server";
 import { InternshipListing } from "@/types";
-
-const INTERNSHIPS_FILE = path.join(process.cwd(), "data", "internships.json");
-
-// Ensure data directory exists
-const ensureDataDir = () => {
-  const dataDir = path.dirname(INTERNSHIPS_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  if (!fs.existsSync(INTERNSHIPS_FILE)) {
-    fs.writeFileSync(INTERNSHIPS_FILE, JSON.stringify([], null, 2));
-  }
-};
 
 export interface InternshipListingData extends Omit<InternshipListing, "createdAt"> {
   createdAt: string;
 }
 
-export const readInternships = (): InternshipListingData[] => {
-  ensureDataDir();
-  try {
-    const data = fs.readFileSync(INTERNSHIPS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
+// Helper to transform database row to InternshipListingData
+function transformInternship(row: any): InternshipListingData {
+  return {
+    id: row.id,
+    companyId: row.company_id,
+    title: row.title,
+    compensationType: row.compensation_type,
+    otherCompensation: row.other_compensation,
+    workDetails: row.work_details,
+    skillsGained: row.skills_gained || [],
+    whyThisCompany: row.why_this_company,
+    type: row.type,
+    createdAt: row.created_at,
+  };
+}
+
+export const readInternships = async (): Promise<InternshipListingData[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("internships")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error reading internships:", error);
     return [];
   }
+
+  return data.map(transformInternship);
 };
 
-export const saveInternship = (internshipData: Omit<InternshipListingData, "id" | "createdAt">): InternshipListingData => {
-  ensureDataDir();
-  const internships = readInternships();
+export const saveInternship = async (
+  internshipData: Omit<InternshipListingData, "id" | "createdAt">
+): Promise<InternshipListingData> => {
+  const supabase = await createClient();
+  const internshipId = `internship_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  const newInternship: InternshipListingData = {
-    ...internshipData,
-    id: `internship_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    createdAt: new Date().toISOString(),
-  };
+  const { data, error } = await supabase
+    .from("internships")
+    .insert({
+      id: internshipId,
+      company_id: internshipData.companyId,
+      title: internshipData.title,
+      compensation_type: internshipData.compensationType,
+      other_compensation: internshipData.otherCompensation,
+      work_details: internshipData.workDetails,
+      skills_gained: internshipData.skillsGained || [],
+      why_this_company: internshipData.whyThisCompany,
+      type: internshipData.type,
+    })
+    .select()
+    .single();
 
-  internships.push(newInternship);
-  fs.writeFileSync(INTERNSHIPS_FILE, JSON.stringify(internships, null, 2));
+  if (error) {
+    console.error("Error saving internship:", error);
+    throw new Error("Failed to create internship listing");
+  }
 
-  return newInternship;
+  return transformInternship(data);
 };
 
-export const updateInternship = (internshipId: string, updates: Partial<Omit<InternshipListingData, "id" | "createdAt" | "companyId">>): InternshipListingData => {
-  ensureDataDir();
-  const internships = readInternships();
-  const internshipIndex = internships.findIndex(i => i.id === internshipId);
+export const updateInternship = async (
+  internshipId: string,
+  updates: Partial<Omit<InternshipListingData, "id" | "createdAt" | "companyId">>
+): Promise<InternshipListingData> => {
+  const supabase = await createClient();
 
-  if (internshipIndex === -1) {
+  const updateData: any = {};
+  if (updates.title !== undefined) updateData.title = updates.title;
+  if (updates.compensationType !== undefined) updateData.compensation_type = updates.compensationType;
+  if (updates.otherCompensation !== undefined) updateData.other_compensation = updates.otherCompensation;
+  if (updates.workDetails !== undefined) updateData.work_details = updates.workDetails;
+  if (updates.skillsGained !== undefined) updateData.skills_gained = updates.skillsGained;
+  if (updates.whyThisCompany !== undefined) updateData.why_this_company = updates.whyThisCompany;
+  if (updates.type !== undefined) updateData.type = updates.type;
+
+  const { data, error } = await supabase
+    .from("internships")
+    .update(updateData)
+    .eq("id", internshipId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    console.error("Error updating internship:", error);
     throw new Error("Internship listing not found");
   }
 
-  internships[internshipIndex] = {
-    ...internships[internshipIndex],
-    ...updates,
-  };
-
-  fs.writeFileSync(INTERNSHIPS_FILE, JSON.stringify(internships, null, 2));
-  return internships[internshipIndex];
+  return transformInternship(data);
 };
 
-export const deleteInternship = (internshipId: string): void => {
-  ensureDataDir();
-  const internships = readInternships();
-  const filteredInternships = internships.filter(i => i.id !== internshipId);
+export const deleteInternship = async (internshipId: string): Promise<void> => {
+  const supabase = await createClient();
+  const { error } = await supabase.from("internships").delete().eq("id", internshipId);
 
-  fs.writeFileSync(INTERNSHIPS_FILE, JSON.stringify(filteredInternships, null, 2));
+  if (error) {
+    console.error("Error deleting internship:", error);
+  }
 };
 
-export const getInternshipById = (id: string): InternshipListingData | undefined => {
-  return readInternships().find(i => i.id === id);
+export const getInternshipById = async (id: string): Promise<InternshipListingData | undefined> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("internships")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return undefined;
+  }
+
+  return transformInternship(data);
 };
 
-export const getInternshipsByCompanyId = (companyId: string): InternshipListingData[] => {
-  return readInternships().filter(i => i.companyId === companyId);
+export const getInternshipsByCompanyId = async (companyId: string): Promise<InternshipListingData[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("internships")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error reading company internships:", error);
+    return [];
+  }
+
+  return data.map(transformInternship);
 };
 
-export const getInternshipsByType = (type: "internship" | "new-grad"): InternshipListingData[] => {
-  return readInternships().filter(i => i.type === type);
-};
+export const getInternshipsByType = async (type: "internship" | "new-grad"): Promise<InternshipListingData[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("internships")
+    .select("*")
+    .eq("type", type)
+    .order("created_at", { ascending: false });
 
+  if (error || !data) {
+    console.error("Error reading internships by type:", error);
+    return [];
+  }
+
+  return data.map(transformInternship);
+};

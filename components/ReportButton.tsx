@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ReportButtonProps {

@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import Logo from "./Logo";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "./Avatar";
+import { createClient } from "@/lib/supabase/client";
 
 interface Notification {
   id: string;
@@ -113,9 +114,16 @@ export default function Header({ minimal = false }: HeaderProps) {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [userCredits, setUserCredits] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const supabase = createClient();
 
-  const isLoggedIn = !!session;
+  const isLoggedIn = !!session?.user;
   const userRole = session?.user?.role as "student" | "obog" | "company" | "admin" | undefined;
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
 
   // Memoized helper functions to prevent unnecessary recalculations
   const isActiveLink = useCallback((href: string) => {
@@ -538,7 +546,7 @@ export default function Header({ minimal = false }: HeaderProps) {
                   )}
                   <div className="border-t mt-2 pt-2" style={{ borderColor: '#E5E7EB' }}>
                     <button
-                      onClick={() => signOut({ callbackUrl: "/" })}
+                      onClick={handleSignOut}
                       className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded"
                     >
                       {t("nav.signOut")}

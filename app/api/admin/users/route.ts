@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const users = readUsers();
+    const users = await readUsers();
     
     // Return users without passwords
     const usersWithoutPasswords = users.map(({ password, ...user }) => user);
