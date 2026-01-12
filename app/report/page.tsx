@@ -36,7 +36,7 @@ export default function ReportPage() {
 
     if (status === "authenticated") {
       const role = session?.user?.role;
-      if (role !== "student" && role !== "obog") {
+      if (role !== "student" && role !== "obog" && role!== "company") {
         router.push("/dashboard");
         return;
       }
@@ -216,7 +216,7 @@ export default function ReportPage() {
               >
                 {t("report.success.submitAnother") || "Submit Another Report"}
               </button>
-              <Link href="/dashboard" className="btn-secondary">
+              <Link href="/profile" className="btn-secondary">
                 {t("report.success.backToDashboard") || "Back to Dashboard"}
               </Link>
             </div>
@@ -444,7 +444,7 @@ export default function ReportPage() {
             {/* Submit Button */}
             <div className="flex justify-end gap-4">
               <Link
-                href="/dashboard"
+                href="/user"
                 className="px-6 py-3 border rounded transition-colors"
                 style={{ borderColor: '#D1D5DB', color: '#374151', borderRadius: '6px' }}
               >
