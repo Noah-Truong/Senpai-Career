@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "@/components/Avatar";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { getTranslated } from "@/lib/translation-helpers";
 
 export default function PublicProfilePage() {

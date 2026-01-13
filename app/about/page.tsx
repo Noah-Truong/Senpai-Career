@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
 import { AnimatedSection, AnimatedHeading, AnimatedSubheading, AnimatedCard, AnimatedList, AnimatedListItem } from "@/components/PageWrapper";

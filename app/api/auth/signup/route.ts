@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { UserRole } from "@/types";
 import { createMultilingualContent } from "@/lib/translate";
 
@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    const adminClient = createAdminClient();
 
     // Create auth user with Supabase
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -76,8 +77,8 @@ export async function POST(request: NextRequest) {
 
     const userId = authData.user.id;
 
-    // Insert into users table
-    const { error: userError } = await supabase.from("users").insert({
+    // Insert into users table using admin client (bypasses RLS)
+    const { error: userError } = await adminClient.from("users").insert({
       id: userId,
       email,
       password_hash: "", // Supabase handles password, we don't need to store it
@@ -91,16 +92,16 @@ export async function POST(request: NextRequest) {
     if (userError) {
       console.error("User insert error:", userError);
       // Cleanup: delete auth user if we can't create the user record
-      await supabase.auth.admin?.deleteUser(userId);
+      await adminClient.auth.admin.deleteUser(userId);
       return NextResponse.json(
         { error: "Failed to create user profile" },
         { status: 500 }
       );
     }
 
-    // Create role-specific profile
+    // Create role-specific profile using admin client (bypasses RLS)
     if (role === "student") {
-      const { error: profileError } = await supabase.from("student_profiles").insert({
+      const { error: profileError } = await adminClient.from("student_profiles").insert({
         id: userId,
         nickname: profileData.nickname || "",
         university: profileData.university || "",
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const { error: profileError } = await supabase.from("obog_profiles").insert({
+      const { error: profileError } = await adminClient.from("obog_profiles").insert({
         id: userId,
         nickname: profileData.nickname || "",
         type: profileData.type || "working-professional",
@@ -184,7 +185,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const { error: profileError } = await supabase.from("company_profiles").insert({
+      const { error: profileError } = await adminClient.from("company_profiles").insert({
         id: userId,
         company_name: profileData.companyName || "",
         contact_name: profileData.contactName || name,

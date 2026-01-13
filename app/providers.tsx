@@ -1,6 +1,5 @@
 "use client";
 
-import { SessionProvider } from 'next-auth/react';
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -13,7 +12,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <LanguageProvider>
         <ScrollProgress />
         <PageTransition>
-        <SessionProvider>{children}</SessionProvider>
+          {children}
         </PageTransition>
         <LanguageSwitcher />
       </LanguageProvider>
