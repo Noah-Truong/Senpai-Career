@@ -4,11 +4,12 @@ import { getUserById, updateUser } from "@/lib/users";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
-    
+
     if (!session || session.user?.role !== "admin") {
       return NextResponse.json(
         { error: "Unauthorized. Admin access required." },
@@ -26,8 +27,8 @@ export async function POST(
       );
     }
 
-    const user = getUserById(id);
-    
+    const user = await getUserById(id);
+
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },
@@ -43,7 +44,7 @@ export async function POST(
       );
     }
 
-    const currentStrikes = (user as any).strikes || 0;
+    const currentStrikes = user.strikes || 0;
     let newStrikes = currentStrikes;
 
     if (action === "add") {
@@ -59,9 +60,9 @@ export async function POST(
     await updateUser(id, {
       strikes: newStrikes,
       isBanned: isBanned,
-    } as any);
+    });
 
-    const updatedUser = getUserById(id);
+    const updatedUser = await getUserById(id);
 
     return NextResponse.json({
       user: updatedUser,

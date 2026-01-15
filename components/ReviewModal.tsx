@@ -62,7 +62,7 @@ export default function ReviewModal({ reviewedUserId, reviewedUserName, onClose,
           {t("review.modal.title") || "Leave a Review"}
         </h2>
         <p className="text-gray-700 mb-4">
-          {t("review.modal.subtitle", { name: reviewedUserName }) || `Review ${reviewedUserName}`}
+          {t("review.modal.subtitle").replace("{name}", reviewedUserName) || `Review ${reviewedUserName}`}
         </p>
 
         {error && (

@@ -874,6 +874,7 @@ const translations: Record<Language, Record<string, string>> = {
     "label.skills": "Skills",
     "label.university": "University",
     
+    "signup.success.checkEmail": "Verification email sent to your email address. Please check your email to verify your account.",
     // Applications
     "applications.title": "Applications",
     "applications.empty": "No applications yet",

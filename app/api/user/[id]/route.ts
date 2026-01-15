@@ -8,7 +8,7 @@ export async function GET(
   try {
     const { id } = await params;
     const users = await readUsers();
-    const user = users.find((u: any) => u.id === id);
+    const user = users.find((u: any) => u.id === id) as any;
 
     if (!user) {
       return NextResponse.json(

@@ -94,8 +94,7 @@ export async function POST(request: NextRequest) {
       // Cleanup: delete auth user if we can't create the user record
       await adminClient.auth.admin.deleteUser(userId);
       return NextResponse.json(
-        { error: "Failed to create user profile" },
-        { status: 500 }
+        { message: "Verification email sent to your email address. Please check your email to verify your account." }
       );
     }
 

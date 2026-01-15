@@ -27,11 +27,12 @@ const readThreads = () => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { threadId: string } }
+  { params }: { params: Promise<{ threadId: string }> }
 ) {
   try {
+    const { threadId } = await params;
     const session = await auth();
-    
+
     if (!session || !session.user) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -41,7 +42,7 @@ export async function GET(
 
     const userId = session.user.id;
     const threads = readThreads();
-    const thread = threads.find((t: any) => t.id === params.threadId);
+    const thread = threads.find((t: any) => t.id === threadId);
 
     if (!thread) {
       return NextResponse.json(
@@ -59,15 +60,15 @@ export async function GET(
 
     // Get messages for this thread
     const messages = readMessages()
-      .filter((m: any) => m.threadId === params.threadId)
+      .filter((m: any) => m.threadId === threadId)
       .sort((a: any, b: any) => 
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
 
     // Get other user info
     const otherUserId = thread.participants.find((id: string) => id !== userId);
-    const otherUser = otherUserId ? getUserById(otherUserId) : null;
-    const { password, ...otherUserWithoutPassword } = otherUser || {};
+    const otherUser = otherUserId ? await getUserById(otherUserId) : null;
+    const { password, ...otherUserWithoutPassword } = otherUser || {} as any;
 
     return NextResponse.json({
       messages,

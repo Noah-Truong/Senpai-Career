@@ -15,7 +15,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Verify user exists
-    const user = getUserById(session.user.id);
+    const user = await getUserById(session.user.id);
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },
@@ -24,7 +24,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the user account
-    deleteUser(session.user.id);
+    await deleteUser(session.user.id);
 
     return NextResponse.json(
       { message: "Account deleted successfully" },

@@ -11,7 +11,7 @@ function transformApplication(row: any): ApplicationData {
     id: row.id,
     listingId: row.internship_id,
     applicantId: row.user_id,
-    coverLetter: row.cover_letter,
+    answers: row.answers || [],
     resumeUrl: row.resume_url,
     status: row.status,
     createdAt: row.created_at,
@@ -45,7 +45,7 @@ export const saveApplication = async (
       id: applicationId,
       internship_id: applicationData.listingId,
       user_id: applicationData.applicantId,
-      cover_letter: applicationData.coverLetter,
+      answers: applicationData.answers,
       resume_url: applicationData.resumeUrl,
       status: applicationData.status || "pending",
     })
@@ -114,7 +114,7 @@ export const updateApplication = async (
   const supabase = await createClient();
 
   const updateData: any = {};
-  if (updates.coverLetter !== undefined) updateData.cover_letter = updates.coverLetter;
+  if (updates.answers !== undefined) updateData.answers = updates.answers;
   if (updates.resumeUrl !== undefined) updateData.resume_url = updates.resumeUrl;
   if (updates.status !== undefined) updateData.status = updates.status;
 

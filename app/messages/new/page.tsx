@@ -4,6 +4,7 @@ import { useSession } from "@/contexts/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Header from "@/components/Header";
 
 export default function NewMessagePage() {
   const { t } = useLanguage();

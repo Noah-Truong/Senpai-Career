@@ -81,7 +81,7 @@ export default function SidebarLayout({ children, role }: SidebarLayoutProps) {
         <div className="p-6 border-b" style={{ borderColor: '#E5E7EB' }}>
           <div className="flex items-center mb-4">
             <Avatar
-              src={session?.user?.image}
+              src={session?.user?.profilePhoto}
               alt={userName}
               size="md"
               fallbackText={userName}
@@ -181,7 +181,7 @@ export default function SidebarLayout({ children, role }: SidebarLayoutProps) {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
                   <Avatar
-                    src={session?.user?.image}
+                    src={session?.user?.profilePhoto}
                     alt={userName}
                     size="md"
                     fallbackText={userName}

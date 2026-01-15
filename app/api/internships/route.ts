@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     // Populate company information
     const internshipsWithCompany = await Promise.all(internships.map(async (internship) => {
-      const company = await getUserById(internship.companyId);
+      const company = await getUserById(internship.companyId) as any;
       return {
         ...internship,
         companyName: company?.companyName || "Unknown Company",
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get company info for logo
-    const company = await getUserById(session.user.id);
+    const company = await getUserById(session.user.id) as any;
     if (!company) {
       return NextResponse.json(
         { error: "Company profile not found" },
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       workDetails,
       skillsGained: skillsGained || [],
       whyThisCompany: whyThisCompany || "",
-      companyLogo: company.logo,
+      companyLogo: company?.logo,
       type: type as "internship" | "new-grad",
     });
 

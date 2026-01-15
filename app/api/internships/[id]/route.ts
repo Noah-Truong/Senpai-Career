@@ -19,7 +19,7 @@ export async function GET(
       );
     }
 
-    const company = await getUserById(internship.companyId);
+    const company = await getUserById(internship.companyId) as any;
     const internshipWithCompany = {
       ...internship,
       companyName: company?.companyName || "Unknown Company",

@@ -12,7 +12,7 @@ export default function HowToUsePage() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<UserType>("student");
 
-  const tabs: { id: UserType; label: string; icon: JSX.Element }[] = [
+  const tabs: { id: UserType; label: string; icon: React.ReactNode }[] = [
     {
       id: "student",
       label: t("howto.tab.student"),

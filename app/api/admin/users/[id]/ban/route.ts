@@ -24,7 +24,7 @@ export async function POST(
       );
     }
 
-    const user = getUserById(id);
+    const user = await getUserById(id);
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

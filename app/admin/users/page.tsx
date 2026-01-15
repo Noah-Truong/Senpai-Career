@@ -28,7 +28,7 @@ export default function AdminUsersPage() {
     }
 
     if (status === "authenticated") {
-      if (session.user?.role !== "admin") {
+      if (session?.user?.role !== "admin") {
         router.push("/");
         return;
       }

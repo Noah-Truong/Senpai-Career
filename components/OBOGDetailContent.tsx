@@ -102,7 +102,7 @@ export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
         {obog.studentEraSummary && (
           <div>
             <h3 className="font-semibold mb-2 text-gray-900">{t("obogDetail.studentEraSummary")}</h3>
-            <p className="text-gray-700 whitespace-pre-wrap">{translate(obog.studentEraSummary)}</p>
+            <p className="text-gray-700 whitespace-pre-wrap">{getTranslated(obog.studentEraSummary, language)}</p>
           </div>
         )}
       </div>

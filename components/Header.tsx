@@ -34,8 +34,8 @@ function NavDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownVariants = {
-    hidden: { opacity: 0, y: 6, scale: 0.98, pointerEvents: "none" },
-    visible: { opacity: 1, y: 0, scale: 1, pointerEvents: "auto", transition: { duration: 0.18, ease: [0.25, 0.1, 0.25, 1] } },
+    hidden: { opacity: 0, y: 6, scale: 0.98, pointerEvents: "none" as const },
+    visible: { opacity: 1, y: 0, scale: 1, pointerEvents: "auto" as const, transition: { duration: 0.18, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] } },
   };
 
   useEffect(() => {

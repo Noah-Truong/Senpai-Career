@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
+import Header from "@/components/Header";
 
 interface Student {
   id: string;

@@ -6,10 +6,11 @@ import { v4 as uuidv4 } from "uuid";
 function transformReport(row: any): Report {
   return {
     id: row.id,
-    reporterId: row.reporter_id,
+    reporterUserId: row.reporter_id,
     reportedUserId: row.reported_user_id,
+    reportType: row.report_type,
     reason: row.reason,
-    details: row.details,
+    description: row.details || row.description,
     status: row.status,
     adminNotes: row.admin_notes,
     createdAt: new Date(row.created_at),
@@ -39,10 +40,11 @@ export const saveReport = async (reportData: Omit<Report, "id" | "createdAt">): 
     .from("reports")
     .insert({
       id: reportId,
-      reporter_id: reportData.reporterId,
+      reporter_id: reportData.reporterUserId,
       reported_user_id: reportData.reportedUserId,
+      report_type: reportData.reportType,
       reason: reportData.reason,
-      details: reportData.details,
+      details: reportData.description,
       status: reportData.status || "pending",
       admin_notes: reportData.adminNotes,
     })
@@ -77,7 +79,7 @@ export const updateReport = async (id: string, updates: Partial<Report>): Promis
 
   const updateData: any = {};
   if (updates.reason !== undefined) updateData.reason = updates.reason;
-  if (updates.details !== undefined) updateData.details = updates.details;
+  if (updates.description !== undefined) updateData.details = updates.description;
   if (updates.status !== undefined) updateData.status = updates.status;
   if (updates.adminNotes !== undefined) updateData.admin_notes = updates.adminNotes;
 

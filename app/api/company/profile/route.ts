@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let user = getUserById(session.user.id);
+    let user = await getUserById(session.user.id);
     
     if (!user) {
       return NextResponse.json(

@@ -3,6 +3,7 @@
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Header from "@/components/Header";
 
 export default function CompanyInquiryPage() {
   const { data: session, status } = useSession();

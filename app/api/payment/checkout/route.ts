@@ -3,11 +3,12 @@ import { auth } from "@/lib/auth-server";
 import { getUserById } from "@/lib/users";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-12-18.acacia",
+const getStripe = () => new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+  apiVersion: "2025-12-15.clover",
 });
 
 export async function POST(request: NextRequest) {
+  const stripe = getStripe();
   try {
     const session = await auth();
     
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user to determine pricing
-    const user = getUserById(session.user.id);
+    const user = await getUserById(session.user.id);
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },
@@ -59,7 +60,6 @@ export async function POST(request: NextRequest) {
         },
         product_data: {
           name: `${credits} Credits (Monthly)`,
-          description: `Monthly subscription for ${credits} credits`,
         },
       });
 
@@ -104,7 +104,6 @@ export async function POST(request: NextRequest) {
               currency: "jpy",
               product_data: {
                 name: `${credits} Credits`,
-                description: `Purchase ${credits} credits`,
               },
               unit_amount: amount,
             },
