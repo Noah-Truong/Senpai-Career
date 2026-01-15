@@ -33,27 +33,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Fetch from our API to get the full user profile including role
       const response = await fetch(`/api/users/${supabaseUser.id}`);
       if (response.ok) {
-        const userData = await response.json();
-        setUser({
-          id: userData.id,
-          email: userData.email,
-          name: userData.name,
-          role: userData.role,
-          profilePhoto: userData.profilePhoto,
-        });
-      } else {
-        // User exists in auth but not in our users table yet
-        setUser({
-          id: supabaseUser.id,
-          email: supabaseUser.email || "",
-          name: supabaseUser.user_metadata?.name || "",
-          role: supabaseUser.user_metadata?.role || "student",
-          profilePhoto: undefined,
-        });
+        const data = await response.json();
+        const userData = data.user || data;
+        if (userData) {
+          setUser({
+            id: userData.id,
+            email: userData.email || supabaseUser.email || "",
+            name: userData.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
+            role: userData.role || supabaseUser.user_metadata?.role || "student",
+            profilePhoto: userData.profilePhoto,
+          });
+          return;
+        }
       }
+      
+      // If user doesn't exist in users table, use auth metadata
+      // This can happen if signup partially failed or trigger hasn't run yet
+      console.warn("User not found in users table, using auth metadata. User ID:", supabaseUser.id);
+      setUser({
+        id: supabaseUser.id,
+        email: supabaseUser.email || "",
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
+        role: supabaseUser.user_metadata?.role || "student",
+        profilePhoto: undefined,
+      });
     } catch (error) {
       console.error("Error fetching user profile:", error);
-      setUser(null);
+      // Fallback to auth metadata on error
+      setUser({
+        id: supabaseUser.id,
+        email: supabaseUser.email || "",
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
+        role: supabaseUser.user_metadata?.role || "student",
+        profilePhoto: undefined,
+      });
     }
   }, []);
 

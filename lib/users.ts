@@ -32,6 +32,12 @@ async function mergeUserWithProfile(supabase: any, user: any): Promise<UserData 
         skills: profile.skills,
         desiredIndustry: profile.desired_industry,
         profilePhoto: profile.profile_photo,
+        profileCompleted: profile.profile_completed || false,
+        complianceAgreed: profile.compliance_agreed || false,
+        complianceAgreedAt: profile.compliance_agreed_at,
+        complianceStatus: profile.compliance_status || "pending",
+        complianceSubmittedAt: profile.compliance_submitted_at,
+        complianceDocuments: profile.compliance_documents || [],
         strikes: user.strikes,
         isBanned: user.is_banned,
         createdAt: user.created_at,
@@ -314,6 +320,7 @@ export const updateUser = async (
     if ((updates as any).skills !== undefined) profileUpdates.skills = (updates as any).skills;
     if ((updates as any).desiredIndustry !== undefined) profileUpdates.desired_industry = (updates as any).desiredIndustry;
     if ((updates as any).profilePhoto !== undefined) profileUpdates.profile_photo = (updates as any).profilePhoto;
+    if ((updates as any).profileCompleted !== undefined) profileUpdates.profile_completed = (updates as any).profileCompleted;
 
     if (Object.keys(profileUpdates).length > 0) {
       await supabase.from("student_profiles").update(profileUpdates).eq("id", userId);

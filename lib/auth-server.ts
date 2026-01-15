@@ -22,15 +22,20 @@ export async function auth() {
 
     if (userError || !userData) {
       // User exists in auth but not in users table yet
-      // Return basic info from Supabase user
+      // This shouldn't happen if signup worked correctly, but handle gracefully
       if (process.env.NODE_ENV === "development") {
         console.log("Auth: User not found in users table, using auth metadata");
+        console.log("User ID:", supabaseUser.id);
+        console.log("Error:", userError);
       }
+      
+      // Return basic info from Supabase user metadata
+      // The user should create their profile or we should sync them
       return {
         user: {
           id: supabaseUser.id,
           email: supabaseUser.email || "",
-          name: supabaseUser.user_metadata?.name || "",
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
           role: supabaseUser.user_metadata?.role || "student",
           profilePhoto: undefined,
         },
