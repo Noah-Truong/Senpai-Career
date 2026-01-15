@@ -520,13 +520,7 @@ export default function Header({ minimal = false }: HeaderProps) {
                 <>
                   <Link href="/" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.home") || "Home"}</Link>
                   <Link href={`/user/${(session?.user as any)?.id}`} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.myPage")}</Link>
-                  {userRole === "student" ? (
-                    <Link href="/student/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.profile")}</Link>
-                  ) : userRole === "company" ? (
-                    <Link href="/company/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.companyProfile") || "Company Profile"}</Link>
-                  ) : (
-                    <Link href="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.profile")}</Link>
-                  )}
+                  <Link href="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.profile")}</Link>
                   <Link href="/messages" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.messages")}</Link>
                   {userRole === "student" && (
                     <>

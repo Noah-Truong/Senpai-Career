@@ -58,7 +58,7 @@ export default async function StudentDashboardPage() {
             <p className="mb-4" style={{ color: '#6B7280' }}>
               Update your profile information and preferences.
             </p>
-            <a href="/student/profile" className="btn-primary inline-block">
+            <a href="/profile" className="btn-primary inline-block">
               Edit Profile
             </a>
           </div>

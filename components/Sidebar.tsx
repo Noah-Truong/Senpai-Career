@@ -365,7 +365,7 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
 
         {/* User info */}
         <div className={`p-4 border-b border-gray-200 ${isCollapsed ? "flex justify-center" : ""}`}>
-          <Link href={userRole === "student" ? "/student/profile" : userRole === "company" ? "/company/profile" : "/profile"} className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
+          <Link href="/profile" className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
             <Avatar
               src={session?.user?.profilePhoto}
               alt={session?.user?.name || "Profile"}

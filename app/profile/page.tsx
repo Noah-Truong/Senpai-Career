@@ -46,19 +46,9 @@ export default function ProfilePage() {
     }
 
     if (status === "authenticated") {
-      // Redirect students to /student/profile for their "my page"
-      if (session?.user?.role === "student") {
-        router.push("/student/profile");
-        return;
-      }
-      // Redirect companies to /company/profile
-      if (session?.user?.role === "company") {
-        router.push("/company/profile");
-        return;
-      }
       loadProfile();
     }
-  }, [status, router, session]);
+  }, [status, router]);
 
   const loadProfile = async () => {
     try {

@@ -79,7 +79,6 @@ export async function POST(request: NextRequest) {
     const adminClient = createAdminClient();
 
     // Create auth user with Supabase
-    // Include all profile data in raw_user_meta_data so the trigger can use it
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -87,19 +86,6 @@ export async function POST(request: NextRequest) {
         data: {
           name,
           role,
-          // Include all student profile data so trigger can populate student_profiles table
-          ...(role === "student" && {
-            nickname: profileData.nickname || "",
-            university: profileData.university || "",
-            year: profileData.year || null,
-            nationality: profileData.nationality || "",
-            jlptLevel: profileData.jlptLevel || "",
-            languages: Array.isArray(profileData.languages) ? profileData.languages : [],
-            interests: Array.isArray(profileData.interests) ? profileData.interests : [],
-            skills: Array.isArray(profileData.skills) ? profileData.skills : [],
-            desiredIndustry: profileData.desiredIndustry || "",
-            profilePhoto: profileData.profilePhoto || null,
-          }),
         },
       },
     });
@@ -127,16 +113,21 @@ export async function POST(request: NextRequest) {
 
     const userId = authData.user.id;
 
-    // IMPORTANT: Upsert into users table using admin client (bypasses RLS)
-    // Use upsert instead of insert to handle cases where the trigger may have already created the record
-    // This ensures ALL fields (including password_hash) are set correctly
-    // Upsert into users table with all required fields
-    // Use ON CONFLICT DO UPDATE to ensure all fields are set, even if trigger created the record first
-    // This ensures password_hash and all other fields are present
-    const timestamp = new Date().toISOString();
-    const { error: userError } = await adminClient
+    // IMPORTANT: Insert into users table FIRST using admin client (bypasses RLS)
+    // This creates the row in the users table with email, password_hash, name, role, created_at, etc.
+    const { data: existingUser } = await adminClient
       .from("users")
-      .upsert({
+      .select("id")
+      .eq("id", userId)
+      .single();
+
+    if (!existingUser) {
+      // Insert into users table with all required fields matching the exact structure:
+      // id, email, password_hash, name, role, credits, strikes, is_banned, created_at, updated_at
+      // Note: password_hash is empty string because Supabase Auth handles password hashing separately
+      // The actual password hash is stored by Supabase Auth, not in our users table
+      const timestamp = new Date().toISOString();
+      const { error: userError } = await adminClient.from("users").insert({
         id: userId, // From Supabase Auth user ID
         email: email, // Email from signup form
         password_hash: "", // Empty string - Supabase Auth handles password hashing
@@ -147,79 +138,103 @@ export async function POST(request: NextRequest) {
         is_banned: role === "student" ? false : null, // Students start unbanned
         created_at: timestamp, // Initial timestamp
         updated_at: timestamp, // Same as created_at on initial creation
-      }, {
-        onConflict: "id",
       });
 
-    if (userError) {
-      console.error("❌ USER UPSERT ERROR:", userError);
-      console.error("Error details:", JSON.stringify(userError, null, 2));
-      // Cleanup: delete auth user if we can't create the user record
-      try {
-        await adminClient.auth.admin.deleteUser(userId);
-      } catch (deleteError) {
-        console.error("Failed to delete auth user:", deleteError);
+      if (userError) {
+        console.error("❌ USER INSERT ERROR:", userError);
+        console.error("Error details:", JSON.stringify(userError, null, 2));
+        // Cleanup: delete auth user if we can't create the user record
+        try {
+          await adminClient.auth.admin.deleteUser(userId);
+        } catch (deleteError) {
+          console.error("Failed to delete auth user:", deleteError);
+        }
+        return NextResponse.json(
+          { error: `Failed to create user account: ${userError.message}` },
+          { status: 500 }
+        );
       }
-      return NextResponse.json(
-        { error: `Failed to create user account: ${userError.message}` },
-        { status: 500 }
-      );
+      console.log("✅ User created in users table:", userId, email);
+    } else {
+      console.log("⚠️ User already exists in users table, skipping insert");
     }
-    console.log("✅ User created/updated in users table with all fields:", userId, email);
 
-    // IMPORTANT: Upsert student profile in student_profiles table
-    // Use upsert instead of insert to handle cases where the trigger may have already created the record
-    // This ensures ALL fields (including compliance fields) are set correctly
+    // IMPORTANT: Create student profile in student_profiles table
     // This saves all the profile data: nickname, university, year, nationality, languages, etc.
     if (role === "student") {
-      // Upsert student profile with ALL fields including compliance defaults
-      // Use ON CONFLICT DO UPDATE to ensure all fields are set, even if trigger created the record first
-      // This ensures ALL fields (nickname, university, compliance fields, etc.) are present
-      const profileUpsertData = {
-        id: userId, // Same ID as users table (foreign key) - REQUIRED
-        nickname: profileData.nickname || "", // From signup form
-        university: profileData.university || "", // From signup form
-        year: profileData.year || null, // From signup form (parsed to integer)
-        nationality: profileData.nationality || "", // From signup form
-        jlpt_level: profileData.jlptLevel || "", // From signup form
-        languages: Array.isArray(profileData.languages) ? profileData.languages : [], // From signup form - array
-        interests: Array.isArray(profileData.interests) ? profileData.interests : [], // From signup form - array
-        skills: Array.isArray(profileData.skills) ? profileData.skills : [], // From signup form - array
-        desired_industry: profileData.desiredIndustry || "", // From signup form (joined string)
-        profile_photo: profileData.profilePhoto || null, // Optional profile photo
-        // Compliance tracking fields - explicitly set defaults
-        compliance_agreed: false, // Default: false
-        compliance_agreed_at: null, // Default: null
-        compliance_documents: [], // Default: empty array
-        compliance_status: "pending", // Default: "pending"
-        compliance_submitted_at: null, // Default: null
-        profile_completed: false, // Default: false
-      };
-
-      const { error: profileError, data: upsertedProfile } = await adminClient
+      const { data: existingProfile } = await adminClient
         .from("student_profiles")
-        .upsert(profileUpsertData, {
-          onConflict: "id",
-        })
-        .select()
+        .select("id")
+        .eq("id", userId)
         .single();
 
-      if (profileError) {
-        console.error("❌ STUDENT PROFILE UPSERT ERROR:", profileError);
-        console.error("Profile data attempted:", JSON.stringify(profileUpsertData, null, 2));
-        console.error("Error details:", JSON.stringify(profileError, null, 2));
-        // Don't fail the whole signup, but log the error
+      if (!existingProfile) {
+        // Insert new student profile with all data from signup form
+        // This matches exactly the structure expected in student_profiles table
+        const profileInsertData = {
+          id: userId, // Same ID as users table (foreign key) - REQUIRED
+          nickname: profileData.nickname || "", // From signup form
+          university: profileData.university || "", // From signup form
+          year: profileData.year || null, // From signup form (parsed to integer)
+          nationality: profileData.nationality || "", // From signup form
+          jlpt_level: profileData.jlptLevel || "", // From signup form
+          languages: Array.isArray(profileData.languages) ? profileData.languages : [], // From signup form - array
+          interests: Array.isArray(profileData.interests) ? profileData.interests : [], // From signup form - array
+          skills: Array.isArray(profileData.skills) ? profileData.skills : [], // From signup form - array
+          desired_industry: profileData.desiredIndustry || "", // From signup form (joined string)
+          profile_photo: profileData.profilePhoto || null, // Optional profile photo
+          // Compliance tracking fields (defaults set by database)
+          compliance_agreed: false, // Default: false
+          compliance_agreed_at: null, // Default: null
+          compliance_documents: [], // Default: empty array
+          compliance_status: "pending", // Default: "pending"
+          compliance_submitted_at: null, // Default: null
+          profile_completed: false, // Default: false
+        };
+
+        const { error: profileError, data: insertedProfile } = await adminClient
+          .from("student_profiles")
+          .insert(profileInsertData)
+          .select()
+          .single();
+
+        if (profileError) {
+          console.error("❌ STUDENT PROFILE INSERT ERROR:", profileError);
+          console.error("Profile data attempted:", JSON.stringify(profileInsertData, null, 2));
+          console.error("Error details:", JSON.stringify(profileError, null, 2));
+          // Don't fail the whole signup, but log the error
+        } else {
+          console.log("✅ Student profile created in student_profiles table:", userId);
+          console.log("Profile data saved:", {
+            nickname: profileInsertData.nickname,
+            university: profileInsertData.university,
+            year: profileInsertData.year,
+            nationality: profileInsertData.nationality,
+          });
+        }
       } else {
-        console.log("✅ Student profile created/updated in student_profiles table with ALL fields:", userId);
-        console.log("Profile data saved:", {
-          id: upsertedProfile?.id,
-          nickname: profileUpsertData.nickname,
-          university: profileUpsertData.university,
-          year: profileUpsertData.year,
-          nationality: profileUpsertData.nationality,
-          compliance_status: profileUpsertData.compliance_status,
-          profile_completed: profileUpsertData.profile_completed,
-        });
+        // Update existing profile with provided data (shouldn't happen on signup, but handle it)
+        console.log("⚠️ Student profile already exists, updating with signup data");
+        const { error: updateError } = await adminClient
+          .from("student_profiles")
+          .update({
+            nickname: profileData.nickname || "",
+            university: profileData.university || "",
+            year: profileData.year || null,
+            nationality: profileData.nationality || "",
+            jlpt_level: profileData.jlptLevel || "",
+            languages: Array.isArray(profileData.languages) ? profileData.languages : [],
+            interests: Array.isArray(profileData.interests) ? profileData.interests : [],
+            skills: Array.isArray(profileData.skills) ? profileData.skills : [],
+            desired_industry: profileData.desiredIndustry || "",
+            profile_photo: profileData.profilePhoto || null,
+          })
+          .eq("id", userId);
+        if (updateError) {
+          console.error("❌ Student profile update error:", updateError);
+        } else {
+          console.log("✅ Student profile updated successfully");
+        }
       }
     } else if (role === "obog") {
       // Translate OB/OG multilingual fields
