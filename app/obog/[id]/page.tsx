@@ -20,11 +20,11 @@ export default async function OBOGDetailPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <SidebarLayout role="student">
+ 
       <div className="max-w-4xl mx-auto">
         <OBOGDetailContent obog={obog as any} />
       </div>
-    </SidebarLayout>
+ 
   );
 }
 

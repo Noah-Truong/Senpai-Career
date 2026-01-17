@@ -54,7 +54,9 @@ export default function InternshipPage() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen"
+    style={{ backgroundColor: '#D7FFEF' }}
+    >
       <motion.div 
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         initial="initial"
@@ -77,7 +79,7 @@ export default function InternshipPage() {
         {/* Info Section */}
         <motion.div 
           className="p-6 mb-8 border rounded"
-          style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          style={{ backgroundColor: 'white', borderColor: '#E5E7EB', borderRadius: '6px' }}
           variants={cardVariants}
           initial="initial"
           whileInView="animate"
@@ -109,7 +111,7 @@ export default function InternshipPage() {
 
         {/* Search Bar */}
         <motion.div 
-          className="mb-8 p-4 border rounded"
+          className="mb-8 p-4 rounded"
           style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -193,8 +195,8 @@ export default function InternshipPage() {
               >
                 <Link
                   href={`/internships/${internship.id}`}
-                  className="bg-white border rounded p-6 hover:shadow-md transition-all duration-200 block"
-                  style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+                  className="bg-white rounded p-6 hover:shadow-md transition-all duration-200 block"
+                 
                 >
                 <div className="flex items-start mb-4">
                   <CompanyLogo

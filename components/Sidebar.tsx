@@ -494,6 +494,8 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
               )}
             </AnimatePresence>
           </div>
+
+        
           <div className={`relative ${isCollapsed ? "flex justify-center" : ""}`}>
           <Link href="/messages" 
         className={`${getLinkClasses('/messages')} hover:bg-[#F0FFF8]`}

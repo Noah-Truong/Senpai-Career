@@ -992,12 +992,56 @@ const translations: Record<Language, Record<string, string>> = {
     // Common extras
     "common.note": "Note",
     "common.saving": "Saving...",
-    
+
     // Common
     "common.copyright": "© 2026 Senpai Career. All rights reserved.",
     "common.loading": "Loading...",
     "common.error": "An error occurred",
     "common.submitting": "Submitting...",
+    "common.continue": "Continue",
+
+    // Auth - Email Verification
+    "auth.verifyEmail.title": "Check your email",
+    "auth.verifyEmail.description": "We've sent a verification link to",
+    "auth.verifyEmail.checkSpam": "Can't find the email? Check your spam folder.",
+    "auth.verifyEmail.resend": "Resend verification email",
+    "auth.verifyEmail.backToLogin": "Back to login",
+
+    // Auth - Email Confirmed
+    "auth.emailConfirmed.title": "Email verified!",
+    "auth.emailConfirmed.description": "Your email has been successfully verified. You can now access all features of your account.",
+    "auth.emailConfirmed.ready": "Your account is ready to use",
+    "auth.emailConfirmed.continue": "Continue to login",
+
+    // Auth - Password Reset Sent
+    "auth.passwordResetSent.title": "Check your email",
+    "auth.passwordResetSent.description": "We've sent password reset instructions to",
+    "auth.passwordResetSent.nextSteps": "Next steps:",
+    "auth.passwordResetSent.step1": "Open the email we sent you",
+    "auth.passwordResetSent.step2": "Click the reset password link",
+    "auth.passwordResetSent.step3": "Create a new password",
+    "auth.passwordResetSent.checkSpam": "Can't find the email? Check your spam or junk folder.",
+    "auth.passwordResetSent.resend": "Didn't receive the email? Resend",
+    "auth.passwordResetSent.backToLogin": "Back to login",
+
+    // Auth - Success Page
+    "auth.success.accountUpdated.title": "Account updated!",
+    "auth.success.accountUpdated.description": "Your account information has been successfully updated.",
+    "auth.success.passwordChanged.title": "Password changed!",
+    "auth.success.passwordChanged.description": "Your password has been successfully updated. Please use your new password to log in.",
+    "auth.success.profileUpdated.title": "Profile updated!",
+    "auth.success.profileUpdated.description": "Your profile information has been saved successfully.",
+    "auth.success.settingsSaved.title": "Settings saved!",
+    "auth.success.settingsSaved.description": "Your settings have been updated successfully.",
+    "auth.success.default.title": "Success!",
+    "auth.success.default.description": "Your request has been completed successfully.",
+
+    // Home - Mission (missing)
+    "home.mission.desc": "Helping international students succeed in their career journey in Japan",
+    "home.mission.imageAlt": "Senpai Career Mission",
+
+    // Review modal (missing)
+    "review.modal.subtitle": "How was your experience?",
   },
   ja: {
     // Navigation
@@ -1977,12 +2021,56 @@ const translations: Record<Language, Record<string, string>> = {
     // Common extras
     "common.note": "注意",
     "common.saving": "保存中...",
-    
+
     // Common
     "common.copyright": "© 2026 センパイキャリア。全著作権所有。",
     "common.loading": "読み込み中...",
     "common.submitting": "送信中...",
     "common.error": "エラーが発生しました",
+    "common.continue": "続ける",
+
+    // Auth - Email Verification
+    "auth.verifyEmail.title": "メールを確認してください",
+    "auth.verifyEmail.description": "確認リンクを送信しました",
+    "auth.verifyEmail.checkSpam": "メールが見つかりませんか？迷惑メールフォルダを確認してください。",
+    "auth.verifyEmail.resend": "確認メールを再送信",
+    "auth.verifyEmail.backToLogin": "ログインに戻る",
+
+    // Auth - Email Confirmed
+    "auth.emailConfirmed.title": "メール認証完了！",
+    "auth.emailConfirmed.description": "メールアドレスの認証が完了しました。アカウントのすべての機能をご利用いただけます。",
+    "auth.emailConfirmed.ready": "アカウントの準備ができました",
+    "auth.emailConfirmed.continue": "ログインへ進む",
+
+    // Auth - Password Reset Sent
+    "auth.passwordResetSent.title": "メールを確認してください",
+    "auth.passwordResetSent.description": "パスワードリセットの手順を送信しました",
+    "auth.passwordResetSent.nextSteps": "次のステップ：",
+    "auth.passwordResetSent.step1": "送信されたメールを開く",
+    "auth.passwordResetSent.step2": "パスワードリセットリンクをクリック",
+    "auth.passwordResetSent.step3": "新しいパスワードを作成",
+    "auth.passwordResetSent.checkSpam": "メールが見つかりませんか？迷惑メールフォルダを確認してください。",
+    "auth.passwordResetSent.resend": "メールが届きませんか？再送信",
+    "auth.passwordResetSent.backToLogin": "ログインに戻る",
+
+    // Auth - Success Page
+    "auth.success.accountUpdated.title": "アカウント更新完了！",
+    "auth.success.accountUpdated.description": "アカウント情報が正常に更新されました。",
+    "auth.success.passwordChanged.title": "パスワード変更完了！",
+    "auth.success.passwordChanged.description": "パスワードが正常に更新されました。新しいパスワードでログインしてください。",
+    "auth.success.profileUpdated.title": "プロフィール更新完了！",
+    "auth.success.profileUpdated.description": "プロフィール情報が正常に保存されました。",
+    "auth.success.settingsSaved.title": "設定保存完了！",
+    "auth.success.settingsSaved.description": "設定が正常に更新されました。",
+    "auth.success.default.title": "成功！",
+    "auth.success.default.description": "リクエストが正常に完了しました。",
+
+    // Home - Mission (missing)
+    "home.mission.desc": "日本での就職活動において留学生の成功をサポートします",
+    "home.mission.imageAlt": "センパイキャリアのミッション",
+
+    // Review modal (missing)
+    "review.modal.subtitle": "体験はいかがでしたか？",
   },
 };
 

@@ -263,7 +263,7 @@ export default function Home() {
           </motion.h2>
           <div className="max-w-5xl mx-auto">
             <motion.div 
-              className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2"
+              className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-2"
               variants={staggerContainer}
               initial="initial"
               whileInView="animate"
@@ -297,7 +297,7 @@ export default function Home() {
 
               {/* Arrow */}
               <motion.div 
-                className="hidden md:block"
+                className="hidden md:block self-center"
                 variants={staggerItem}
                 whileHover={{ scale: 1.2, x: 3 }}
                 transition={{ duration: 0.2 }}
@@ -335,7 +335,7 @@ export default function Home() {
 
               {/* Arrow */}
               <motion.div 
-                className="hidden md:block"
+                className="hidden md:block self-center"
                 variants={staggerItem}
                 whileHover={{ scale: 1.2, x: 3 }}
                 transition={{ duration: 0.2 }}
@@ -373,7 +373,7 @@ export default function Home() {
 
               {/* Arrow */}
               <motion.div 
-                className="hidden md:block"
+                className="hidden md:block self-center"
                 variants={staggerItem}
                 whileHover={{ scale: 1.2, x: 3 }}
                 transition={{ duration: 0.2 }}
