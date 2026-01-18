@@ -1,72 +1,83 @@
-import { cookies } from "next/headers";
-import { getToken } from "next-auth/jwt";
-import { authOptions } from "./auth";
+import { createClient } from "@/lib/supabase/server";
 
 export async function auth() {
   try {
-    const cookieStore = await cookies();
-    
-    // Get all cookies
-    const allCookies = cookieStore.getAll();
-    
-    // Debug: log all cookie names in development
-    if (process.env.NODE_ENV === "development") {
-      console.log("Auth: Available cookies:", allCookies.map(c => c.name));
-    }
+    const supabase = await createClient();
 
-    // Build cookie header for getToken - include ALL cookies
-    const cookieHeader = allCookies
-      .map((c) => `${c.name}=${c.value}`)
-      .join("; ");
+    const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
 
-    if (!cookieHeader) {
+    if (error || !supabaseUser) {
       if (process.env.NODE_ENV === "development") {
-        console.log("Auth: No cookies found");
+        console.log("Auth: No authenticated user found");
       }
       return null;
     }
 
-    // Use getToken with the cookie header
-    // getToken will automatically find the session token cookie
-    const token = await getToken({
-      req: {
-        headers: {
-          cookie: cookieHeader,
+    // Fetch the full user profile from our users table
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", supabaseUser.id)
+      .single();
+
+    if (userError || !userData) {
+      // User exists in auth but not in users table yet
+      // This shouldn't happen if signup worked correctly, but handle gracefully
+      if (process.env.NODE_ENV === "development") {
+        console.log("Auth: User not found in users table, using auth metadata");
+        console.log("User ID:", supabaseUser.id);
+        console.log("Error:", userError);
+      }
+      
+      // Return basic info from Supabase user metadata
+      // The user should create their profile or we should sync them
+      return {
+        user: {
+          id: supabaseUser.id,
+          email: supabaseUser.email || "",
+          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
+          role: supabaseUser.user_metadata?.role || "student",
+          profilePhoto: undefined,
         },
-        url: process.env.NEXTAUTH_URL || "http://localhost:3000",
-      } as any,
-      secret: authOptions.secret,
-    });
-
-    if (!token) {
-      if (process.env.NODE_ENV === "development") {
-        console.log("Auth: getToken returned null - token not found or invalid");
-      }
-      return null;
+      };
     }
 
-    if (!token.id || !token.email) {
-      if (process.env.NODE_ENV === "development") {
-        console.log("Auth: Token missing required fields:", { 
-          id: token.id, 
-          email: token.email,
-          hasRole: !!token.role 
-        });
-      }
-      return null;
+    // Get profile photo based on role
+    let profilePhoto: string | undefined;
+    if (userData.role === "student") {
+      const { data: profile } = await supabase
+        .from("student_profiles")
+        .select("profile_photo")
+        .eq("id", supabaseUser.id)
+        .single();
+      profilePhoto = profile?.profile_photo;
+    } else if (userData.role === "obog") {
+      const { data: profile } = await supabase
+        .from("obog_profiles")
+        .select("profile_photo")
+        .eq("id", supabaseUser.id)
+        .single();
+      profilePhoto = profile?.profile_photo;
+    } else if (userData.role === "company") {
+      const { data: profile } = await supabase
+        .from("company_profiles")
+        .select("logo")
+        .eq("id", supabaseUser.id)
+        .single();
+      profilePhoto = profile?.logo;
     }
 
     if (process.env.NODE_ENV === "development") {
-      console.log("Auth: Successfully authenticated user:", token.email);
+      console.log("Auth: Successfully authenticated user:", userData.email);
     }
 
     return {
       user: {
-        id: token.id as string,
-        email: token.email as string,
-        name: token.name as string,
-        role: token.role as string,
-        profilePhoto: (token as any).profilePhoto as string | undefined,
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+        profilePhoto,
       },
     };
   } catch (error) {
@@ -74,4 +85,3 @@ export async function auth() {
     return null;
   }
 }
-

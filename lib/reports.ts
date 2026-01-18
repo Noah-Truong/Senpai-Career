@@ -1,72 +1,115 @@
-import fs from "fs";
-import path from "path";
+import { createClient } from "@/lib/supabase/server";
 import { Report } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 
-const REPORTS_FILE = path.join(process.cwd(), "data", "reports.json");
+// Helper to transform database row to Report
+function transformReport(row: any): Report {
+  return {
+    id: row.id,
+    reporterUserId: row.reporter_id,
+    reportedUserId: row.reported_user_id,
+    reportType: row.report_type,
+    reason: row.reason,
+    description: row.details || row.description,
+    status: row.status,
+    adminNotes: row.admin_notes,
+    createdAt: new Date(row.created_at),
+  };
+}
 
-const ensureDataDir = () => {
-  const dataDir = path.dirname(REPORTS_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  if (!fs.existsSync(REPORTS_FILE)) {
-    fs.writeFileSync(REPORTS_FILE, JSON.stringify([], null, 2));
-  }
-};
+export const readReports = async (): Promise<Report[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reports")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-export const readReports = (): Report[] => {
-  ensureDataDir();
-  try {
-    const data = fs.readFileSync(REPORTS_FILE, "utf-8");
-    const reports = JSON.parse(data);
-    // Convert createdAt strings to Date objects
-    return reports.map((report: any) => ({
-      ...report,
-      createdAt: new Date(report.createdAt),
-    }));
-  } catch (error) {
+  if (error || !data) {
+    console.error("Error reading reports:", error);
     return [];
   }
+
+  return data.map(transformReport);
 };
 
-export const saveReport = (reportData: Omit<Report, "id" | "createdAt">): Report => {
-  ensureDataDir();
-  const reports = readReports();
-  const report: Report = {
-    ...reportData,
-    id: uuidv4(),
-    createdAt: new Date(),
-  };
-  reports.push(report);
-  fs.writeFileSync(REPORTS_FILE, JSON.stringify(reports, null, 2));
-  return report;
+export const saveReport = async (reportData: Omit<Report, "id" | "createdAt">): Promise<Report> => {
+  const supabase = await createClient();
+  const reportId = uuidv4();
+
+  const { data, error } = await supabase
+    .from("reports")
+    .insert({
+      id: reportId,
+      reporter_id: reportData.reporterUserId,
+      reported_user_id: reportData.reportedUserId,
+      report_type: reportData.reportType,
+      reason: reportData.reason,
+      details: reportData.description,
+      status: reportData.status || "pending",
+      admin_notes: reportData.adminNotes,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error saving report:", error);
+    throw new Error("Failed to create report");
+  }
+
+  return transformReport(data);
 };
 
-export const getReportById = (id: string): Report | undefined => {
-  const reports = readReports();
-  return reports.find((r) => r.id === id);
-};
+export const getReportById = async (id: string): Promise<Report | undefined> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reports")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-export const updateReport = (id: string, updates: Partial<Report>): Report | undefined => {
-  ensureDataDir();
-  const reports = readReports();
-  const index = reports.findIndex((r) => r.id === id);
-
-  if (index === -1) {
+  if (error || !data) {
     return undefined;
   }
 
-  reports[index] = {
-    ...reports[index],
-    ...updates,
-  };
-  fs.writeFileSync(REPORTS_FILE, JSON.stringify(reports, null, 2));
-  return reports[index];
+  return transformReport(data);
 };
 
-export const getReportsByStatus = (status: Report["status"]): Report[] => {
-  const reports = readReports();
-  return reports.filter((r) => r.status === status);
+export const updateReport = async (id: string, updates: Partial<Report>): Promise<Report | undefined> => {
+  const supabase = await createClient();
+
+  const updateData: any = {};
+  if (updates.reason !== undefined) updateData.reason = updates.reason;
+  if (updates.description !== undefined) updateData.details = updates.description;
+  if (updates.status !== undefined) updateData.status = updates.status;
+  if (updates.adminNotes !== undefined) updateData.admin_notes = updates.adminNotes;
+
+  const { data, error } = await supabase
+    .from("reports")
+    .update(updateData)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error || !data) {
+    console.error("Error updating report:", error);
+    return undefined;
+  }
+
+  return transformReport(data);
 };
 
+export const getReportsByStatus = async (status: Report["status"]): Promise<Report[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reports")
+    .select("*")
+    .eq("status", status)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error reading reports by status:", error);
+    return [];
+  }
+
+  return data.map(transformReport);
+};

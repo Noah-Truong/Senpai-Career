@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "./Avatar";
 import Logo from "./Logo";
+import { createClient } from "@/lib/supabase/client";
 
 interface Notification {
   id: string;
@@ -30,7 +31,14 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
   const { t } = useLanguage();
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = createClient();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -486,6 +494,8 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
               )}
             </AnimatePresence>
           </div>
+
+        
           <div className={`relative ${isCollapsed ? "flex justify-center" : ""}`}>
           <Link href="/messages" 
         className={`${getLinkClasses('/messages')} hover:bg-[#F0FFF8]`}
@@ -539,7 +549,7 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
    
           {/* Sign out */}
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={handleSignOut}
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
             title={isCollapsed ? t("nav.signOut") : undefined}
           >

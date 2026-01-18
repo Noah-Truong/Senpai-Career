@@ -8,6 +8,8 @@ export interface User {
   nickname?: string;
   profilePhoto?: string;
   credits?: number;
+  strikes?: number;
+  isBanned?: boolean;
   createdAt: Date;
 }
 

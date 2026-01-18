@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // For user reports, verify the reported user exists
     if (reportedUserId !== "PLATFORM") {
-      const reportedUser = getUserById(reportedUserId);
+      const reportedUser = await getUserById(reportedUserId);
       if (!reportedUser) {
         return NextResponse.json({ error: "Reported user not found" }, { status: 404 });
       }
@@ -66,30 +66,30 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get("status");
 
-    let reports = readReports();
+    let reports = await readReports();
 
     // If admin, return all reports (optionally filtered by status)
     if (session.user.role === "admin") {
       if (statusFilter) {
-        reports = reports.filter((r) => r.status === statusFilter);
+        reports = reports.filter((r: any) => r.status === statusFilter);
       }
       // Enrich with user info
-      const enrichedReports = reports.map((report) => {
-        const reporter = getUserById(report.reporterUserId);
-        const reported = getUserById(report.reportedUserId);
+      const enrichedReports = await Promise.all(reports.map(async (report) => {
+        const reporter = await getUserById(report.reporterUserId);
+        const reported = await getUserById(report.reportedUserId);
         return {
           ...report,
           reporter: reporter ? { id: reporter.id, name: reporter.name, email: reporter.email, role: reporter.role } : null,
           reported: reported ? { id: reported.id, name: reported.name, email: reported.email, role: reported.role } : null,
         };
-      });
+      }));
       return NextResponse.json({ reports: enrichedReports });
     }
 
     // Regular users can only see their own reports
-    reports = reports.filter((r) => r.reporterUserId === session.user.id);
+    reports = reports.filter((r: any) => r.reporterUserId === session.user.id);
     if (statusFilter) {
-      reports = reports.filter((r) => r.status === statusFilter);
+      reports = reports.filter((r: any) => r.status === statusFilter);
     }
 
     return NextResponse.json({ reports });

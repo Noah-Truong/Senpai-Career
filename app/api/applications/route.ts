@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if listing exists
-    const internships = readInternships();
+    const internships = await readInternships();
     const listing = internships.find(l => l.id === listingId);
     
     if (!listing) {
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already applied
-    const existingApplications = readApplications();
+    const existingApplications = await readApplications();
     const alreadyApplied = existingApplications.some(
       a => a.listingId === listingId && a.applicantId === session.user.id
     );
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const application = saveApplication({
+    const application = await saveApplication({
       listingId,
       applicantId: session.user.id,
       resumeUrl,
@@ -124,7 +124,8 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const listing = readInternships().find(l => l.id === listingId);
+      const internships = await readInternships();
+      const listing = internships.find(l => l.id === listingId);
       if (!listing || listing.companyId !== session.user.id) {
         return NextResponse.json(
           { error: "Forbidden - You can only view applications for your own listings" },
@@ -132,26 +133,28 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const applications = getApplicationsByListingId(listingId);
+      const applications = await getApplicationsByListingId(listingId);
       
       // Populate applicant information
-      const applicationsWithApplicants = applications.map(app => {
-        const applicant = getUserById(app.applicantId);
+      const applicationsWithApplicants = await Promise.all(applications.map(async (app) => {
+        const applicant = await getUserById(app.applicantId);
         const { password, ...applicantWithoutPassword } = applicant || {};
         return {
           ...app,
           applicant: applicantWithoutPassword,
         };
-      });
+      }));
 
       return NextResponse.json({ applications: applicationsWithApplicants });
     } else {
       // Get user's own applications
-      const applications = readApplications().filter(a => a.applicantId === session.user.id);
+      const allApplications = await readApplications();
+      const applications = allApplications.filter(a => a.applicantId === session.user.id);
       
       // Populate listing information
+      const internships = await readInternships();
       const applicationsWithListings = applications.map(app => {
-        const listing = readInternships().find(l => l.id === app.listingId);
+        const listing = internships.find(l => l.id === app.listingId);
         return {
           ...app,
           listing,

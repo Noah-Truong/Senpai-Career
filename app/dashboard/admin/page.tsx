@@ -12,12 +12,12 @@ export default async function AdminDashboardPage() {
   }
 
   // Get all users for admin view
-  const users = readUsers();
-  const students = users.filter(u => u.role === "student");
-  const obogs = users.filter(u => u.role === "obog");
-  const companies = users.filter(u => u.role === "company");
-  const bannedUsers = users.filter(u => (u as any).isBanned === true);
-  const usersWithStrikes = users.filter(u => (u as any).strikes > 0);
+  const users = await readUsers();
+  const students = users.filter((u: any) => u.role === "student");
+  const obogs = users.filter((u: any) => u.role === "obog");
+  const companies = users.filter((u: any) => u.role === "company");
+  const bannedUsers = users.filter((u: any) => u.isBanned === true);
+  const usersWithStrikes = users.filter((u: any) => u.strikes > 0);
 
   return (
     <div className="min-h-screen bg-white">

@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByEmail, updateUser } from "@/lib/users";
-import { validateResetToken, markTokenAsUsed } from "@/lib/password-reset";
-import bcrypt from "bcryptjs";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, password } = await request.json();
+    const { password } = await request.json();
 
-    if (!token || !password) {
+    if (!password) {
       return NextResponse.json(
-        { error: "Token and password are required" },
+        { error: "Password is required" },
         { status: 400 }
       );
     }
@@ -22,49 +20,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate token
-    const tokenValidation = validateResetToken(token);
-    
-    if (!tokenValidation.valid || !tokenValidation.email) {
+    const supabase = await createClient();
+
+    // Update password using Supabase
+    // Note: This requires the user to be authenticated via the password reset link
+    // Supabase handles the token validation automatically when the user clicks the reset link
+    const { error } = await supabase.auth.updateUser({
+      password: password,
+    });
+
+    if (error) {
+      console.error("Reset password error:", error);
       return NextResponse.json(
-        { error: "Invalid or expired reset token" },
+        { error: error.message || "Failed to reset password. Please request a new reset link." },
         { status: 400 }
       );
     }
-
-    // Get user
-    const user = getUserByEmail(tokenValidation.email);
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Update user password
-    // Note: updateUser doesn't allow password updates, so we need to update directly
-    const fs = require("fs");
-    const path = require("path");
-    const USERS_FILE = path.join(process.cwd(), "data", "users.json");
-    const users = JSON.parse(fs.readFileSync(USERS_FILE, "utf-8"));
-    const userIndex = users.findIndex((u: any) => u.id === user.id);
-    
-    if (userIndex === -1) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    users[userIndex].password = hashedPassword;
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-
-    // Mark token as used
-    markTokenAsUsed(token);
 
     return NextResponse.json({
       message: "Password has been reset successfully",

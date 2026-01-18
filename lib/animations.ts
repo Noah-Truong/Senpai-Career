@@ -5,9 +5,9 @@ export const prefersReducedMotion = typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Optimized easing functions - faster and more performant
-export const smoothEase = prefersReducedMotion ? [1, 0, 1, 1] : [0.25, 0.1, 0.25, 1];
-export const quickEase = prefersReducedMotion ? [1, 0, 1, 1] : [0.25, 0.1, 0.25, 1];
-export const instantEase = [1, 0, 1, 1]; // For reduced motion
+export const smoothEase: [number, number, number, number] = prefersReducedMotion ? [1, 0, 1, 1] : [0.25, 0.1, 0.25, 1];
+export const quickEase: [number, number, number, number] = prefersReducedMotion ? [1, 0, 1, 1] : [0.25, 0.1, 0.25, 1];
+export const instantEase: [number, number, number, number] = [1, 0, 1, 1]; // For reduced motion
 
 export const springConfig = prefersReducedMotion ? {
   type: "tween" as const,

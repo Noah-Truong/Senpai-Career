@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const notifications = getNotificationsByUserId(session.user.id);
-    const unreadCount = getUnreadNotificationsCount(session.user.id);
+    const notifications = await getNotificationsByUserId(session.user.id);
+    const unreadCount = await getUnreadNotificationsCount(session.user.id);
 
     return NextResponse.json({ 
       notifications,

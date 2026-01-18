@@ -9,22 +9,22 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") as "internship" | "new-grad" | null;
 
-    let internships = readInternships();
+    let internships = await readInternships();
 
     // Filter by type if specified
     if (type) {
-      internships = getInternshipsByType(type);
+      internships = await getInternshipsByType(type);
     }
 
     // Populate company information
-    const internshipsWithCompany = internships.map(internship => {
-      const company = getUserById(internship.companyId);
+    const internshipsWithCompany = await Promise.all(internships.map(async (internship) => {
+      const company = await getUserById(internship.companyId) as any;
       return {
         ...internship,
         companyName: company?.companyName || "Unknown Company",
         companyLogo: company?.logo,
       };
-    });
+    }));
 
     return NextResponse.json({ internships: internshipsWithCompany });
   } catch (error: any) {
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get company info for logo
-    const company = getUserById(session.user.id);
+    const company = await getUserById(session.user.id) as any;
     if (!company) {
       return NextResponse.json(
         { error: "Company profile not found" },
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newInternship = saveInternship({
+    const newInternship = await saveInternship({
       companyId: session.user.id,
       title,
       compensationType,
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       workDetails,
       skillsGained: skillsGained || [],
       whyThisCompany: whyThisCompany || "",
-      companyLogo: company.logo,
+      companyLogo: company?.logo,
       type: type as "internship" | "new-grad",
     });
 

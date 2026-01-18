@@ -1,9 +1,11 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Header from "@/components/Header";
+import Link from "next/link";
 
 export default function NewMessagePage() {
   const { t } = useLanguage();
@@ -111,7 +113,7 @@ export default function NewMessagePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="card-gradient p-8">
           <h1 className="text-3xl font-bold mb-6">{t("messages.new.title")}</h1>
@@ -156,13 +158,13 @@ export default function NewMessagePage() {
               >
                 {loading ? t("common.loading") : t("messages.new.submit")}
               </button>
-              <button
+              <Link
                 type="button"
-                onClick={() => router.back()}
+                href="/ob-list"
                 className="btn-secondary"
               >
                 {t("button.cancel")}
-              </button>
+              </Link>
             </div>
           </form>
         </div>

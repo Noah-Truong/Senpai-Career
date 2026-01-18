@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const users = readUsers();
+    const users = await readUsers();
     const companies = users
       .filter(u => u.role === "company")
       .map(({ password, ...company }) => company);

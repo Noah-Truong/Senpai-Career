@@ -1,10 +1,11 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Header from "@/components/Header";
 
 interface InternshipListing {
   id: string;
@@ -129,7 +130,7 @@ export default function CompanyInternshipsPage() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {internships.map((internship) => (
+            {internships.map((internship: any) => (
               <div
                 key={internship.id}
                 className="card-gradient p-6 hover:shadow-xl transition-all duration-300"

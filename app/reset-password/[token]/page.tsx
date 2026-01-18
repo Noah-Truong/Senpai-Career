@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { createClient } from "@/lib/supabase/client";
+import Header from "@/components/Header";
 
 export default function ResetPasswordPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const token = params?.token as string;
+  const supabase = createClient();
   
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,25 +24,43 @@ export default function ResetPasswordPage() {
   const [tokenValid, setTokenValid] = useState(false);
 
   useEffect(() => {
-    // Validate token on mount
-    if (token) {
-      validateToken();
+    // For Supabase password reset, check if we have hash fragments in the URL
+    // Supabase redirects with hash fragments like #access_token=...&type=recovery
+    const hash = window.location.hash;
+    
+    if (hash) {
+      // Extract hash fragments
+      const hashParams = new URLSearchParams(hash.substring(1));
+      const type = hashParams.get("type");
+      
+      if (type === "recovery") {
+        // Exchange the hash for a session
+        supabase.auth.verifyOtp({
+          token_hash: hashParams.get("access_token") || "",
+          type: "recovery",
+        }).then(({ error }) => {
+          if (error) {
+            console.error("Token validation error:", error);
+            setValidating(false);
+            setTokenValid(false);
+          } else {
+            setValidating(false);
+            setTokenValid(true);
+          }
+        });
+      } else {
+        setValidating(false);
+        setTokenValid(false);
+      }
+    } else if (token) {
+      // Legacy token support (if still needed)
+      setValidating(false);
+      setTokenValid(true);
     } else {
       setValidating(false);
       setTokenValid(false);
     }
-  }, [token]);
-
-  const validateToken = async () => {
-    try {
-      // We'll validate the token when submitting, but we can check it here too
-      setValidating(false);
-      setTokenValid(true);
-    } catch (err) {
-      setValidating(false);
-      setTokenValid(false);
-    }
-  };
+  }, [token, supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,18 +80,13 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token, password }),
+      // Use Supabase client to update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to reset password");
+      if (updateError) {
+        throw new Error(updateError.message || "Failed to reset password");
       }
 
       setSuccess(true);

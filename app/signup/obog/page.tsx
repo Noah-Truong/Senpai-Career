@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/client";
 
 export default function OBOGSignupPage() {
   const { t } = useLanguage();
+  const router = useRouter();
+  const supabase = createClient();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -38,8 +40,9 @@ export default function OBOGSignupPage() {
   ];
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+ 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,6 +51,7 @@ export default function OBOGSignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     if (!acceptedTerms) {
@@ -97,27 +101,23 @@ export default function OBOGSignupPage() {
       }
 
       try {
-        const signInResult = await signIn("credentials", {
-          redirect: false,
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
 
-        if (signInResult?.ok) {
+        if (signInError) {
+          // Email confirmation is likely required
+          setSuccess(t("signup.success.checkEmail") || "Account created successfully! Please check your email to confirm your account.");
+        } else if (signInData?.user) {
           router.push("/");
           router.refresh();
         } else {
-          setError("Account created successfully! However, automatic login failed. Please log in manually.");
-          setTimeout(() => {
-            router.push("/login");
-          }, 2000);
+          setSuccess(t("signup.success.checkEmail") || "Account created successfully! Please check your email to confirm your account.");
         }
       } catch (signInError: any) {
         console.error("Auto-login error:", signInError);
-        setError("Account created successfully! However, automatic login failed. Please log in manually.");
-        setTimeout(() => {
-          router.push("/login");
-        }, 2000);
+        setSuccess(t("signup.success.checkEmail") || "Account created successfully! Please check your email to confirm your account.");
       }
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.");
@@ -138,11 +138,20 @@ export default function OBOGSignupPage() {
           </h2>
 
           {error && (
-            <div 
+            <div
               className="mb-4 px-4 py-3 rounded border"
               style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
             >
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div
+              className="mb-4 px-4 py-3 rounded border"
+              style={{ backgroundColor: '#D1FAE5', borderColor: '#6EE7B7', color: '#059669' }}
+            >
+              {success}
             </div>
           )}
 

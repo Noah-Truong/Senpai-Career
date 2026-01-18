@@ -28,12 +28,12 @@ export async function GET(request: NextRequest) {
     console.log("Profile API: Session found for user:", session.user.email);
 
     console.log("Profile API: Looking for user with ID:", session.user.id);
-    let user = getUserById(session.user.id);
+    let user = await getUserById(session.user.id);
     
     // Fallback: try to find by email if ID lookup fails
     if (!user && session.user.email) {
       console.log("Profile API: ID lookup failed, trying email:", session.user.email);
-      user = getUserByEmail(session.user.email);
+      user = await getUserByEmail(session.user.email);
       if (user) {
         console.log("Profile API: Found user by email, ID mismatch. Session ID:", session.user.id, "DB ID:", user.id);
       }
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     if (!user) {
       console.error("Profile API: User not found with ID:", session.user.id, "or email:", session.user.email);
       // Debug: list all user IDs
-      const allUsers = readUsers();
+      const allUsers = await readUsers();
       console.log("Profile API: Available user IDs:", allUsers.map(u => ({ id: u.id, email: u.email })));
       return NextResponse.json(
         { error: `User not found. Please try logging out and logging back in.` },
@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest) {
     const { id, email, password, createdAt, role, ...allowedUpdates } = updates;
 
     // Translate multilingual fields based on user role
-    const user = getUserById(session.user.id);
+    const user = await getUserById(session.user.id);
     if (user) {
       if (user.role === "company") {
         const companyMultilingualFields = ['overview', 'internshipDetails', 'newGradDetails', 'idealCandidate', 'sellingPoints', 'oneLineMessage'];

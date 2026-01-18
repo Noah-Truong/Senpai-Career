@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     const fromUserId = session.user.id;
     
     // Check user credits before sending message
-    const fromUser = getUserById(fromUserId);
+    const fromUser = await getUserById(fromUserId);
     if (!fromUser) {
       return NextResponse.json(
         { error: "User not found" },
@@ -235,24 +235,24 @@ export async function GET(request: NextRequest) {
     );
 
     // Get last message and other user info for each thread
-    const threadsWithMessages = userThreads.map((thread: any) => {
+    const threadsWithMessages = await Promise.all(userThreads.map(async (thread: any) => {
       const threadMessages = messages
         .filter((m: any) => m.threadId === thread.id)
-        .sort((a: any, b: any) => 
+        .sort((a: any, b: any) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-      
+
       // Get other user info
       const otherUserId = thread.participants.find((id: string) => id !== userId);
-      const otherUser = otherUserId ? getUserById(otherUserId) : null;
-      const { password, ...otherUserWithoutPassword } = otherUser || {};
-      
+      const otherUser = otherUserId ? await getUserById(otherUserId) : null;
+      const { password, ...otherUserWithoutPassword } = otherUser || {} as any;
+
       return {
         ...thread,
         lastMessage: threadMessages[0] || null,
         otherUser: otherUserWithoutPassword,
       };
-    });
+    }));
 
     return NextResponse.json({ threads: threadsWithMessages });
   } catch (error: any) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 
 export default function ForOBOGPage() {
   const { t } = useLanguage();

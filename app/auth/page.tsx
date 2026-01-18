@@ -2,7 +2,7 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -13,7 +13,7 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   
   useEffect(() => {
-    if (session) {
+    if (session?.user) {
       router.push("/");
     }
   }, [session, router]);

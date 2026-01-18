@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MessageButtonProps {

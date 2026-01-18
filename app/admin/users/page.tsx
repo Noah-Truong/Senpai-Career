@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/AdminLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -28,7 +28,7 @@ export default function AdminUsersPage() {
     }
 
     if (status === "authenticated") {
-      if (session.user?.role !== "admin") {
+      if (session?.user?.role !== "admin") {
         router.push("/");
         return;
       }
