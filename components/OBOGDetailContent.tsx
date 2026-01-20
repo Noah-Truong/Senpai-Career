@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslated } from "@/lib/translation-helpers";
-import { useSession } from "@/contexts/AuthContext";
+import { useSession } from "next-auth/react";
 import MessageButton from "./MessageButton";
 import Avatar from "./Avatar";
 import ReportButton from "./ReportButton";
