@@ -20,7 +20,7 @@ export default function MessagesPage() {
   
   const role = (session?.user as any)?.role;
 
-  useEffect(() => {
+  const loadMessages = useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
       return;
@@ -28,12 +28,13 @@ export default function MessagesPage() {
 
     if (status === "authenticated") {
       loadThreads();
-      
-      if (obogId) {
+
+      // Only redirect to new message page if not an alumni (alumni cannot start conversations)
+      if (obogId && role !== "obog") {
         router.push(`/messages/new?obogId=${obogId}`);
       }
     }
-  }, [status, router, obogId]);
+  }, [status, router, obogId, role]);
 
   const loadThreads = async () => {
     try {

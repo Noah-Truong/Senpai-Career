@@ -53,6 +53,12 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
   const userRole = session?.user?.role as "student" | "obog" | "company" | "admin" | undefined;
   const userId = (session?.user as any)?.id;
 
+  //handle click outside
+  const handleClickOutside = (event: MouseEvent) => {
+    if(!showNotifications && !(event.target as HTMLElement).closest('.notifications-dropdown')){
+      setShowNotifications(false);
+    }
+  };
   // Fetch notifications
   const loadNotifications = useCallback(async () => {
     if (!session?.user?.id) return;

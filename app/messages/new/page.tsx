@@ -18,9 +18,17 @@ export default function NewMessagePage() {
   const [error, setError] = useState("");
   const [obog, setObog] = useState<any>(null);
 
+  const userRole = session?.user?.role as string | undefined;
+  const isAlumni = userRole === "obog";
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
+      return;
+    }
+
+    // Alumni cannot start new conversations
+    if (status === "authenticated" && isAlumni) {
       return;
     }
 
@@ -41,7 +49,7 @@ export default function NewMessagePage() {
           setError(t("messages.new.failed"));
         });
     }
-  }, [status, router, obogId]);
+  }, [status, router, obogId, isAlumni, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +95,31 @@ export default function NewMessagePage() {
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p>{t("common.loading")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Alumni cannot start new conversations - they can only reply to existing threads
+  if (isAlumni) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="card-gradient p-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              {t("messages.alumniRestriction.title") || "Message Restriction"}
+            </h2>
+            <p className="text-gray-700 text-lg mb-4">
+              {t("messages.alumniRestriction.description") || "As an alumni, you cannot start new conversations. Please wait for students to message you first, then you can reply to their messages."}
+            </p>
+            <button
+              onClick={() => router.push("/messages")}
+              className="btn-primary"
+            >
+              {t("messages.alumniRestriction.viewMessages") || "View My Messages"}
+            </button>
+          </div>
         </div>
       </div>
     );

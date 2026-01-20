@@ -195,8 +195,8 @@ export default function InternshipPage() {
               >
                 <Link
                   href={`/internships/${internship.id}`}
-                  className="bg-white rounded p-6 hover:shadow-md transition-all duration-200 block"
-                 
+                  className="bg-white border rounded p-6 hover:shadow-md transition-all duration-200 block"
+                  style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
                 >
                 <div className="flex items-start mb-4">
                   <CompanyLogo

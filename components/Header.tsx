@@ -114,6 +114,7 @@ export default function Header({ minimal = false }: HeaderProps) {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [userCredits, setUserCredits] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   const isLoggedIn = !!session?.user;
@@ -149,6 +150,19 @@ export default function Header({ minimal = false }: HeaderProps) {
       return () => clearInterval(interval);
     }
   }, [isLoggedIn, session?.user?.id]);
+
+  // Close notifications dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showNotifications]);
 
   const loadUserCredits = useCallback(async () => {
     if (!isLoggedIn) return;
@@ -236,7 +250,7 @@ export default function Header({ minimal = false }: HeaderProps) {
     return (
       <div className="flex items-center gap-2">
         {/* Notifications */}
-        <div className="relative">
+        <div className="relative" ref={notificationRef}>
           <button
             onClick={() => {
               setShowNotifications(!showNotifications);
@@ -397,7 +411,7 @@ export default function Header({ minimal = false }: HeaderProps) {
             ) : (
               <div className="flex items-center gap-2">
                 {/* Notifications - Top right corner */}
-                <div className="relative">
+                <div className="relative" ref={notificationRef}>
                   <button
                     onClick={() => {
                       setShowNotifications(!showNotifications);

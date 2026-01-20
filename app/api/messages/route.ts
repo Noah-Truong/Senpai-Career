@@ -144,6 +144,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Alumni (obog) cannot initiate new conversations - they can only reply
+      if (fromUser.role === "obog") {
+        return NextResponse.json(
+          { error: "Alumni cannot start new conversations. Please wait for a student to message you first.", code: "ALUMNI_CANNOT_INITIATE" },
+          { status: 403 }
+        );
+      }
+
       actualToUserId = toUserId;
       // Find or create thread
       const threads = readThreads();
