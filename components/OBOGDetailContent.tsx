@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslated } from "@/lib/translation-helpers";
+import { useSession } from "next-auth/react";
 import MessageButton from "./MessageButton";
 import Avatar from "./Avatar";
 import ReportButton from "./ReportButton";
+import AvailabilityCalendar from "./AvailabilityCalendar";
 
 interface OBOGDetailContentProps {
   obog: {
@@ -25,6 +28,10 @@ interface OBOGDetailContentProps {
 
 export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
   const { t, language } = useLanguage();
+  const { data: session } = useSession();
+  const [showCalendar, setShowCalendar] = useState(false);
+  
+  const isOwner = session?.user?.id === obog.id && session?.user?.role === "obog";
 
   return (
     <div className="card-gradient p-8">
@@ -107,11 +114,33 @@ export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
         )}
       </div>
 
-      {/* Message Button and Report Button */}
-      <div className="mt-8 flex items-center gap-4">
-        <MessageButton obogId={obog.id} obogName={obog.nickname || obog.name} />
-        <ReportButton reportedUserId={obog.id} reportedUserName={obog.nickname || obog.name} />
+      {/* Message Button, Availability Button, and Report Button */}
+      <div className="mt-8 flex items-center gap-4 flex-wrap">
+        {!isOwner && (
+          <MessageButton obogId={obog.id} obogName={obog.nickname || obog.name} />
+        )}
+        <button
+          onClick={() => setShowCalendar(true)}
+          className="btn-primary px-6 py-2 flex items-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {isOwner ? "Configure Availability" : "View Availability"}
+        </button>
+        {!isOwner && (
+          <ReportButton reportedUserId={obog.id} reportedUserName={obog.nickname || obog.name} />
+        )}
       </div>
+
+      {/* Availability Calendar Modal */}
+      <AvailabilityCalendar
+        obogId={obog.id}
+        obogName={obog.nickname || obog.name}
+        isOpen={showCalendar}
+        onClose={() => setShowCalendar(false)}
+        isOwner={isOwner}
+      />
     </div>
   );
 }
