@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     // Stripe amounts are in smallest currency unit (yen = no decimals)
     const amount = amountJPY;
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
     if (isRecurring) {
       // Create a subscription for recurring payments

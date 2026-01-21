@@ -13,23 +13,173 @@ export default function OBVisitPage() {
   const { t } = useLanguage();
   const { data: session } = useSession();
   const isLoggedIn = !!session;
+  const isStudent = session?.user?.role === "student";
   const [obogUsers, setObogUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showRules, setShowRules] = useState(false);
+  const [complianceAgreed, setComplianceAgreed] = useState(false);
+  const [showComplianceButton, setShowComplianceButton] = useState(false);
+  const [checkingCompliance, setCheckingCompliance] = useState(true);
+
+  // Check compliance status on load
+  useEffect(() => {
+    const checkCompliance = async () => {
+      if (isStudent && session?.user?.id) {
+        try {
+          const response = await fetch("/api/profile/compliance");
+          if (response.ok) {
+            // Check if response is JSON before parsing
+            const contentType = response.headers.get("content-type");
+            const isJson = contentType && contentType.includes("application/json");
+            
+            if (isJson) {
+              try {
+                const text = await response.text();
+                const trimmedText = text.trim();
+                
+                if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+                  const data = JSON.parse(text);
+                  setComplianceAgreed(data.complianceAgreed || false);
+                  // Only show popup automatically if compliance is not agreed
+                  if (!data.complianceAgreed) {
+                    setShowRules(true);
+                  }
+                } else {
+                  console.warn("Compliance API returned non-JSON response");
+                  // If error, show popup to be safe
+                  setShowRules(true);
+                }
+              } catch (jsonError) {
+                console.error("Failed to parse compliance JSON:", jsonError);
+                // If error, show popup to be safe
+                setShowRules(true);
+              }
+            } else {
+              console.warn("Compliance API returned non-JSON content type");
+              // If error, show popup to be safe
+              setShowRules(true);
+            }
+          }
+        } catch (err) {
+          console.error("Error checking compliance:", err);
+          // If error, show popup to be safe
+          setShowRules(true);
+        }
+      }
+      setCheckingCompliance(false);
+    };
+
+    checkCompliance();
+  }, [isStudent, session?.user?.id]);
 
   useEffect(() => {
     fetch("/api/obog")
-      .then(res => res.json())
-      .then(data => {
-        setObogUsers(data.users || []);
+      .then(async res => {
+        if (res.ok) {
+          const contentType = res.headers.get("content-type");
+          const isJson = contentType && contentType.includes("application/json");
+          
+          if (isJson) {
+            try {
+              const text = await res.text();
+              const trimmedText = text.trim();
+              
+              if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+                const data = JSON.parse(text);
+                setObogUsers(data.users || []);
+              } else {
+                console.error("OB/OG API returned non-JSON response");
+                setObogUsers([]);
+              }
+            } catch (jsonError) {
+              console.error("Failed to parse OB/OG JSON:", jsonError);
+              setObogUsers([]);
+            }
+          } else {
+            console.error("OB/OG API returned non-JSON content type");
+            setObogUsers([]);
+          }
+        } else {
+          console.error("OB/OG API returned error status:", res.status);
+          setObogUsers([]);
+        }
         setLoading(false);
       })
       .catch(err => {
         console.error("Error loading OB/OG users:", err);
         setLoading(false);
+        setObogUsers([]);
       });
-    setShowRules(true);
   }, []);
+
+  // Show close button after a delay when popup is open (to encourage reading)
+  useEffect(() => {
+    if (showRules && isStudent && !complianceAgreed) {
+      // Reset button visibility when popup opens
+      setShowComplianceButton(false);
+      const timer = setTimeout(() => {
+        setShowComplianceButton(true);
+      }, 5000); // 5 second delay before close button appears
+      return () => clearTimeout(timer);
+    } else if (showRules && (complianceAgreed || !isStudent)) {
+      // If compliance already agreed or not a student, show button immediately
+      setShowComplianceButton(true);
+    } else {
+      setShowComplianceButton(false);
+    }
+  }, [showRules, isStudent, complianceAgreed]);
+
+  const handleCloseRules = async () => {
+    // If user is a student and hasn't agreed to compliance yet, update it
+    if (isStudent && !complianceAgreed && session?.user?.id) {
+      try {
+        const response = await fetch("/api/profile/compliance", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            complianceAgreed: true,
+            complianceDocuments: [],
+          }),
+        });
+
+        if (response.ok) {
+          // Check if response is JSON before parsing
+          const contentType = response.headers.get("content-type");
+          const isJson = contentType && contentType.includes("application/json");
+          
+          if (isJson) {
+            try {
+              const text = await response.text();
+              const trimmedText = text.trim();
+              
+              if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+                const data = JSON.parse(text);
+                setComplianceAgreed(true);
+              } else {
+                console.warn("Compliance update returned non-JSON response");
+                // Still mark as agreed locally even if parsing fails
+                setComplianceAgreed(true);
+              }
+            } catch (jsonError) {
+              console.error("Failed to parse compliance update JSON:", jsonError);
+              // Still mark as agreed locally even if parsing fails
+              setComplianceAgreed(true);
+            }
+          } else {
+            // Response OK but not JSON, still mark as agreed
+            setComplianceAgreed(true);
+          }
+        } else {
+          console.error("Failed to update compliance");
+        }
+      } catch (err) {
+        console.error("Error updating compliance:", err);
+      }
+    }
+    setShowRules(false);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -149,14 +299,18 @@ export default function OBVisitPage() {
           </div>
         </motion.section>
       )}
-      <div className="flex justify-center py-4">
-        <button
-          onClick={() => setShowRules(true)}
-          className="bg-navy text-white px-6 py-3 rounded-lg hover:bg-blue-600 font-medium shadow-md transition-all"
-        >
-          {t("obvisit.safety.title")}
-        </button>
-      </div>
+      
+      {/* Safety Rules Button - Always visible for students */}
+      {isStudent && (
+        <div className="flex justify-center py-4">
+          <button
+            onClick={() => setShowRules(true)}
+            className="bg-navy text-white px-6 py-3 rounded-lg hover:bg-blue-600 font-medium shadow-md transition-all"
+          >
+            {t("obvisit.safety.title")}
+          </button>
+        </div>
+      )}
       
       {/* Safety and Rules Popup */}
       {showRules && (
@@ -218,12 +372,20 @@ export default function OBVisitPage() {
       </motion.section>
 
             
-            <button
-              onClick={() => setShowRules(false)}
-              className="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600"
-            >
-              {t("button.close")}
-            </button>
+            <div className="flex justify-end mt-4">
+              {showComplianceButton ? (
+                <button
+                  onClick={handleCloseRules}
+                  className="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 transition-colors"
+                >
+                  {t("button.close")}
+                </button>
+              ) : (
+                <div className="text-sm text-gray-500 italic">
+                  {t("obvisit.safety.reading") || "Please read the rules carefully..."}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -45,29 +45,50 @@ export default function EditInternshipPage({ params }: { params: { id: string } 
   const loadInternship = async () => {
     try {
       const response = await fetch(`/api/internships/${params.id}`);
-      if (!response.ok) {
+      if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              const internship = data.internship;
+
+              // Check if this company owns this listing
+              if (internship.companyId !== session?.user?.id) {
+                router.push("/company/internships");
+                return;
+              }
+
+              setFormData({
+                type: internship.type,
+                title: internship.title || "",
+                compensationType: internship.compensationType || "hourly",
+                hourlyWage: internship.hourlyWage?.toString() || "",
+                fixedSalary: internship.fixedSalary?.toString() || "",
+                otherCompensation: internship.otherCompensation || "",
+                workDetails: internship.workDetails || "",
+                skillsGained: internship.skillsGained?.join(", ") || "",
+                whyThisCompany: internship.whyThisCompany || "",
+              });
+            } else {
+              throw new Error("Failed to load internship listing");
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse internship JSON:", jsonError);
+            setError("Failed to load internship listing");
+          }
+        } else {
+          throw new Error("Failed to load internship listing");
+        }
+      } else {
         throw new Error("Failed to load internship listing");
       }
-      const data = await response.json();
-      const internship = data.internship;
-
-      // Check if this company owns this listing
-      if (internship.companyId !== session?.user?.id) {
-        router.push("/company/internships");
-        return;
-      }
-
-      setFormData({
-        type: internship.type,
-        title: internship.title || "",
-        compensationType: internship.compensationType || "hourly",
-        hourlyWage: internship.hourlyWage?.toString() || "",
-        fixedSalary: internship.fixedSalary?.toString() || "",
-        otherCompensation: internship.otherCompensation || "",
-        workDetails: internship.workDetails || "",
-        skillsGained: internship.skillsGained?.join(", ") || "",
-        whyThisCompany: internship.whyThisCompany || "",
-      });
     } catch (err: any) {
       console.error("Error loading internship:", err);
       setError(err.message || "Failed to load internship listing");
@@ -122,10 +143,28 @@ export default function EditInternshipPage({ params }: { params: { id: string } 
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Failed to update internship listing");
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        let errorMessage = "Failed to update internship listing";
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              errorMessage = data.error || errorMessage;
+            }
+          } catch (jsonError) {
+            // If parsing fails, use default error message
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       setSuccess(true);

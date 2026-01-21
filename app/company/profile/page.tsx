@@ -57,23 +57,41 @@ export default function CompanyProfilePage() {
         throw new Error("Failed to load company data");
       }
 
-      const data = await response.json();
-      if (data.company) {
-        setFormData({
-          companyName: data.company.companyName || "",
-          overview: data.company.overview || "",
-          workLocation: data.company.workLocation || "",
-          hourlyWage: data.company.hourlyWage?.toString() || "",
-          weeklyHours: data.company.weeklyHours?.toString() || "",
-          weeklyDays: data.company.weeklyDays?.toString() || "",
-          minRequiredHours: data.company.minRequiredHours?.toString() || "",
-          internshipDetails: data.company.internshipDetails || "",
-          newGradDetails: data.company.newGradDetails || "",
-          idealCandidate: data.company.idealCandidate || "",
-          sellingPoints: data.company.sellingPoints || "",
-          oneLineMessage: data.company.oneLineMessage || "",
-        });
-      }
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      const isJson = contentType && contentType.includes("application/json");
+      
+      if (isJson) {
+        try {
+          const text = await response.text();
+          const trimmedText = text.trim();
+          
+          if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+            const data = JSON.parse(text);
+            if (data.company) {
+              setFormData({
+                companyName: data.company.companyName || "",
+                overview: data.company.overview || "",
+                workLocation: data.company.workLocation || "",
+                hourlyWage: data.company.hourlyWage?.toString() || "",
+                weeklyHours: data.company.weeklyHours?.toString() || "",
+                weeklyDays: data.company.weeklyDays?.toString() || "",
+                minRequiredHours: data.company.minRequiredHours?.toString() || "",
+                internshipDetails: data.company.internshipDetails || "",
+                newGradDetails: data.company.newGradDetails || "",
+                idealCandidate: data.company.idealCandidate || "",
+                sellingPoints: data.company.sellingPoints || "",
+                oneLineMessage: data.company.oneLineMessage || "",
+              });
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse company profile JSON:", jsonError);
+            setError("Failed to load company data. Please refresh the page.");
+          }
+        } else {
+          console.warn("Company profile API returned non-JSON content type");
+          setError("Failed to load company data. Please refresh the page.");
+        }
     } catch (err) {
       console.error("Error loading company data:", err);
       setError("Failed to load company data. Please refresh the page.");
@@ -116,10 +134,28 @@ export default function CompanyProfilePage() {
         body: JSON.stringify(updateData),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Failed to save company page");
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        let errorMessage = "Failed to save company page";
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              errorMessage = data.error || errorMessage;
+            }
+          } catch (jsonError) {
+            // If parsing fails, use default error message
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       setSuccess(true);

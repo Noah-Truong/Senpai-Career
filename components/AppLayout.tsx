@@ -27,8 +27,27 @@ export default function AppLayout({ children }: AppLayoutProps) {
     try {
       const response = await fetch("/api/user");
       if (response.ok) {
-        const data = await response.json();
-        setUserCredits(data.user?.credits ?? 0);
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              setUserCredits(data.user?.credits ?? 0);
+            } else {
+              console.warn("User API returned non-JSON response");
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse user JSON:", jsonError);
+          }
+        } else {
+          console.warn("User API returned non-JSON content type");
+        }
       }
     } catch (error) {
       console.error("Error loading user credits:", error);

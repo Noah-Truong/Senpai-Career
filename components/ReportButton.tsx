@@ -47,10 +47,28 @@ export default function ReportButton({ reportedUserId, reportedUserName }: Repor
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || t("report.error.submit") || "Failed to submit report");
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        let errorMessage = t("report.error.submit") || "Failed to submit report";
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              errorMessage = data.error || errorMessage;
+            }
+          } catch (jsonError) {
+            // If parsing fails, use default error message
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       setSuccess(true);

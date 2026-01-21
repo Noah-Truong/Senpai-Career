@@ -2,7 +2,7 @@
 
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
@@ -20,7 +20,44 @@ export default function MessagesPage() {
   
   const role = (session?.user as any)?.role;
 
-  const loadMessages = useEffect(() => {
+  const loadThreads = useCallback(async () => {
+    try {
+      const response = await fetch("/api/messages");
+      if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              setThreads(data.threads || []);
+            } else {
+              console.warn("Messages API returned non-JSON response");
+              setThreads([]);
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse messages JSON:", jsonError);
+            setThreads([]);
+          }
+        } else {
+          console.warn("Messages API returned non-JSON content type");
+          setThreads([]);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading threads:", error);
+      setThreads([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
       return;
@@ -34,21 +71,7 @@ export default function MessagesPage() {
         router.push(`/messages/new?obogId=${obogId}`);
       }
     }
-  }, [status, router, obogId, role]);
-
-  const loadThreads = async () => {
-    try {
-      const response = await fetch("/api/messages");
-      if (response.ok) {
-        const data = await response.json();
-        setThreads(data.threads || []);
-      }
-    } catch (error) {
-      console.error("Error loading threads:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [status, router, obogId, role, loadThreads]);
 
   if (status === "loading" || loading) {
     return (

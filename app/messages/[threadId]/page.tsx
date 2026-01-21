@@ -2,7 +2,7 @@
 
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
@@ -26,6 +26,79 @@ export default function MessageThreadPage() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
 
+  const loadMessages = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/messages/${threadId}`);
+      if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              
+              if (data.messages) {
+                setMessages(data.messages);
+              }
+              if (data.otherUser) {
+                setOtherUser(data.otherUser);
+                if (session?.user?.id && data.otherUser.id) {
+                  try {
+                    const reviewResponse = await fetch(`/api/reviews?userId=${data.otherUser.id}`);
+                    if (reviewResponse.ok) {
+                      const reviewContentType = reviewResponse.headers.get("content-type");
+                      const reviewIsJson = reviewContentType && reviewContentType.includes("application/json");
+                      
+                      if (reviewIsJson) {
+                        try {
+                          const reviewText = await reviewResponse.text();
+                          const reviewTrimmed = reviewText.trim();
+                          
+                          if (reviewTrimmed.startsWith("{") || reviewTrimmed.startsWith("[")) {
+                            const reviewData = JSON.parse(reviewText);
+                            const existingReview = reviewData.reviews?.find(
+                              (r: any) => r.reviewerUserId === session.user.id
+                            );
+                            setHasReviewed(!!existingReview);
+                          }
+                        } catch (reviewJsonError) {
+                          console.error("Failed to parse reviews JSON:", reviewJsonError);
+                        }
+                      }
+                    }
+                  } catch (err) {
+                    console.error("Error checking reviews:", err);
+                  }
+                }
+              }
+            } else {
+              console.warn("Messages API returned non-JSON response");
+              setError("Failed to load messages");
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse messages JSON:", jsonError);
+            setError("Failed to load messages");
+          }
+        } else {
+          console.warn("Messages API returned non-JSON content type");
+          setError("Failed to load messages");
+        }
+      } else {
+        setError("Failed to load messages");
+      }
+    } catch (err) {
+      console.error("Error loading messages:", err);
+      setError("Failed to load messages");
+    } finally {
+      setLoading(false);
+    }
+  }, [threadId, session?.user?.id]);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -35,40 +108,7 @@ export default function MessageThreadPage() {
     if (status === "authenticated" && threadId) {
       loadMessages();
     }
-  }, [status, threadId, router]);
-
-  const loadMessages = async () => {
-    try {
-      const response = await fetch(`/api/messages/${threadId}`);
-      const data = await response.json();
-      
-      if (data.messages) {
-        setMessages(data.messages);
-        if (data.otherUser) {
-          setOtherUser(data.otherUser);
-          if (session?.user?.id && data.otherUser.id) {
-            try {
-              const reviewResponse = await fetch(`/api/reviews?userId=${data.otherUser.id}`);
-              if (reviewResponse.ok) {
-                const reviewData = await reviewResponse.json();
-                const existingReview = reviewData.reviews?.find(
-                  (r: any) => r.reviewerUserId === session.user.id
-                );
-                setHasReviewed(!!existingReview);
-              }
-            } catch (err) {
-              console.error("Error checking reviews:", err);
-            }
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Error loading messages:", err);
-      setError("Failed to load messages");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [status, threadId, router, loadMessages]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,10 +131,28 @@ export default function MessageThreadPage() {
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Failed to send message");
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        let errorMessage = "Failed to send message";
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              errorMessage = data.error || errorMessage;
+            }
+          } catch (jsonError) {
+            // If parsing fails, use default error message
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       setNewMessage("");

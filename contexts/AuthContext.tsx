@@ -32,19 +32,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // Fetch from our API to get the full user profile including role
       const response = await fetch(`/api/users/${supabaseUser.id}`);
+      
       if (response.ok) {
-        const data = await response.json();
-        const userData = data.user || data;
-        if (userData) {
-          setUser({
-            id: userData.id,
-            email: userData.email || supabaseUser.email || "",
-            name: userData.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
-            role: userData.role || supabaseUser.user_metadata?.role || "student",
-            profilePhoto: userData.profilePhoto,
-          });
-          return;
+        try {
+          // Always read as text first to check if it's actually JSON
+          const text = await response.text();
+          
+          // Verify it's actually JSON before parsing
+          const trimmedText = text.trim();
+          if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+            const data = JSON.parse(text);
+            const userData = data.user || data;
+            if (userData) {
+              setUser({
+                id: userData.id,
+                email: userData.email || supabaseUser.email || "",
+                name: userData.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
+                role: userData.role || supabaseUser.user_metadata?.role || "student",
+                profilePhoto: userData.profilePhoto,
+              });
+              return;
+            }
+          } else {
+            // Response is not valid JSON, likely HTML error page
+            console.warn("API returned non-JSON response, falling back to auth metadata");
+          }
+        } catch (jsonError) {
+          // If JSON parsing fails, fall through to use auth metadata
+          console.warn("Failed to parse JSON response:", jsonError);
         }
+      } else {
+        // Handle error responses gracefully (404, 500, etc.)
+        console.warn(`API returned ${response.status} status, falling back to auth metadata`);
       }
       
       // If user doesn't exist in users table, use auth metadata
@@ -58,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profilePhoto: undefined,
       });
     } catch (error) {
+      // Network errors or other fetch failures
       console.error("Error fetching user profile:", error);
       // Fallback to auth metadata on error
       setUser({

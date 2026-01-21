@@ -42,15 +42,43 @@ export default function ApplicationsPage() {
       // Load listing
       const listingResponse = await fetch(`/api/internships/${listingId}`);
       if (listingResponse.ok) {
-        const listingData = await listingResponse.json();
-        setListing(listingData.internship);
+        const contentType = listingResponse.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await listingResponse.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const listingData = JSON.parse(text);
+              setListing(listingData.internship);
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse listing JSON:", jsonError);
+          }
+        }
       }
 
       // Load applications
       const appsResponse = await fetch(`/api/applications?listingId=${listingId}`);
       if (appsResponse.ok) {
-        const appsData = await appsResponse.json();
-        setApplications(appsData.applications || []);
+        const contentType = appsResponse.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await appsResponse.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const appsData = JSON.parse(text);
+              setApplications(appsData.applications || []);
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse applications JSON:", jsonError);
+          }
+        }
       }
     } catch (error) {
       console.error("Error loading data:", error);

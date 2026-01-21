@@ -60,13 +60,31 @@ export default function CompanyStudentsPage() {
   const loadStudents = async () => {
     try {
       const response = await fetch("/api/users?role=student");
-      if (!response.ok) {
-        throw new Error("Failed to load students");
+      if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              const studentsList = (data.users || []).filter((s: Student) => !s.isBanned) as Student[];
+              setAllStudents(studentsList);
+              setStudents(studentsList);
+            } else {
+              console.warn("Users API returned non-JSON response");
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse users JSON:", jsonError);
+          }
+        } else {
+          console.warn("Users API returned non-JSON content type");
+        }
       }
-      const data = await response.json();
-      const studentsList = (data.users || []).filter((s: Student) => !s.isBanned) as Student[];
-      setAllStudents(studentsList);
-      setStudents(studentsList);
     } catch (error) {
       console.error("Error loading students:", error);
     } finally {

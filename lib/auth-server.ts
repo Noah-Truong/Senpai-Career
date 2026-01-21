@@ -2,13 +2,23 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function auth() {
   try {
-    const supabase = await createClient();
+    let supabase;
+    try {
+      supabase = await createClient();
+    } catch (clientError) {
+      console.error("Auth: Error creating Supabase client:", clientError);
+      return null;
+    }
+
+    if (!supabase) {
+      return null;
+    }
 
     const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
 
     if (error || !supabaseUser) {
       if (process.env.NODE_ENV === "development") {
-        console.log("Auth: No authenticated user found");
+        console.log("Auth: No authenticated user found", error?.message || "");
       }
       return null;
     }
@@ -44,27 +54,34 @@ export async function auth() {
 
     // Get profile photo based on role
     let profilePhoto: string | undefined;
-    if (userData.role === "student") {
-      const { data: profile } = await supabase
-        .from("student_profiles")
-        .select("profile_photo")
-        .eq("id", supabaseUser.id)
-        .single();
-      profilePhoto = profile?.profile_photo;
-    } else if (userData.role === "obog") {
-      const { data: profile } = await supabase
-        .from("obog_profiles")
-        .select("profile_photo")
-        .eq("id", supabaseUser.id)
-        .single();
-      profilePhoto = profile?.profile_photo;
-    } else if (userData.role === "company") {
-      const { data: profile } = await supabase
-        .from("company_profiles")
-        .select("logo")
-        .eq("id", supabaseUser.id)
-        .single();
-      profilePhoto = profile?.logo;
+    try {
+      if (userData.role === "student") {
+        const { data: profile } = await supabase
+          .from("student_profiles")
+          .select("profile_photo")
+          .eq("id", supabaseUser.id)
+          .single();
+        profilePhoto = profile?.profile_photo;
+      } else if (userData.role === "obog") {
+        const { data: profile } = await supabase
+          .from("obog_profiles")
+          .select("profile_photo")
+          .eq("id", supabaseUser.id)
+          .single();
+        profilePhoto = profile?.profile_photo;
+      } else if (userData.role === "company") {
+        const { data: profile } = await supabase
+          .from("company_profiles")
+          .select("logo")
+          .eq("id", supabaseUser.id)
+          .single();
+        profilePhoto = profile?.logo;
+      }
+    } catch (profileError) {
+      // Profile photo is optional, so we continue even if fetching fails
+      if (process.env.NODE_ENV === "development") {
+        console.log("Auth: Error fetching profile photo:", profileError);
+      }
     }
 
     if (process.env.NODE_ENV === "development") {

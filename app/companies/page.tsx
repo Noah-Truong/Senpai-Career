@@ -53,11 +53,54 @@ export default function CompaniesPage() {
   const loadCompanies = async () => {
     try {
       const response = await fetch("/api/companies");
-      if (!response.ok) {
-        throw new Error("Failed to load companies");
+      if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              setCompanies(data.companies || []);
+            } else {
+              console.warn("Companies API returned non-JSON response");
+              setError("Failed to load companies");
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse companies JSON:", jsonError);
+            setError("Failed to load companies");
+          }
+        } else {
+          console.warn("Companies API returned non-JSON content type");
+          setError("Failed to load companies");
+        }
+      } else {
+        // Handle error responses
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        let errorMessage = "Failed to load companies";
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              errorMessage = data.error || errorMessage;
+            }
+          } catch (jsonError) {
+            // If parsing fails, use default error message
+          }
+        }
+        
+        setError(errorMessage);
       }
-      const data = await response.json();
-      setCompanies(data.companies || []);
     } catch (err: any) {
       console.error("Error loading companies:", err);
       setError(err.message || "Failed to load companies");

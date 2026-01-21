@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "@/contexts/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "./Avatar";
 import Logo from "./Logo";
 import { createClient } from "@/lib/supabase/client";
+import StudentIcon from "./icons/StudentIcon";
+import CompanyIcon from "./icons/CompanyIcon";
+import AlumIcon from "./icons/AlumIcon";
 
 interface Notification {
   id: string;
@@ -43,6 +46,7 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
   const handleCollapse = () => {
     const newState = !isCollapsed;
@@ -53,12 +57,26 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
   const userRole = session?.user?.role as "student" | "obog" | "company" | "admin" | undefined;
   const userId = (session?.user as any)?.id;
 
-  //handle click outside
-  const handleClickOutside = (event: MouseEvent) => {
-    if(!showNotifications && !(event.target as HTMLElement).closest('.notifications-dropdown')){
-      setShowNotifications(false);
+  // Handle click outside notifications dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showNotifications &&
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target as Node)
+      ) {
+        setShowNotifications(false);
+      }
+    };
+
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
     }
-  };
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showNotifications]);
   // Fetch notifications
   const loadNotifications = useCallback(async () => {
     if (!session?.user?.id) return;
@@ -66,9 +84,28 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
     try {
       const response = await fetch("/api/notifications");
       if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.notifications || []);
-        setUnreadCount(data.unreadCount || 0);
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              setNotifications(data.notifications || []);
+              setUnreadCount(data.unreadCount || 0);
+            } else {
+              console.warn("Notifications API returned non-JSON response");
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse notifications JSON:", jsonError);
+          }
+        } else {
+          console.warn("Notifications API returned non-JSON content type");
+        }
       }
     } catch (error) {
       console.error("Error loading notifications:", error);
@@ -352,6 +389,9 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
           {!isCollapsed && (
             <Link href="/" className="flex items-center">
               <Logo />
+              {userRole === "student" && <StudentIcon />}
+              {userRole === "company" && <CompanyIcon />}
+              {userRole === "obog" && <AlumIcon />}
             </Link>
           )}
           <button
@@ -415,7 +455,7 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
 
         {/* Notifications */}
         <div className={`px-4 py-3 border-b border-gray-200`}>
-          <div className={`relative ${isCollapsed ? "flex justify-center" : ""}`}>
+          <div className={`relative ${isCollapsed ? "flex justify-center" : ""}`} ref={notificationsRef}>
             <button
               onClick={() => {
                 setShowNotifications(!showNotifications);

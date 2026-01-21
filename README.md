@@ -14,7 +14,7 @@ Senpai Career provides international students with a fair start line for job hun
 - **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4
-- **Authentication**: NextAuth.js v5 (beta)
+- **Authentication**: Supabase Auth
 - **Email**: Resend API
 - **Runtime**: Node.js 18+
 
@@ -53,9 +53,13 @@ touch .env.local
 Add the following environment variables to `.env.local`:
 
 ```env
-# NextAuth Configuration
-NEXTAUTH_SECRET=your-secret-key-here
-NEXTAUTH_URL=http://localhost:3000
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Base URL
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
 # Resend Email Configuration (for password reset)
 RESEND_API_KEY=your_resend_api_key_here
@@ -67,15 +71,14 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 ```
 
-#### Generating NEXTAUTH_SECRET
+#### Setting Up Supabase
 
-Generate a secure secret key:
-
-```bash
-openssl rand -base64 32
-```
-
-Copy the output and use it as your `NEXTAUTH_SECRET` value.
+1. Sign up at [supabase.com](https://supabase.com)
+2. Create a new project
+3. Go to Project Settings → API
+4. Copy your **Project URL** to `NEXT_PUBLIC_SUPABASE_URL`
+5. Copy your **anon/public key** to `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+6. Copy your **service_role key** to `SUPABASE_SERVICE_ROLE_KEY` (keep this secret!)
 
 #### Getting Resend API Key
 
@@ -220,7 +223,7 @@ SenpaiCareer/
 │   ├── reports.json        # User reports
 │   └── ...
 ├── lib/                    # Utility functions
-│   ├── auth.ts             # NextAuth configuration
+│   ├── auth-server.ts      # Supabase authentication
 │   ├── users.ts            # User management
 │   ├── notifications.ts    # Notification management
 │   └── ...
@@ -234,7 +237,7 @@ SenpaiCareer/
 
 ### Authentication & User Management
 - ✅ Multi-role authentication (Student, OB/OG, Company, Admin)
-- ✅ Email/password authentication with NextAuth.js
+- ✅ Email/password authentication with Supabase Auth
 - ✅ Password reset via email
 - ✅ Profile customization with image uploads
 - ✅ Account deletion
@@ -363,9 +366,10 @@ PORT=3001 npm run dev
 ### Authentication Errors
 
 If you encounter authentication errors:
-1. Check that `NEXTAUTH_SECRET` is set in `.env.local`
-2. Clear browser cookies and try again
-3. Restart the development server
+1. Check that Supabase environment variables are set correctly in `.env.local`
+2. Verify your Supabase project is active and accessible
+3. Clear browser cookies and try again
+4. Restart the development server
 
 ### Email Not Sending
 
@@ -394,8 +398,10 @@ npm start
 ### Environment Variables
 
 Set the following in your production environment:
-- `NEXTAUTH_SECRET` - Use a strong, randomly generated secret
-- `NEXTAUTH_URL` - Your production domain (e.g., `https://senpaicareer.com`)
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon/public key
+- `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key (keep secret!)
+- `NEXT_PUBLIC_BASE_URL` - Your production domain (e.g., `https://senpaicareer.com`)
 - `RESEND_API_KEY` - Your production Resend API key
 - `RESEND_FROM_EMAIL` - Your verified production email/domain
 

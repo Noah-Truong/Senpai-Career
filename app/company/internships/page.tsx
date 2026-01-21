@@ -47,15 +47,38 @@ export default function CompanyInternshipsPage() {
   const loadInternships = async () => {
     try {
       const response = await fetch("/api/internships");
-      if (!response.ok) {
+      if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              // Filter to show only this company's internships
+              const companyInternships = (data.internships || []).filter(
+                (i: InternshipListing) => i.companyId === session?.user?.id
+              );
+              setInternships(companyInternships);
+            } else {
+              console.warn("Internships API returned non-JSON response");
+              setError("Failed to load internships");
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse internships JSON:", jsonError);
+            setError("Failed to load internships");
+          }
+        } else {
+          console.warn("Internships API returned non-JSON content type");
+          setError("Failed to load internships");
+        }
+      } else {
         throw new Error("Failed to load internships");
       }
-      const data = await response.json();
-      // Filter to show only this company's internships
-      const companyInternships = (data.internships || []).filter(
-        (i: InternshipListing) => i.companyId === session?.user?.id
-      );
-      setInternships(companyInternships);
     } catch (err: any) {
       console.error("Error loading internships:", err);
       setError(err.message || "Failed to load internships");

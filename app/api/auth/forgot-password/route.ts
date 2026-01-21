@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     // Use Supabase's password reset functionality
     // This will send a password reset email if the user exists
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/reset-password`,
     });
 
     // Always return success message to prevent email enumeration
