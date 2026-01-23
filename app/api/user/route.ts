@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Return user data without password
-    const { password, ...userWithoutPassword } = user;
+    // Return user data without password fields
+    const { password, password_hash, ...userWithoutPassword } = user as any;
     
     return NextResponse.json({ user: userWithoutPassword });
   } catch (error: any) {

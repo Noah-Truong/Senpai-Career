@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, compensationType, hourlyWage, fixedSalary, otherCompensation, workDetails, skillsGained, whyThisCompany, type } = body;
+    const { title, compensationType, otherCompensation, workDetails, skillsGained, whyThisCompany, type } = body;
 
     // Validate required fields
     if (!title || !compensationType || !workDetails || !type) {
@@ -66,19 +66,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate compensation data based on type
-    if (compensationType === "hourly" && !hourlyWage) {
+    // Validate compensation_type enum values (hourly, monthly, project, other)
+    const validCompensationTypes = ["hourly", "monthly", "project", "other"];
+    if (!validCompensationTypes.includes(compensationType)) {
       return NextResponse.json(
-        { error: "Hourly wage is required for hourly compensation type" },
+        { error: `Invalid compensationType. Must be one of: ${validCompensationTypes.join(", ")}` },
         { status: 400 }
       );
     }
-    if (compensationType === "fixed" && !fixedSalary) {
-      return NextResponse.json(
-        { error: "Fixed salary is required for fixed compensation type" },
-        { status: 400 }
-      );
-    }
+
+    // Validate other_compensation is provided for "other" type
     if (compensationType === "other" && !otherCompensation) {
       return NextResponse.json(
         { error: "Compensation description is required for other compensation type" },
@@ -98,14 +95,11 @@ export async function POST(request: NextRequest) {
     const newInternship = await saveInternship({
       companyId: session.user.id,
       title,
-      compensationType,
-      ...(compensationType === "hourly" && { hourlyWage: parseFloat(hourlyWage) }),
-      ...(compensationType === "fixed" && { fixedSalary: parseFloat(fixedSalary) }),
-      ...(compensationType === "other" && { otherCompensation }),
+      compensationType: compensationType as "hourly" | "monthly" | "project" | "other",
+      otherCompensation: otherCompensation || null,
       workDetails,
       skillsGained: skillsGained || [],
       whyThisCompany: whyThisCompany || "",
-      companyLogo: company?.logo,
       type: type as "internship" | "new-grad",
     });
 

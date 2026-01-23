@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "@/components/Avatar";
@@ -19,27 +19,76 @@ export default function PublicProfilePage() {
   const currentUserId = (session?.user as any)?.id;
   const isOwnProfile = currentUserId === id;
 
+  const loadUser = useCallback(async () => {
+    if (!id) return;
+    
+    try {
+      const response = await fetch(`/api/user/${id}`);
+      if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              setUser(data.user);
+              setLoading(false);
+            } else {
+              console.warn("User API returned non-JSON response");
+              setError("Failed to load user");
+              setLoading(false);
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse user JSON:", jsonError);
+            setError("Failed to load user");
+            setLoading(false);
+          }
+        } else {
+          console.warn("User API returned non-JSON content type");
+          setError("Failed to load user");
+          setLoading(false);
+        }
+      } else {
+        // Handle error responses
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        let errorMessage = "User not found";
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const errorData = JSON.parse(text);
+              errorMessage = errorData.error || errorMessage;
+            }
+          } catch (jsonError) {
+            // If parsing fails, use default error message
+          }
+        }
+        
+        setError(errorMessage);
+        setLoading(false);
+      }
+    } catch (err: any) {
+      console.error("Error loading user:", err);
+      setError(err.message || "Failed to load user");
+      setLoading(false);
+    }
+  }, [id]);
+
   useEffect(() => {
     if (id) {
       loadUser();
     }
-  }, [id]);
-
-  const loadUser = async () => {
-    try {
-      const response = await fetch(`/api/user/${id}`);
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "User not found" }));
-        throw new Error(errorData.error || "User not found");
-      }
-      const data = await response.json();
-      setUser(data.user);
-      setLoading(false);
-    } catch (err: any) {
-      setError(err.message || "Failed to load user");
-      setLoading(false);
-    }
-  };
+  }, [id, loadUser]);
 
   if (loading) {
     return (

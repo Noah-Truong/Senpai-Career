@@ -18,52 +18,72 @@ export default function OBVisitPage() {
   const [loading, setLoading] = useState(true);
   const [showRules, setShowRules] = useState(false);
   const [complianceAgreed, setComplianceAgreed] = useState(false);
+  const [complianceStatus, setComplianceStatus] = useState<string>("pending");
   const [showComplianceButton, setShowComplianceButton] = useState(false);
   const [checkingCompliance, setCheckingCompliance] = useState(true);
+  const [viewedRules, setViewedRules] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isAccepting, setIsAccepting] = useState(false);
 
-  // Check compliance status on load
+  // Check compliance status and viewed_rules on load
   useEffect(() => {
     const checkCompliance = async () => {
-      if (isStudent && session?.user?.id) {
+      if (session?.user?.id) {
         try {
-          const response = await fetch("/api/profile/compliance");
-          if (response.ok) {
-            // Check if response is JSON before parsing
-            const contentType = response.headers.get("content-type");
+          // Check profile for viewed_rules
+          const profileResponse = await fetch("/api/profile");
+          if (profileResponse.ok) {
+            const contentType = profileResponse.headers.get("content-type");
             const isJson = contentType && contentType.includes("application/json");
             
             if (isJson) {
               try {
-                const text = await response.text();
+                const text = await profileResponse.text();
                 const trimmedText = text.trim();
                 
                 if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
-                  const data = JSON.parse(text);
-                  setComplianceAgreed(data.complianceAgreed || false);
-                  // Only show popup automatically if compliance is not agreed
-                  if (!data.complianceAgreed) {
-                    setShowRules(true);
+                  const profileData = JSON.parse(text);
+                  const user = profileData.user || profileData;
+                  const hasViewedRules = user.viewedRules || false;
+                  setViewedRules(hasViewedRules);
+                  
+                  if (isStudent) {
+                    // For students, also check compliance status
+                    const complianceResponse = await fetch("/api/profile/compliance");
+                    if (complianceResponse.ok) {
+                      const complianceContentType = complianceResponse.headers.get("content-type");
+                      const complianceIsJson = complianceContentType && complianceContentType.includes("application/json");
+                      
+                      if (complianceIsJson) {
+                        const complianceText = await complianceResponse.text();
+                        const complianceTrimmed = complianceText.trim();
+                        
+                        if (complianceTrimmed.startsWith("{") || complianceTrimmed.startsWith("[")) {
+                          const complianceData = JSON.parse(complianceText);
+                          setComplianceAgreed(complianceData.complianceAgreed || false);
+                          setComplianceStatus(complianceData.complianceStatus || "pending");
+                          
+                          // Only show popup if user hasn't viewed rules AND compliance is not approved
+                          if (!hasViewedRules && complianceData.complianceStatus !== "approved") {
+                            setShowRules(true);
+                          }
+                        }
+                      }
+                    }
+                  } else {
+                    // For non-students, show popup if they haven't viewed rules
+                    if (!hasViewedRules) {
+                      setShowRules(true);
+                    }
                   }
-                } else {
-                  console.warn("Compliance API returned non-JSON response");
-                  // If error, show popup to be safe
-                  setShowRules(true);
                 }
               } catch (jsonError) {
-                console.error("Failed to parse compliance JSON:", jsonError);
-                // If error, show popup to be safe
-                setShowRules(true);
+                console.error("Failed to parse profile JSON:", jsonError);
               }
-            } else {
-              console.warn("Compliance API returned non-JSON content type");
-              // If error, show popup to be safe
-              setShowRules(true);
             }
           }
         } catch (err) {
-          console.error("Error checking compliance:", err);
-          // If error, show popup to be safe
-          setShowRules(true);
+          console.error("Error checking profile:", err);
         }
       }
       setCheckingCompliance(false);
@@ -112,73 +132,60 @@ export default function OBVisitPage() {
       });
   }, []);
 
-  // Show close button after a delay when popup is open (to encourage reading)
+  // Progress bar animation - fills up over 5 seconds
   useEffect(() => {
-    if (showRules && isStudent && !complianceAgreed) {
-      // Reset button visibility when popup opens
-      setShowComplianceButton(false);
-      const timer = setTimeout(() => {
-        setShowComplianceButton(true);
-      }, 5000); // 5 second delay before close button appears
-      return () => clearTimeout(timer);
-    } else if (showRules && (complianceAgreed || !isStudent)) {
-      // If compliance already agreed or not a student, show button immediately
-      setShowComplianceButton(true);
-    } else {
-      setShowComplianceButton(false);
-    }
-  }, [showRules, isStudent, complianceAgreed]);
-
-  const handleCloseRules = async () => {
-    // If user is a student and hasn't agreed to compliance yet, update it
-    if (isStudent && !complianceAgreed && session?.user?.id) {
-      try {
-        const response = await fetch("/api/profile/compliance", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            complianceAgreed: true,
-            complianceDocuments: [],
-          }),
-        });
-
-        if (response.ok) {
-          // Check if response is JSON before parsing
-          const contentType = response.headers.get("content-type");
-          const isJson = contentType && contentType.includes("application/json");
-          
-          if (isJson) {
-            try {
-              const text = await response.text();
-              const trimmedText = text.trim();
-              
-              if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
-                const data = JSON.parse(text);
-                setComplianceAgreed(true);
-              } else {
-                console.warn("Compliance update returned non-JSON response");
-                // Still mark as agreed locally even if parsing fails
-                setComplianceAgreed(true);
-              }
-            } catch (jsonError) {
-              console.error("Failed to parse compliance update JSON:", jsonError);
-              // Still mark as agreed locally even if parsing fails
-              setComplianceAgreed(true);
-            }
-          } else {
-            // Response OK but not JSON, still mark as agreed
-            setComplianceAgreed(true);
+    if (showRules && !showComplianceButton) {
+      setProgress(0);
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          const newProgress = prev + 2; // Increment by 2% every 100ms (5 seconds total)
+          if (newProgress >= 100) {
+            setShowComplianceButton(true);
+            clearInterval(interval);
+            return 100;
           }
-        } else {
-          console.error("Failed to update compliance");
-        }
-      } catch (err) {
-        console.error("Error updating compliance:", err);
-      }
+          return newProgress;
+        });
+      }, 100); // Update every 100ms
+      
+      return () => clearInterval(interval);
+    } else if (!showRules) {
+      setProgress(0);
+      setShowComplianceButton(false);
     }
-    setShowRules(false);
+  }, [showRules, showComplianceButton]);
+
+  const handleAcceptRules = async () => {
+    if (isAccepting) return; // Prevent double-click
+    
+    setIsAccepting(true);
+    try {
+      // Update viewed_rules to true
+      const response = await fetch("/api/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          viewedRules: true,
+        }),
+      });
+
+      if (response.ok) {
+        setViewedRules(true);
+        setShowRules(false);
+      } else {
+        console.error("Failed to update viewed_rules");
+        // Still close the popup even if API call fails
+        setShowRules(false);
+      }
+    } catch (error) {
+      console.error("Error updating viewed_rules:", error);
+      // Still close the popup even if API call fails
+      setShowRules(false);
+    } finally {
+      setIsAccepting(false);
+    }
   };
 
   return (
@@ -227,8 +234,23 @@ export default function OBVisitPage() {
             >
               <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
             </motion.div>
-          ) : (
+          ) : complianceStatus === "approved" || !isStudent ? (
             <OBOGListContent obogUsers={obogUsers} />
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-lg mb-4" style={{ color: '#374151' }}>
+                Compliance approval required to view OB/OG profiles
+              </p>
+              <p className="text-sm mb-6" style={{ color: '#6B7280' }}>
+                Please submit your compliance documents and wait for admin approval.
+              </p>
+              <Link
+                href="/student/profile?tab=compliance"
+                className="btn-primary inline-block"
+              >
+                Go to Compliance Submission
+              </Link>
+            </div>
           )}
         </div>
       </motion.section>
@@ -301,14 +323,27 @@ export default function OBVisitPage() {
       )}
       
       {/* Safety Rules Button - Always visible for students */}
-      {isStudent && (
+      {isStudent && complianceStatus !== "approved" && (
         <div className="flex justify-center py-4">
-          <button
-            onClick={() => setShowRules(true)}
-            className="bg-navy text-white px-6 py-3 rounded-lg hover:bg-blue-600 font-medium shadow-md transition-all"
-          >
-            {t("obvisit.safety.title")}
-          </button>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-2xl">
+            <p className="text-sm text-yellow-800 mb-2">
+              <strong>Compliance Required:</strong> To access OB/OG profiles, you must submit compliance documents and receive admin approval.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowRules(true)}
+                className="bg-navy text-white px-6 py-3 rounded-lg hover:bg-blue-600 font-medium shadow-md transition-all"
+              >
+                {t("obvisit.safety.title")}
+              </button>
+              <Link
+                href="/student/profile?tab=compliance"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium shadow-md transition-all"
+              >
+                Submit Compliance Documents
+              </Link>
+            </div>
+          </div>
         </div>
       )}
       
@@ -375,14 +410,30 @@ export default function OBVisitPage() {
             <div className="flex justify-end mt-4">
               {showComplianceButton ? (
                 <button
-                  onClick={handleCloseRules}
-                  className="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 transition-colors"
+                  onClick={handleAcceptRules}
+                  disabled={isAccepting}
+                  className="relative overflow-hidden px-8 py-3 rounded font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ 
+                    backgroundColor: '#0F2A44', // Navy color
+                    minWidth: '120px'
+                  }}
                 >
-                  {t("button.close")}
+                  {isAccepting ? t("common.loading") || "Accepting..." : t("button.accept") || "Accept"}
                 </button>
               ) : (
-                <div className="text-sm text-gray-500 italic">
-                  {t("obvisit.safety.reading") || "Please read the rules carefully..."}
+                <div className="w-full">
+                  <div className="text-sm text-gray-500 italic mb-2 text-center">
+                    {t("obvisit.safety.reading") || "Please read the rules carefully..."}
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden" style={{ backgroundColor: '#E5E7EB' }}>
+                    <div
+                      className="h-full rounded-full transition-all duration-100 ease-linear"
+                      style={{
+                        backgroundColor: '#0F2A44', // Navy color
+                        width: `${progress}%`,
+                      }}
+                    />
+                  </div>
                 </div>
               )}
             </div>

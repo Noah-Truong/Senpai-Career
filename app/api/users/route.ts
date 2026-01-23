@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
       users = users.filter(u => u.role === role);
     }
 
-    // Remove passwords from response
-    const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+    // Remove password_hash from response (if it exists)
+    const usersWithoutPasswords = users.map(({ password, password_hash, ...user }: any) => user);
 
     return NextResponse.json({ users: usersWithoutPasswords });
   } catch (error: any) {

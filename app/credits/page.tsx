@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { loadStripe } from "@stripe/stripe-js";
+import { createClient } from "@/lib/supabase/client";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
@@ -20,6 +21,7 @@ export default function CreditsPage() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
   const [userRole, setUserRole] = useState<"company" | "student" | "obog" | undefined>(undefined);
+  const supabase = createClient();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -27,8 +29,29 @@ export default function CreditsPage() {
       return;
     }
 
-    if (status === "authenticated") {
+    if (status === "authenticated" && session?.user?.id) {
       loadUserCredits();
+      
+      // Set up Supabase real-time subscription for credits updates
+      const channel = supabase
+        .channel(`credits-page-${session.user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'users',
+            filter: `id=eq.${session.user.id}`
+          },
+          (payload) => {
+            console.log('Credits updated via real-time (Credits Page):', payload);
+            if (payload.new && 'credits' in payload.new) {
+              const newCredits = payload.new.credits as number;
+              setUserCredits(newCredits ?? 0);
+            }
+          }
+        )
+        .subscribe();
       
       const success = searchParams.get("success");
       
@@ -38,8 +61,12 @@ export default function CreditsPage() {
           router.replace("/credits");
         }, 1000);
       }
+      
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
-  }, [status, router, searchParams]);
+  }, [status, router, searchParams, session?.user?.id, supabase]);
 
   const loadUserCredits = async () => {
     try {

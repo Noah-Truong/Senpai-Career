@@ -100,7 +100,7 @@ export interface Report {
   reportType?: "user" | "safety" | "platform" | "other";
   reason: string;
   description: string;
-  status: "pending" | "reviewed" | "resolved";
+  status: "pending" | "reviewed" | "resolved" | "dismissed";
   createdAt: Date;
   adminNotes?: string;
 }

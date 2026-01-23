@@ -52,7 +52,6 @@ export async function GET(
       publicProfile.workLocation = user.workLocation;
       publicProfile.hourlyWage = user.hourlyWage;
       publicProfile.weeklyHours = user.weeklyHours;
-      publicProfile.weeklyDays = user.weeklyDays;
       publicProfile.internshipDetails = user.internshipDetails;
       publicProfile.newGradDetails = user.newGradDetails;
       publicProfile.idealCandidate = user.idealCandidate;

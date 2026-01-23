@@ -32,6 +32,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get user profile to check if they're an international student
+    const { data: studentProfile } = await supabase
+      .from("student_profiles")
+      .select("nationality")
+      .eq("id", session.user.id)
+      .single();
+
+    const isInternational = studentProfile?.nationality && 
+      studentProfile.nationality.toLowerCase() !== "japan" && 
+      studentProfile.nationality.toLowerCase() !== "japanese";
+
+    // For international students, require documents
+    if (isInternational) {
+      const docs = complianceDocuments || [];
+      const hasPermissionDoc = docs.some((d: string) => d.includes("permission") || d.includes("activity"));
+      const hasJapaneseCert = docs.some((d: string) => d.includes("japanese") || d.includes("jlpt") || d.includes("cert"));
+
+      if (!hasPermissionDoc) {
+        return NextResponse.json(
+          { error: "Permission for Activities Outside Qualification document is required for international students" },
+          { status: 400 }
+        );
+      }
+
+      if (!hasJapaneseCert) {
+        return NextResponse.json(
+          { error: "Japanese Language Certification document is required for international students" },
+          { status: 400 }
+        );
+      }
+    }
+
     const supabase = await createClient();
 
     // Update student profile with compliance information
@@ -49,7 +81,7 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error("Error updating compliance:", updateError);
       return NextResponse.json(
-        { error: "Failed to submit compliance" },
+        { error: updateError.message || "Failed to submit compliance" },
         { status: 500 }
       );
     }
@@ -82,9 +114,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (session.user.role !== "student") {
+    // Allow students to view their own compliance, or admins to view any student's compliance
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+    const targetUserId = userId || session.user.id;
+
+    if (session.user.role !== "student" && session.user.role !== "admin") {
       return NextResponse.json(
-        { error: "Only students can view compliance" },
+        { error: "Only students and admins can view compliance" },
+        { status: 403 }
+      );
+    }
+
+    // Students can only view their own compliance
+    if (session.user.role === "student" && targetUserId !== session.user.id) {
+      return NextResponse.json(
+        { error: "You can only view your own compliance" },
         { status: 403 }
       );
     }
@@ -94,13 +139,13 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase
       .from("student_profiles")
       .select("compliance_agreed, compliance_agreed_at, compliance_status, compliance_submitted_at, compliance_documents")
-      .eq("id", session.user.id)
+      .eq("id", targetUserId)
       .single();
 
     if (error) {
       console.error("Error fetching compliance:", error);
       return NextResponse.json(
-        { error: "Failed to fetch compliance status" },
+        { error: error.message || "Failed to fetch compliance status" },
         { status: 500 }
       );
     }

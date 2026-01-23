@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -26,9 +26,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
+  // Memoize supabase client to prevent recreating on every render
+  const supabase = useMemo(() => createClient(), []);
+  // Track ongoing fetches to prevent duplicate calls
+  const fetchingRef = useRef<Set<string>>(new Set());
 
   const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
+    // Prevent duplicate concurrent fetches for the same user
+    if (fetchingRef.current.has(supabaseUser.id)) {
+      return;
+    }
+    
+    fetchingRef.current.add(supabaseUser.id);
+    
     try {
       // Fetch from our API to get the full user profile including role
       const response = await fetch(`/api/users/${supabaseUser.id}`);
@@ -44,12 +54,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const data = JSON.parse(text);
             const userData = data.user || data;
             if (userData) {
-              setUser({
+              const newUser = {
                 id: userData.id,
                 email: userData.email || supabaseUser.email || "",
                 name: userData.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
                 role: userData.role || supabaseUser.user_metadata?.role || "student",
                 profilePhoto: userData.profilePhoto,
+              };
+              // Only update state if user data actually changed
+              setUser(prev => {
+                if (prev?.id === newUser.id && 
+                    prev?.email === newUser.email && 
+                    prev?.name === newUser.name && 
+                    prev?.role === newUser.role &&
+                    prev?.profilePhoto === newUser.profilePhoto) {
+                  return prev; // No change, return previous state
+                }
+                return newUser;
               });
               return;
             }
@@ -68,25 +89,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // If user doesn't exist in users table, use auth metadata
       // This can happen if signup partially failed or trigger hasn't run yet
-      console.warn("User not found in users table, using auth metadata. User ID:", supabaseUser.id);
-      setUser({
+      const fallbackUser = {
         id: supabaseUser.id,
         email: supabaseUser.email || "",
         name: supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
         role: supabaseUser.user_metadata?.role || "student",
         profilePhoto: undefined,
+      };
+      
+      // Only update if different
+      setUser(prev => {
+        if (prev?.id === fallbackUser.id && 
+            prev?.email === fallbackUser.email && 
+            prev?.name === fallbackUser.name && 
+            prev?.role === fallbackUser.role) {
+          return prev;
+        }
+        return fallbackUser;
       });
     } catch (error) {
       // Network errors or other fetch failures
       console.error("Error fetching user profile:", error);
       // Fallback to auth metadata on error
-      setUser({
+      const fallbackUser = {
         id: supabaseUser.id,
         email: supabaseUser.email || "",
         name: supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
         role: supabaseUser.user_metadata?.role || "student",
         profilePhoto: undefined,
+      };
+      setUser(prev => {
+        if (prev?.id === fallbackUser.id && 
+            prev?.email === fallbackUser.email && 
+            prev?.name === fallbackUser.name && 
+            prev?.role === fallbackUser.role) {
+          return prev;
+        }
+        return fallbackUser;
       });
+    } finally {
+      // Remove from fetching set when done
+      fetchingRef.current.delete(supabaseUser.id);
     }
   }, []);
 
@@ -97,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setUser(null);
     }
-  }, [supabase.auth, fetchUserProfile]);
+  }, [supabase, fetchUserProfile]);
 
   useEffect(() => {
     // Initial auth check
@@ -119,13 +162,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // Only fetch on SIGNED_IN, skip TOKEN_REFRESHED to prevent constant refetching
         if (event === "SIGNED_IN" && session?.user) {
           await fetchUserProfile(session.user);
         } else if (event === "SIGNED_OUT") {
           setUser(null);
-        } else if (event === "TOKEN_REFRESHED" && session?.user) {
-          await fetchUserProfile(session.user);
         }
+        // Note: We skip TOKEN_REFRESHED to prevent constant API calls
+        // The user data should already be up to date from the initial fetch
         setIsLoading(false);
       }
     );
@@ -133,7 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase.auth, fetchUserProfile]);
+  }, [supabase, fetchUserProfile]);
 
   const signIn = async (email: string, password: string) => {
     try {

@@ -17,6 +17,7 @@ export default function MessagesPage() {
   const obogId = searchParams.get("obogId");
   const [threads, setThreads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorShown, setErrorShown] = useState(false);
   
   const role = (session?.user as any)?.role;
 
@@ -24,30 +25,26 @@ export default function MessagesPage() {
     try {
       const response = await fetch("/api/messages");
       if (response.ok) {
-        // Check if response is JSON before parsing
         const contentType = response.headers.get("content-type");
         const isJson = contentType && contentType.includes("application/json");
-        
         if (isJson) {
           try {
             const text = await response.text();
-            const trimmedText = text.trim();
-            
-            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+            const t = text.trim();
+            if (t.startsWith("{") || t.startsWith("[")) {
               const data = JSON.parse(text);
               setThreads(data.threads || []);
             } else {
-              console.warn("Messages API returned non-JSON response");
               setThreads([]);
             }
-          } catch (jsonError) {
-            console.error("Failed to parse messages JSON:", jsonError);
+          } catch {
             setThreads([]);
           }
         } else {
-          console.warn("Messages API returned non-JSON content type");
           setThreads([]);
         }
+      } else {
+        setThreads([]);
       }
     } catch (error) {
       console.error("Error loading threads:", error);
@@ -83,10 +80,38 @@ export default function MessagesPage() {
     );
   }
 
+  const isAlumni = role === "obog";
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>{t("messages.title")}</h1>
+        
+        {/* Explicit notice for alumni users */}
+        {isAlumni && (
+          <div 
+            className="mb-6 p-4 border-l-4 rounded"
+            style={{ 
+              backgroundColor: '#FEF3C7', 
+              borderLeftColor: '#F59E0B',
+              borderRadius: '6px'
+            }}
+          >
+            <div className="flex items-start">
+              <svg className="w-5 h-5 mt-0.5 mr-3 flex-shrink-0" style={{ color: '#92400E' }} fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="font-semibold mb-1" style={{ color: '#92400E' }}>
+                  {t("messages.alumniRestriction.noticeTitle") || "Alumni Message Policy"}
+                </h3>
+                <p className="text-sm" style={{ color: '#78350F' }}>
+                  {t("messages.alumniRestriction.noticeDescription") || "As an alumni (OB/OG), you cannot initiate new conversations. You can only reply to messages that students send to you first. This policy ensures students can reach out when they need career advice."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         
         {threads.length === 0 ? (
           <div 
@@ -94,12 +119,17 @@ export default function MessagesPage() {
             style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           >
             <p className="text-lg mb-4" style={{ color: '#374151' }}>{t("messages.empty")}</p>
-            {role === "student" && (
+            {isAlumni ? (
+              <div className="mt-4">
+                <p className="text-sm mb-4" style={{ color: '#6B7280' }}>
+                  {t("messages.alumniRestriction.emptyNotice") || "As an alumni, you can only reply to messages that students send to you. You cannot initiate new conversations."}
+                </p>
+              </div>
+            ) : role === "student" ? (
               <Link href="/ob-list" className="btn-primary inline-block">
                 {t("button.browseObog")}
               </Link>
-            )}
-            {(role === "obog" || role === "company") && (
+            ) : (
               <Link href="/student-list" className="btn-primary inline-block">
                 {t("button.browseStudents")}
               </Link>

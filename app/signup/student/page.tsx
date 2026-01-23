@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
+import { isBlockedFreeDomain, getBlockedDomainError } from "@/lib/blocked-email-domains";
 
 export default function StudentSignupPage() {
   const { t } = useLanguage();
@@ -35,6 +36,7 @@ export default function StudentSignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verificationEmailSent, setVerificationEmailSent] = useState(false);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -52,6 +54,13 @@ export default function StudentSignupPage() {
       setLoading(false);
       return;
     }
+
+    // TODO: Uncomment for production - free email detection
+    // if (isBlockedFreeDomain(formData.email)) {
+    //   setError(getBlockedDomainError());
+    //   setLoading(false);
+    //   return;
+    // }
 
     if (formData.password !== formData.confirmPassword) {
       setError(t("signup.errors.passwordMismatch"));
@@ -104,17 +113,19 @@ export default function StudentSignupPage() {
 
         if (signInError) {
           console.log("Auto-login failed:", signInError);
-          // Email confirmation is likely required
           setSuccess(t("signup.success.checkEmail") || "Account created successfully! Please check your email to confirm your account.");
+          setVerificationEmailSent(true);
         } else if (signInData?.user) {
           router.push("/");
           router.refresh();
         } else {
           setSuccess(t("signup.success.checkEmail") || "Account created successfully! Please check your email to confirm your account.");
+          setVerificationEmailSent(true);
         }
       } catch (signInError: any) {
         console.error("Auto-login error:", signInError);
         setSuccess(t("signup.success.checkEmail") || "Account created successfully! Please check your email to confirm your account.");
+        setVerificationEmailSent(true);
       }
     } catch (err: any) {
       console.error("Signup error:", err);
@@ -415,10 +426,14 @@ export default function StudentSignupPage() {
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || verificationEmailSent}
                 className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? t("common.loading") : t("signup.submit")}
+                {loading
+                  ? t("common.loading")
+                  : verificationEmailSent
+                    ? (t("signup.verificationEmailSent") || "Verification email sent")
+                    : t("signup.submit")}
               </button>
             </div>
 

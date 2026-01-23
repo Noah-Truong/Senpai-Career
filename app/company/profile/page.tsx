@@ -2,7 +2,7 @@
 
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CompanyProfilePage() {
@@ -40,13 +40,15 @@ export default function CompanyProfilePage() {
       return;
     }
 
-    if (session?.user?.id) {
+    // Only load data when we have a confirmed authenticated session with user ID
+    if (status === "authenticated" && session?.user?.id && session?.user?.role === "company") {
       loadCompanyData();
     }
-  }, [status, session, router]);
+  }, [status, session, router, loadCompanyData]);
 
-  const loadCompanyData = async () => {
+  const loadCompanyData = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const response = await fetch("/api/company/profile");
       
@@ -54,7 +56,36 @@ export default function CompanyProfilePage() {
         if (response.status === 404) {
           return;
         }
-        throw new Error("Failed to load company data");
+        
+        // Try to extract error message from response
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        let errorMessage = "Failed to load company data";
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const errorData = JSON.parse(text);
+              errorMessage = errorData.error || errorMessage;
+            }
+          } catch (jsonError) {
+            // If parsing fails, use default error message
+          }
+        }
+        
+        // Handle specific error cases
+        if (response.status === 401) {
+          errorMessage = "Unauthorized. Please log in again.";
+        } else if (response.status === 403) {
+          errorMessage = "Access denied. Only company accounts can view this page.";
+        }
+        
+        setError(errorMessage);
+        return;
       }
 
       // Check if response is JSON before parsing
@@ -84,21 +115,25 @@ export default function CompanyProfilePage() {
                 oneLineMessage: data.company.oneLineMessage || "",
               });
             }
-          } catch (jsonError) {
-            console.error("Failed to parse company profile JSON:", jsonError);
+          } else {
+            console.warn("Company profile API returned non-JSON response");
             setError("Failed to load company data. Please refresh the page.");
           }
-        } else {
-          console.warn("Company profile API returned non-JSON content type");
+        } catch (jsonError) {
+          console.error("Failed to parse company profile JSON:", jsonError);
           setError("Failed to load company data. Please refresh the page.");
         }
-    } catch (err) {
+      } else {
+        console.warn("Company profile API returned non-JSON content type");
+        setError("Failed to load company data. Please refresh the page.");
+      }
+    } catch (err: any) {
       console.error("Error loading company data:", err);
-      setError("Failed to load company data. Please refresh the page.");
+      setError(err.message || "Failed to load company data. Please refresh the page.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

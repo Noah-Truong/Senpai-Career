@@ -1,6 +1,15 @@
 import { type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
+/**
+ * Next.js Proxy (Middleware)
+ * 
+ * In Next.js 16.1.1+, use "proxy.ts" instead of "middleware.ts"
+ * This runs on EVERY request and is responsible for:
+ * 1. Refreshing Supabase session cookies (critical for SSR)
+ * 2. Protecting routes that require authentication
+ * 3. Redirecting users based on auth state
+ */
 export async function proxy(request: NextRequest) {
   return await updateSession(request)
 }

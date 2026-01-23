@@ -12,7 +12,7 @@ export default function AdminReportsPage() {
   const router = useRouter();
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "reviewed" | "resolved">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "reviewed" | "resolved" | "dismissed">("all");
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -95,6 +95,7 @@ export default function AdminReportsPage() {
   const pendingCount = reports.filter(r => r.status === "pending").length;
   const reviewedCount = reports.filter(r => r.status === "reviewed").length;
   const resolvedCount = reports.filter(r => r.status === "resolved").length;
+  const dismissedCount = reports.filter(r => r.status === "dismissed").length;
 
   return (
     <AdminLayout>
@@ -106,7 +107,7 @@ export default function AdminReportsPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div 
           className="bg-white p-4 border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
@@ -135,6 +136,13 @@ export default function AdminReportsPage() {
           <p className="text-sm mb-1" style={{ color: '#6B7280' }}>Resolved</p>
           <p className="text-2xl font-bold" style={{ color: '#059669' }}>{resolvedCount}</p>
         </div>
+        <div 
+          className="bg-white p-4 border rounded border-l-4"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px', borderLeftColor: '#6B7280' }}
+        >
+          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>Dismissed</p>
+          <p className="text-2xl font-bold" style={{ color: '#6B7280' }}>{dismissedCount}</p>
+        </div>
       </div>
 
       {/* Filter */}
@@ -152,6 +160,7 @@ export default function AdminReportsPage() {
           <option value="pending">Pending</option>
           <option value="reviewed">Reviewed</option>
           <option value="resolved">Resolved</option>
+          <option value="dismissed">Dismissed</option>
         </select>
       </div>
 
@@ -179,7 +188,8 @@ export default function AdminReportsPage() {
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         report.status === "pending" ? "bg-yellow-100 text-yellow-800" :
                         report.status === "reviewed" ? "bg-blue-100 text-blue-800" :
-                        "bg-green-100 text-green-800"
+                        report.status === "resolved" ? "bg-green-100 text-green-800" :
+                        "bg-gray-100 text-gray-800"
                       }`}>
                         {report.status}
                       </span>
@@ -240,7 +250,8 @@ export default function AdminReportsPage() {
                 <span className={`px-2 py-1 rounded text-xs font-medium inline-block ${
                   selectedReport.status === "pending" ? "bg-yellow-100 text-yellow-800" :
                   selectedReport.status === "reviewed" ? "bg-blue-100 text-blue-800" :
-                  "bg-green-100 text-green-800"
+                  selectedReport.status === "resolved" ? "bg-green-100 text-green-800" :
+                  "bg-gray-100 text-gray-800"
                 }`}>
                   {selectedReport.status}
                 </span>
@@ -364,6 +375,16 @@ export default function AdminReportsPage() {
                   disabled={updatingStatus}
                 >
                   Mark Resolved
+                </button>
+              )}
+              {selectedReport.status !== "dismissed" && (
+                <button
+                  onClick={() => handleUpdateStatus(selectedReport.id, "dismissed")}
+                  className="px-4 py-2 rounded font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+                  style={{ backgroundColor: '#6B7280', color: '#fff', borderRadius: '6px' }}
+                  disabled={updatingStatus}
+                >
+                  Dismiss
                 </button>
               )}
             </div>

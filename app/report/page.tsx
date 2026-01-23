@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -43,9 +43,14 @@ export default function ReportPage() {
     }
   }, [status, session, router]);
 
+  const loadingUsersRef = useRef(false);
+
   useEffect(() => {
-    if (reportType === "user") {
-      loadUsers();
+    if (reportType === "user" && !loadingUsersRef.current) {
+      loadingUsersRef.current = true;
+      loadUsers().finally(() => {
+        loadingUsersRef.current = false;
+      });
     }
   }, [reportType]);
 

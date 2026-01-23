@@ -30,8 +30,12 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
   const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "working-professional" | "job-offer-holder">("all");
+  const [universityFilter, setUniversityFilter] = useState<string>("all");
 
-  // Filter users based on search and type
+  const universities = Array.from(new Set(obogUsers.map((o) => o.university).filter(Boolean))) as string[];
+  universities.sort();
+
+  // Filter users based on search, type, and university (features.md 4.4)
   const filteredUsers = obogUsers.filter((obog) => {
     const matchesSearch = searchTerm === "" || 
       (obog.nickname || obog.name).toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -42,8 +46,9 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
       obog.languages?.some(lang => lang.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesType = typeFilter === "all" || obog.type === typeFilter;
+    const matchesUniversity = universityFilter === "all" || obog.university === universityFilter;
     
-    return matchesSearch && matchesType;
+    return matchesSearch && matchesType && matchesUniversity;
   });
 
   return (
@@ -132,6 +137,24 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
               {t("obogList.filter.jobOffer") || "Job Offer Holders"}
             </motion.button>
           </motion.div>
+          {universities.length > 0 && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+                {t("obogList.filter.university") || "University"}
+              </label>
+              <select
+                value={universityFilter}
+                onChange={(e) => setUniversityFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                style={{ color: "#111827" }}
+              >
+                <option value="all">{t("obogList.filter.all") || "All"}</option>
+                {universities.map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
         {searchTerm && (
           <motion.p 

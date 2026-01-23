@@ -40,6 +40,7 @@ async function mergeUserWithProfile(supabase: any, user: any): Promise<UserData 
         complianceDocuments: profile.compliance_documents || [],
         strikes: user.strikes,
         isBanned: user.is_banned,
+        viewedRules: user.viewed_rules || false,
         createdAt: user.created_at,
       };
     }
@@ -63,7 +64,9 @@ async function mergeUserWithProfile(supabase: any, user: any): Promise<UserData 
         oneLineMessage: profile.one_line_message,
         studentEraSummary: profile.student_era_summary,
         profilePhoto: profile.profile_photo,
+        viewedRules: user.viewed_rules || false,
         createdAt: user.created_at,
+        updatedAt: user.updated_at,
       };
     }
   } else if (user.role === "company") {
@@ -87,6 +90,7 @@ async function mergeUserWithProfile(supabase: any, user: any): Promise<UserData 
         internshipDetails: profile.internship_details,
         newGradDetails: profile.new_grad_details,
         logo: profile.logo,
+        viewedRules: user.viewed_rules || false,
         createdAt: user.created_at,
       };
     }
@@ -95,6 +99,7 @@ async function mergeUserWithProfile(supabase: any, user: any): Promise<UserData 
   // Return user without profile if profile not found
   return {
     ...user,
+    viewedRules: user.viewed_rules || false,
     createdAt: user.created_at,
   };
 }
@@ -226,7 +231,7 @@ export const getOBOGUsers = async (): Promise<UserData[]> => {
     .from("users")
     .select("*")
     .eq("role", "obog")
-    .order("created_at", { ascending: false });
+    .order("updated_at", { ascending: false });
 
   if (error || !users) {
     console.error("Error reading OBOG users:", error);
@@ -237,7 +242,14 @@ export const getOBOGUsers = async (): Promise<UserData[]> => {
     users.map(async (user) => mergeUserWithProfile(supabase, user))
   );
 
-  return usersWithProfiles.filter((u): u is UserData => u !== null);
+  const filtered = usersWithProfiles.filter((u): u is UserData => u !== null);
+  // Default sort by recently updated (features.md 4.4)
+  filtered.sort((a, b) => {
+    const aAt = (a as any).updatedAt || (a as any).createdAt || "";
+    const bAt = (b as any).updatedAt || (b as any).createdAt || "";
+    return new Date(bAt).getTime() - new Date(aAt).getTime();
+  });
+  return filtered;
 };
 
 export const getOBOGById = async (id: string): Promise<UserData | undefined> => {
@@ -254,6 +266,122 @@ export const getOBOGById = async (id: string): Promise<UserData | undefined> => 
   }
 
   return mergeUserWithProfile(supabase, user) as Promise<UserData | undefined>;
+};
+
+/**
+ * Ensures a user record exists in the users table.
+ * If the user is authenticated but doesn't have a record, creates one from auth metadata.
+ */
+export const ensureUserExists = async (supabaseAuthUser: any): Promise<UserData | null> => {
+  const supabase = await createClient();
+  
+  // Check if user exists
+  const { data: existingUser, error: checkError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", supabaseAuthUser.id)
+    .single();
+
+  if (existingUser) {
+    // User exists, return merged profile
+    return mergeUserWithProfile(supabase, existingUser);
+  }
+
+  // User doesn't exist, create from auth metadata
+  const role = supabaseAuthUser.user_metadata?.role || "student";
+  const name = supabaseAuthUser.user_metadata?.name || supabaseAuthUser.email?.split("@")[0] || "User";
+  const email = supabaseAuthUser.email || "";
+
+  const { error: insertError } = await supabase.from("users").insert({
+    id: supabaseAuthUser.id,
+    email,
+    password_hash: "",
+    name,
+    role,
+    credits: 0,
+    strikes: role === "student" ? 0 : null,
+    is_banned: role === "student" ? false : null,
+  });
+
+  if (insertError) {
+    console.error("Error creating user record:", insertError);
+    return null;
+  }
+
+  // Create basic profile based on role
+  if (role === "student") {
+    await supabase.from("student_profiles").insert({
+      id: supabaseAuthUser.id,
+      nickname: supabaseAuthUser.user_metadata?.nickname || "",
+      university: supabaseAuthUser.user_metadata?.university || "",
+      year: null,
+      nationality: supabaseAuthUser.user_metadata?.nationality || "",
+      jlpt_level: supabaseAuthUser.user_metadata?.jlptLevel || "",
+      languages: Array.isArray(supabaseAuthUser.user_metadata?.languages) 
+        ? supabaseAuthUser.user_metadata.languages 
+        : [],
+      interests: Array.isArray(supabaseAuthUser.user_metadata?.interests)
+        ? supabaseAuthUser.user_metadata.interests
+        : [],
+      skills: Array.isArray(supabaseAuthUser.user_metadata?.skills)
+        ? supabaseAuthUser.user_metadata.skills
+        : [],
+      desired_industry: supabaseAuthUser.user_metadata?.desiredIndustry || "",
+      profile_photo: supabaseAuthUser.user_metadata?.profilePhoto || null,
+      compliance_agreed: false,
+      compliance_agreed_at: null,
+      compliance_documents: [],
+      compliance_status: "pending",
+      compliance_submitted_at: null,
+      profile_completed: false,
+    });
+  } else if (role === "obog") {
+    await supabase.from("obog_profiles").insert({
+      id: supabaseAuthUser.id,
+      nickname: supabaseAuthUser.user_metadata?.nickname || "",
+      type: supabaseAuthUser.user_metadata?.type || "working-professional",
+      university: supabaseAuthUser.user_metadata?.university || "",
+      company: supabaseAuthUser.user_metadata?.company || "",
+      nationality: supabaseAuthUser.user_metadata?.nationality || "",
+      languages: Array.isArray(supabaseAuthUser.user_metadata?.languages)
+        ? supabaseAuthUser.user_metadata.languages
+        : [],
+      topics: Array.isArray(supabaseAuthUser.user_metadata?.topics)
+        ? supabaseAuthUser.user_metadata.topics
+        : [],
+      one_line_message: supabaseAuthUser.user_metadata?.oneLineMessage || null,
+      student_era_summary: supabaseAuthUser.user_metadata?.studentEraSummary || null,
+      profile_photo: supabaseAuthUser.user_metadata?.profilePhoto || null,
+    });
+  } else if (role === "company") {
+    await supabase.from("company_profiles").insert({
+      id: supabaseAuthUser.id,
+      company_name: supabaseAuthUser.user_metadata?.companyName || "",
+      contact_name: supabaseAuthUser.user_metadata?.contactName || name,
+      overview: supabaseAuthUser.user_metadata?.overview || null,
+      work_location: supabaseAuthUser.user_metadata?.workLocation || "",
+      hourly_wage: supabaseAuthUser.user_metadata?.hourlyWage || null,
+      weekly_hours: supabaseAuthUser.user_metadata?.weeklyHours || null,
+      selling_points: supabaseAuthUser.user_metadata?.sellingPoints || null,
+      ideal_candidate: supabaseAuthUser.user_metadata?.idealCandidate || null,
+      internship_details: supabaseAuthUser.user_metadata?.internshipDetails || null,
+      new_grad_details: supabaseAuthUser.user_metadata?.newGradDetails || null,
+      logo: supabaseAuthUser.user_metadata?.logo || null,
+    });
+  }
+
+  // Fetch the newly created user
+  const { data: newUser, error: fetchError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", supabaseAuthUser.id)
+    .single();
+
+  if (fetchError || !newUser) {
+    return null;
+  }
+
+  return mergeUserWithProfile(supabase, newUser);
 };
 
 export const getUserById = async (id: string): Promise<UserData | undefined> => {
@@ -293,17 +421,24 @@ export const updateUser = async (
   if (updates.name !== undefined) userUpdates.name = updates.name;
   if (updates.credits !== undefined) userUpdates.credits = updates.credits;
   if (updates.strikes !== undefined) userUpdates.strikes = updates.strikes;
-  if (updates.isBanned !== undefined) userUpdates.is_banned = updates.isBanned;
+  if ((updates as any).isBanned !== undefined) userUpdates.is_banned = (updates as any).isBanned;
+  if ((updates as any).viewedRules !== undefined) userUpdates.viewed_rules = (updates as any).viewedRules;
 
   if (Object.keys(userUpdates).length > 0) {
-    const { error: updateError } = await supabase
+    const { error: updateError, data: updateData } = await supabase
       .from("users")
       .update(userUpdates)
-      .eq("id", userId);
+      .eq("id", userId)
+      .select();
 
     if (updateError) {
       console.error("Error updating user:", updateError);
-      throw new Error("Failed to update user");
+      console.error("Update data attempted:", userUpdates);
+      throw new Error(`Failed to update user: ${updateError.message}`);
+    }
+    
+    if (userUpdates.credits !== undefined) {
+      console.log(`Credits updated for user ${userId}: ${userUpdates.credits}`);
     }
   }
 
@@ -321,9 +456,19 @@ export const updateUser = async (
     if ((updates as any).desiredIndustry !== undefined) profileUpdates.desired_industry = (updates as any).desiredIndustry;
     if ((updates as any).profilePhoto !== undefined) profileUpdates.profile_photo = (updates as any).profilePhoto;
     if ((updates as any).profileCompleted !== undefined) profileUpdates.profile_completed = (updates as any).profileCompleted;
+    // Compliance fields
+    if ((updates as any).complianceAgreed !== undefined) profileUpdates.compliance_agreed = (updates as any).complianceAgreed;
+    if ((updates as any).complianceAgreedAt !== undefined) profileUpdates.compliance_agreed_at = (updates as any).complianceAgreedAt;
+    if ((updates as any).complianceDocuments !== undefined) profileUpdates.compliance_documents = (updates as any).complianceDocuments;
+    if ((updates as any).complianceStatus !== undefined) profileUpdates.compliance_status = (updates as any).complianceStatus;
+    if ((updates as any).complianceSubmittedAt !== undefined) profileUpdates.compliance_submitted_at = (updates as any).complianceSubmittedAt;
 
     if (Object.keys(profileUpdates).length > 0) {
-      await supabase.from("student_profiles").update(profileUpdates).eq("id", userId);
+      const { error: profileError } = await supabase.from("student_profiles").update(profileUpdates).eq("id", userId);
+      if (profileError) {
+        console.error("Error updating student profile:", profileError);
+        throw new Error("Failed to update student profile");
+      }
     }
   } else if (currentUser.role === "obog") {
     const profileUpdates: any = {};

@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
+import StudentIcon from "@/components/icons/StudentIcon";
+import CompanyIcon from "@/components/icons/CompanyIcon";
+import AlumIcon from "@/components/icons/AlumIcon";
 
 export default function RegisterPage() {
   const { t } = useLanguage();
@@ -25,13 +28,7 @@ export default function RegisterPage() {
       href: "/signup/student",
       title: t("nav.studentSignUp"),
       description: t("register.studentDesc"),
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
-        </svg>
-      ),
+      icon: (<StudentIcon />),
       features: [
         t("register.studentFeature1"),
         t("register.studentFeature2"),
@@ -43,11 +40,7 @@ export default function RegisterPage() {
       href: "/signup/obog",
       title: t("nav.obogSignUp"),
       description: t("register.obogDesc"),
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
+      icon: (<AlumIcon />),
       features: [
         t("register.obogFeature1"),
         t("register.obogFeature2"),
@@ -59,11 +52,7 @@ export default function RegisterPage() {
       href: "/signup/company",
       title: t("nav.companySignUp"),
       description: t("register.companyDesc"),
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
-      ),
+      icon: (<CompanyIcon />),
       features: [
         t("register.companyFeature1"),
         t("register.companyFeature2"),
@@ -127,9 +116,9 @@ export default function RegisterPage() {
                   transition={{ duration: 0.2 }}
                 >
                   <motion.div 
-                    className="w-14 h-14 rounded flex items-center justify-center mx-auto mb-3 text-white"
+                    className="w-22 h-22 rounded flex items-center justify-center mx-auto mb-3 text-white"
                     style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileHover={{ scale: 1.2, rotate: 5 }}
                     transition={{ duration: 0.2 }}
                   >
                     {account.icon}

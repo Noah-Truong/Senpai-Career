@@ -1,9 +1,10 @@
 "use client";
 
 import { useSession } from "@/contexts/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import { createClient } from "@/lib/supabase/client";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -16,14 +17,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   const isLoggedIn = !!session;
 
-  // Load user credits
-  useEffect(() => {
-    if (isLoggedIn && session?.user?.id) {
-      loadUserCredits();
-    }
-  }, [isLoggedIn, session?.user?.id]);
-
-  const loadUserCredits = async () => {
+  const loadUserCredits = useCallback(async () => {
     try {
       const response = await fetch("/api/user");
       if (response.ok) {
@@ -52,7 +46,41 @@ export default function AppLayout({ children }: AppLayoutProps) {
     } catch (error) {
       console.error("Error loading user credits:", error);
     }
-  };
+  }, []);
+
+  // Load user credits and set up real-time subscription
+  useEffect(() => {
+    if (isLoggedIn && session?.user?.id) {
+      loadUserCredits();
+      
+      // Set up Supabase real-time subscription for credits updates
+      const supabase = createClient();
+      const channel = supabase
+        .channel(`user-credits-${session.user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'users',
+            filter: `id=eq.${session.user.id}`
+          },
+          (payload) => {
+            console.log('Credits updated via real-time:', payload);
+            if (payload.new && 'credits' in payload.new) {
+              const newCredits = payload.new.credits as number;
+              setUserCredits(newCredits ?? 0);
+              console.log(`Credits updated: ${newCredits}`);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isLoggedIn, session?.user?.id, loadUserCredits]);
 
   // Show loading state while checking auth
   if (status === "loading") {

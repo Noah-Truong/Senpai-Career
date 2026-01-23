@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -32,12 +32,115 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [errorShown, setErrorShown] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [isEditing, setIsEditing] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const loadProfile = useCallback(async () => {
+    try {
+      const response = await fetch("/api/profile");
+      if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              const processedUser = {
+                ...data.user,
+                desiredIndustry: data.user.role === 'student' && data.user.desiredIndustry
+                  ? (typeof data.user.desiredIndustry === 'string'
+                      ? data.user.desiredIndustry.split(', ').filter(Boolean)
+                      : Array.isArray(data.user.desiredIndustry)
+                        ? data.user.desiredIndustry
+                        : [])
+                  : [],
+                // Store raw oneLineMessage, we'll translate it separately
+                rawOneLineMessage: data.user.oneLineMessage,
+                oneLineMessage: getTranslated(data.user.oneLineMessage, language)
+              };
+              setUser(processedUser);
+              setFormData(processedUser);
+              setLoading(false);
+              setError(""); // Clear any previous errors
+              setErrorShown(false); // Reset error shown flag on success
+            } else {
+              console.warn("Profile API returned non-JSON response");
+              setError("Failed to load profile");
+              setLoading(false);
+            }
+          } catch (jsonError) {
+            console.error("Failed to parse profile JSON:", jsonError);
+            setError("Failed to load profile");
+            setLoading(false);
+          }
+        } else {
+          console.warn("Profile API returned non-JSON content type");
+          setError("Failed to load profile");
+          setLoading(false);
+        }
+      } else {
+        // Handle error responses
+        const contentType = response.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        let errorMessage = "Failed to load profile";
+        
+        if (isJson) {
+          try {
+            const text = await response.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const errorData = JSON.parse(text);
+              errorMessage = errorData.error || errorMessage;
+            }
+          } catch (jsonError) {
+            // If parsing fails, use default error message
+          }
+        }
+        
+        // Only show error if we haven't shown it before (prevent repeated popups)
+        if (!errorShown || errorMessage !== error) {
+          setError(errorMessage);
+          setErrorShown(true);
+        }
+        setLoading(false);
+      }
+    } catch (err: any) {
+      console.error("Profile load error:", err);
+      const errMessage = err.message || "Failed to load profile";
+      // Only show error if we haven't shown it before
+      if (!errorShown || errMessage !== error) {
+        setError(errMessage);
+        setErrorShown(true);
+      }
+      setLoading(false);
+    }
+  }, []); // Remove language dependency - we'll handle translation separately
+
+  // Update translation when language changes without reloading from API
+  useEffect(() => {
+    if (user?.rawOneLineMessage) {
+      setUser((prev: any) => prev ? {
+        ...prev,
+        oneLineMessage: getTranslated(prev.rawOneLineMessage, language)
+      } : null);
+      setFormData((prev: any) => prev ? {
+        ...prev,
+        oneLineMessage: getTranslated(prev.rawOneLineMessage || prev.oneLineMessage, language)
+      } : {});
+    }
+  }, [language, user?.rawOneLineMessage]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -48,37 +151,7 @@ export default function ProfilePage() {
     if (status === "authenticated") {
       loadProfile();
     }
-  }, [status, router]);
-
-  const loadProfile = async () => {
-    try {
-      const response = await fetch("/api/profile");
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Failed to load profile" }));
-        throw new Error(errorData.error || "Failed to load profile");
-      }
-      const data = await response.json();
-      const processedUser = {
-        ...data.user,
-        desiredIndustry: data.user.role === 'student' && data.user.desiredIndustry
-          ? (typeof data.user.desiredIndustry === 'string'
-              ? data.user.desiredIndustry.split(', ').filter(Boolean)
-              : Array.isArray(data.user.desiredIndustry)
-                ? data.user.desiredIndustry
-                : [])
-          : [],
-        oneLineMessage: getTranslated(data.user.oneLineMessage, language)
-      };
-      setUser(processedUser);
-      setFormData(processedUser);
-      setLoading(false);
-      setError(""); // Clear any previous errors
-    } catch (err: any) {
-      console.error("Profile load error:", err);
-      setError(err.message || "Failed to load profile");
-      setLoading(false);
-    }
-  };
+  }, [status, router, loadProfile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

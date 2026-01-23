@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
-import { getUserById, updateUser } from "@/lib/users";
+import { getUserById, updateUser, ensureUserExists } from "@/lib/users";
 import { createMultilingualContent } from "@/lib/translate";
+import { createClient } from "@/lib/supabase/server";
 import fs from "fs";
 import path from "path";
 
@@ -86,7 +87,21 @@ export async function POST(request: NextRequest) {
     const fromUserId = session.user.id;
     
     // Check user credits before sending message
-    const fromUser = await getUserById(fromUserId);
+    let fromUser = await getUserById(fromUserId);
+    
+    // If user doesn't exist, try to create from auth metadata
+    if (!fromUser) {
+      const supabase = await createClient();
+      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+      
+      if (supabaseUser && supabaseUser.id === fromUserId) {
+        const createdUser = await ensureUserExists(supabaseUser);
+        if (createdUser) {
+          fromUser = createdUser;
+        }
+      }
+    }
+    
     if (!fromUser) {
       return NextResponse.json(
         { error: "User not found" },
@@ -171,6 +186,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Deduct credits BEFORE creating message to ensure atomicity
+    // If deduction fails, don't send the message
+    const newCredits = currentCredits - creditsCost;
+    try {
+      await updateUser(fromUserId, {
+        credits: newCredits
+      });
+      console.log(`Credits deducted: User ${fromUserId}, ${currentCredits} -> ${newCredits} (cost: ${creditsCost})`);
+    } catch (creditError: any) {
+      console.error("Error deducting credits:", creditError);
+      return NextResponse.json(
+        { error: "Failed to deduct credits. Please try again.", insufficientCredits: false },
+        { status: 500 }
+      );
+    }
+
     // Translate message content and create multilingual version
     let messageContent: string | { en: string; ja: string };
     try {
@@ -200,16 +231,13 @@ export async function POST(request: NextRequest) {
     saveMessage(message);
     saveThread(thread);
 
-    // Deduct credits from user
-    await updateUser(fromUserId, {
-      credits: currentCredits - creditsCost
-    });
-
     return NextResponse.json(
       { 
         message,
         threadId: thread.id,
-        success: true 
+        success: true,
+        creditsDeducted: creditsCost,
+        remainingCredits: currentCredits - creditsCost
       },
       { status: 201 }
     );
@@ -234,15 +262,15 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.id;
+    const isAdmin = session.user.role === "admin";
     const threads = readThreads();
     const messages = readMessages();
 
-    // Get threads for this user
-    const userThreads = threads.filter((t: any) => 
-      t.participants.includes(userId)
-    );
+    // Admin: all threads (read-only chat visibility, features.md 4.5). Else: own threads only.
+    const userThreads = isAdmin
+      ? threads
+      : threads.filter((t: any) => t.participants.includes(userId));
 
-    // Get last message and other user info for each thread
     const threadsWithMessages = await Promise.all(userThreads.map(async (thread: any) => {
       const threadMessages = messages
         .filter((m: any) => m.threadId === thread.id)
@@ -250,10 +278,26 @@ export async function GET(request: NextRequest) {
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
 
-      // Get other user info
       const otherUserId = thread.participants.find((id: string) => id !== userId);
       const otherUser = otherUserId ? await getUserById(otherUserId) : null;
-      const { password, ...otherUserWithoutPassword } = otherUser || {} as any;
+      const { password, password_hash, ...otherUserWithoutPassword } = (otherUser || {}) as any;
+
+      if (isAdmin) {
+        const [p0, p1] = thread.participants || [];
+        const u0 = p0 ? await getUserById(p0) : null;
+        const u1 = p1 ? await getUserById(p1) : null;
+        const participants = [u0, u1].filter(Boolean).map((u) => {
+          const { password: _p, password_hash: _ph, ...rest } = (u || {}) as any;
+          return rest;
+        });
+        return {
+          ...thread,
+          lastMessage: threadMessages[0] || null,
+          otherUser: otherUserWithoutPassword,
+          adminView: true,
+          participants,
+        };
+      }
 
       return {
         ...thread,

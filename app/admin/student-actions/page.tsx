@@ -2,7 +2,7 @@
 
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -40,6 +40,8 @@ export default function StudentActionsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const loadStudentsRef = useRef(false);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -51,10 +53,13 @@ export default function StudentActionsPage() {
       return;
     }
 
-    if (status === "authenticated") {
-      loadStudents();
+    if (status === "authenticated" && session?.user?.role === "admin" && !loadStudentsRef.current) {
+      loadStudentsRef.current = true;
+      loadStudents().finally(() => {
+        loadStudentsRef.current = false;
+      });
     }
-  }, [status, session, router]);
+  }, [status, session?.user?.role, router]);
 
   const loadStudents = async () => {
     setLoading(true);

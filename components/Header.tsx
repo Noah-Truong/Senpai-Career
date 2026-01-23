@@ -140,30 +140,6 @@ export default function Header({ minimal = false }: HeaderProps) {
     return `${baseClasses} text-gray-600 hover:text-navy hover:bg-gray-50`;
   }, [isActiveLink]);
 
-  // Fetch notifications and user credits when logged in - reduced polling frequency
-  useEffect(() => {
-    if (isLoggedIn && session?.user?.id) {
-      loadNotifications();
-      loadUserCredits();
-      // Reduced polling frequency from 30s to 60s for better performance
-      const interval = setInterval(loadNotifications, 60000);
-      return () => clearInterval(interval);
-    }
-  }, [isLoggedIn, session?.user?.id]);
-
-  // Close notifications dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setShowNotifications(false);
-      }
-    }
-    if (showNotifications) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [showNotifications]);
-
   const loadUserCredits = useCallback(async () => {
     if (!isLoggedIn) return;
     try {
@@ -231,6 +207,56 @@ export default function Header({ minimal = false }: HeaderProps) {
       setLoadingNotifications(false);
     }
   }, [isLoggedIn]);
+
+  // Fetch notifications and user credits when logged in - reduced polling frequency
+  useEffect(() => {
+    if (isLoggedIn && session?.user?.id) {
+      loadNotifications();
+      loadUserCredits();
+      
+      // Set up Supabase real-time subscription for credits updates
+      const channel = supabase
+        .channel(`header-credits-${session.user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'users',
+            filter: `id=eq.${session.user.id}`
+          },
+          (payload) => {
+            console.log('Credits updated via real-time (Header):', payload);
+            if (payload.new && 'credits' in payload.new) {
+              const newCredits = payload.new.credits as number;
+              setUserCredits(newCredits ?? 0);
+            }
+          }
+        )
+        .subscribe();
+      
+      // Reduced polling frequency from 30s to 60s for better performance
+      const interval = setInterval(loadNotifications, 60000);
+      
+      return () => {
+        clearInterval(interval);
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isLoggedIn, session?.user?.id, loadNotifications, loadUserCredits, supabase]);
+
+  // Close notifications dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showNotifications]);
 
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.read) {

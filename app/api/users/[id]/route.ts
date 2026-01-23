@@ -16,8 +16,8 @@ export async function GET(
       );
     }
 
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
+    // Remove password fields from response
+    const { password, password_hash, ...userWithoutPassword } = user as any;
     return NextResponse.json({ user: userWithoutPassword });
   } catch (error: any) {
     return NextResponse.json(

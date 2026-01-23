@@ -31,6 +31,9 @@ export default function StudentProfilePage() {
   const [activeTab, setActiveTab] = useState<"profile" | "compliance">("profile");
   const [complianceAgreed, setComplianceAgreed] = useState(false);
   const [complianceDocuments, setComplianceDocuments] = useState<string[]>([]);
+  const [uploadingDocument, setUploadingDocument] = useState<string | null>(null);
+  const [permissionDocument, setPermissionDocument] = useState<string>("");
+  const [japaneseCertDocument, setJapaneseCertDocument] = useState<string>("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -51,17 +54,44 @@ export default function StudentProfilePage() {
   const loadProfile = async () => {
     try {
       const response = await fetch("/api/profile");
+      const contentType = response.headers.get("content-type");
+      const isJson = contentType && contentType.includes("application/json");
       if (!response.ok) {
-        throw new Error("Failed to load profile");
+        let msg = "Failed to load profile";
+        if (isJson) {
+          try {
+            const t = await response.text();
+            if (t.trim().startsWith("{")) {
+              const d = JSON.parse(t);
+              msg = d.error || msg;
+            }
+          } catch {}
+        }
+        setError(msg);
+        setLoading(false);
+        return;
       }
-      const data = await response.json();
+      if (!isJson) {
+        setError("Failed to load profile");
+        setLoading(false);
+        return;
+      }
+      const text = await response.text();
+      const t = text.trim();
+      if (!t.startsWith("{") && !t.startsWith("[")) {
+        setError("Failed to load profile");
+        setLoading(false);
+        return;
+      }
+      const data = JSON.parse(text);
+      const u = data.user || data;
       const processedUser = {
-        ...data.user,
-        desiredIndustry: data.user.role === 'student' && data.user.desiredIndustry
-          ? (typeof data.user.desiredIndustry === 'string'
-              ? data.user.desiredIndustry.split(', ').filter(Boolean)
-              : Array.isArray(data.user.desiredIndustry)
-                ? data.user.desiredIndustry
+        ...u,
+        desiredIndustry: u.role === "student" && u.desiredIndustry
+          ? (typeof u.desiredIndustry === "string"
+              ? u.desiredIndustry.split(", ").filter(Boolean)
+              : Array.isArray(u.desiredIndustry)
+                ? u.desiredIndustry
                 : [])
           : [],
       };
@@ -69,6 +99,11 @@ export default function StudentProfilePage() {
       setFormData(processedUser);
       setComplianceAgreed(processedUser.complianceAgreed || false);
       setComplianceDocuments(processedUser.complianceDocuments || []);
+      // Extract document URLs from compliance_documents array
+      const docs = processedUser.complianceDocuments || [];
+      setPermissionDocument(docs.find((d: string) => d.includes("permission") || d.includes("activity")) || "");
+      setJapaneseCertDocument(docs.find((d: string) => d.includes("japanese") || d.includes("jlpt") || d.includes("cert")) || "");
+      setError("");
       setLoading(false);
     } catch (err: any) {
       console.error("Profile load error:", err);
@@ -139,26 +174,48 @@ export default function StudentProfilePage() {
     try {
       const response = await fetch("/api/profile", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           profileCompleted: true,
           desiredIndustry: Array.isArray(formData.desiredIndustry)
             ? formData.desiredIndustry.join(", ")
-            : formData.desiredIndustry
+            : formData.desiredIndustry,
         }),
       });
 
-      const data = await response.json();
-
+      const ct = response.headers.get("content-type");
+      const isJson = ct && ct.includes("application/json");
       if (!response.ok) {
-        throw new Error(data.error || "Failed to update profile");
+        let msg = "Failed to update profile";
+        if (isJson) {
+          try {
+            const t = await response.text();
+            if (t.trim().startsWith("{")) {
+              const d = JSON.parse(t);
+              msg = d.error || msg;
+            }
+          } catch {}
+        }
+        setError(msg);
+        setSaving(false);
+        return;
       }
-
-      setUser(data.user);
-      setFormData(data.user);
+      if (!isJson) {
+        setError("Failed to update profile");
+        setSaving(false);
+        return;
+      }
+      const text = await response.text();
+      if (!text.trim().startsWith("{")) {
+        setError("Failed to update profile");
+        setSaving(false);
+        return;
+      }
+      const data = JSON.parse(text);
+      const u = data.user || data;
+      setUser(u);
+      setFormData(u);
       setSuccess("Profile saved successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
@@ -168,35 +225,124 @@ export default function StudentProfilePage() {
     }
   };
 
+  const handleDocumentUpload = async (file: File, documentType: "permission" | "japanese") => {
+    setUploadingDocument(documentType);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload document");
+      }
+
+      const data = await response.json();
+      const documentUrl = data.url;
+
+      if (documentType === "permission") {
+        setPermissionDocument(documentUrl);
+      } else {
+        setJapaneseCertDocument(documentUrl);
+      }
+
+      // Update compliance documents array
+      const updatedDocs = [...complianceDocuments];
+      if (documentType === "permission") {
+        const existingIndex = updatedDocs.findIndex((d: string) => d.includes("permission") || d.includes("activity"));
+        if (existingIndex >= 0) {
+          updatedDocs[existingIndex] = documentUrl;
+        } else {
+          updatedDocs.push(documentUrl);
+        }
+      } else {
+        const existingIndex = updatedDocs.findIndex((d: string) => d.includes("japanese") || d.includes("jlpt") || d.includes("cert"));
+        if (existingIndex >= 0) {
+          updatedDocs[existingIndex] = documentUrl;
+        } else {
+          updatedDocs.push(documentUrl);
+        }
+      }
+      setComplianceDocuments(updatedDocs);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload document");
+    } finally {
+      setUploadingDocument(null);
+    }
+  };
+
   const handleComplianceSubmit = async () => {
     if (!complianceAgreed) {
       setError("You must agree to the terms and rules to proceed.");
       return;
     }
 
+    // For international students, require both documents
+    const isInternational = user?.nationality && user.nationality.toLowerCase() !== "japan" && user.nationality.toLowerCase() !== "japanese";
+    if (isInternational) {
+      if (!permissionDocument) {
+        setError("Permission for Activities Outside Qualification document is required for international students.");
+        return;
+      }
+      if (!japaneseCertDocument) {
+        setError("Japanese Language Certification document is required for international students.");
+        return;
+      }
+    }
+
     setError("");
     setSuccess("");
     setSubmittingCompliance(true);
 
+    // Build documents array with metadata
+    const documentsToSubmit: string[] = [];
+    if (permissionDocument) documentsToSubmit.push(`permission:${permissionDocument}`);
+    if (japaneseCertDocument) documentsToSubmit.push(`japanese_cert:${japaneseCertDocument}`);
+
     try {
       const response = await fetch("/api/profile/compliance", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           complianceAgreed: true,
-          complianceDocuments: complianceDocuments,
+          complianceDocuments: documentsToSubmit.length > 0 ? documentsToSubmit : complianceDocuments,
         }),
       });
 
-      const data = await response.json();
-
+      const ct = response.headers.get("content-type");
+      const isJson = ct && ct.includes("application/json");
       if (!response.ok) {
-        throw new Error(data.error || "Failed to submit compliance");
+        let msg = "Failed to submit compliance";
+        if (isJson) {
+          try {
+            const t = await response.text();
+            if (t.trim().startsWith("{")) {
+              const d = JSON.parse(t);
+              msg = d.error || msg;
+            }
+          } catch {}
+        }
+        setError(msg);
+        setSubmittingCompliance(false);
+        return;
       }
+      if (!isJson) {
+        setError("Failed to submit compliance");
+        setSubmittingCompliance(false);
+        return;
+      }
+      const text = await response.text();
+      if (!text.trim().startsWith("{")) {
+        setError("Failed to submit compliance");
+        setSubmittingCompliance(false);
+        return;
+      }
+      const data = JSON.parse(text);
 
-      setUser({ ...user, complianceAgreed: true, complianceStatus: data.complianceStatus });
+      setUser({ ...user, complianceAgreed: true, complianceStatus: data.complianceStatus || "submitted" });
       setSuccess("Compliance submitted successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
@@ -236,7 +382,7 @@ export default function StudentProfilePage() {
     user.languages.length > 0;
 
   return (
-    <SidebarLayout role="student">
+   
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold mb-6" style={{ color: '#111827' }}>
           Student Profile & Compliance
@@ -330,7 +476,7 @@ export default function StudentProfilePage() {
                     accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     onChange={(e) => handleFileUpload(e, "profilePhoto")}
                     disabled={uploadingPhoto}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"
                   />
                   {uploadingPhoto && (
                     <p className="text-xs text-blue-600 mt-1">{t("common.uploading") || "Uploading..."}</p>
@@ -582,7 +728,7 @@ export default function StudentProfilePage() {
                   onChange={(e) => setComplianceAgreed(e.target.checked)}
                   className="mt-1 h-5 w-5 border-gray-300 rounded"
                   style={{ accentColor: '#2563EB' }}
-                  disabled={user.complianceAgreed}
+                  disabled={user?.complianceStatus === "approved" || user?.complianceStatus === "submitted"}
                 />
                 <span className="ml-3 text-sm" style={{ color: '#374151' }}>
                   <span className="font-semibold">I acknowledge that I have read and understood</span> the Terms of Service 
@@ -591,26 +737,117 @@ export default function StudentProfilePage() {
                 </span>
               </label>
 
-              {user.complianceAgreed && (
-                <div className="bg-green-50 border border-green-200 rounded p-4">
-                  <p className="text-sm text-green-800">
-                    ✓ Compliance submitted on {user.complianceAgreedAt 
+              {/* Document Upload Section - Required for International Students */}
+              {(user?.nationality && user.nationality.toLowerCase() !== "japan" && user.nationality.toLowerCase() !== "japanese") && (
+                <div className="space-y-4 mt-6 p-4 border rounded" style={{ borderColor: '#E5E7EB', backgroundColor: '#F9FAFB' }}>
+                  <h3 className="text-lg font-semibold" style={{ color: '#111827' }}>
+                    Required Documents (International Students)
+                  </h3>
+                  
+                  {/* Permission for Activities Outside Qualification */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium" style={{ color: '#374151' }}>
+                      Permission for Activities Outside Qualification *
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleDocumentUpload(file, "permission");
+                        }}
+                        disabled={user?.complianceStatus === "approved" || uploadingDocument === "permission"}
+                        className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"
+                      />
+                      {uploadingDocument === "permission" && (
+                        <span className="text-sm text-gray-500">Uploading...</span>
+                      )}
+                    </div>
+                    {permissionDocument && (
+                      <div className="flex items-center gap-2 text-sm text-green-700">
+                        <span>✓</span>
+                        <a href={permissionDocument} target="_blank" rel="noopener noreferrer" className="underline">
+                          View uploaded document
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Japanese Language Certification */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium" style={{ color: '#374151' }}>
+                      Japanese Language Certification *
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleDocumentUpload(file, "japanese");
+                        }}
+                        disabled={user?.complianceStatus === "approved" || uploadingDocument === "japanese"}
+                        className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"
+                      />
+                      {uploadingDocument === "japanese" && (
+                        <span className="text-sm text-gray-500">Uploading...</span>
+                      )}
+                    </div>
+                    {japaneseCertDocument && (
+                      <div className="flex items-center gap-2 text-sm text-green-700">
+                        <span>✓</span>
+                        <a href={japaneseCertDocument} target="_blank" rel="noopener noreferrer" className="underline">
+                          View uploaded document
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Compliance Status Display */}
+              {user?.complianceAgreed && (
+                <div className={`border rounded p-4 ${
+                  user.complianceStatus === "approved" 
+                    ? "bg-green-50 border-green-200" 
+                    : user.complianceStatus === "rejected"
+                    ? "bg-red-50 border-red-200"
+                    : "bg-yellow-50 border-yellow-200"
+                }`}>
+                  <p className={`text-sm ${
+                    user.complianceStatus === "approved" 
+                      ? "text-green-800" 
+                      : user.complianceStatus === "rejected"
+                      ? "text-red-800"
+                      : "text-yellow-800"
+                  }`}>
+                    {user.complianceStatus === "approved" && "✓ "}
+                    {user.complianceStatus === "rejected" && "✗ "}
+                    Compliance {user.complianceStatus === "approved" ? "approved" : user.complianceStatus === "rejected" ? "rejected" : "submitted"} on {user.complianceAgreedAt 
                       ? new Date(user.complianceAgreedAt).toLocaleDateString() 
                       : "recently"}
                   </p>
-                  <p className="text-xs text-green-700 mt-1">
-                    Status: {user.complianceStatus || "submitted"}
-                  </p>
+                  {user.complianceStatus === "submitted" && (
+                    <p className="text-xs text-yellow-700 mt-1">
+                      Your documents are under review by an administrator. You will be notified once approved.
+                    </p>
+                  )}
+                  {user.complianceStatus === "rejected" && (
+                    <p className="text-xs text-red-700 mt-1">
+                      Your compliance submission was rejected. Please review and resubmit your documents.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
 
             {/* Submit Button */}
-            {!user.complianceAgreed && (
+            {user?.complianceStatus !== "approved" && (
               <div className="pt-4">
                 <button
                   onClick={handleComplianceSubmit}
-                  disabled={!complianceAgreed || submittingCompliance}
+                  disabled={!complianceAgreed || submittingCompliance || user?.complianceStatus === "submitted"}
                   className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submittingCompliance ? (
@@ -621,8 +858,10 @@ export default function StudentProfilePage() {
                       </svg>
                       <span>Submitting...</span>
                     </>
+                  ) : user?.complianceStatus === "submitted" ? (
+                    "Under Review"
                   ) : (
-                    "Submit Compliance Agreement"
+                    "Submit Compliance Documents"
                   )}
                 </button>
               </div>
@@ -630,6 +869,6 @@ export default function StudentProfilePage() {
           </div>
         )}
       </div>
-    </SidebarLayout>
+  
   );
 }

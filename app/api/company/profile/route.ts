@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Return company profile without password
-    const { password, ...companyWithoutPassword } = user;
+    // Return company profile without password fields
+    const { password, password_hash, ...companyWithoutPassword } = user as any;
     return NextResponse.json({ company: companyWithoutPassword });
   } catch (error: any) {
     console.error("Error fetching company profile:", error);
@@ -108,8 +108,8 @@ export async function PUT(request: NextRequest) {
     // Update company profile
     const updatedCompany = await updateUser(session.user.id, allowedUpdates);
 
-    // Return updated company without password
-    const { password: _, ...companyWithoutPassword } = updatedCompany;
+    // Return updated company without password fields
+    const { password, password_hash, ...companyWithoutPassword } = updatedCompany as any;
     return NextResponse.json(
       { company: companyWithoutPassword, message: "Company profile updated successfully" },
       { status: 200 }

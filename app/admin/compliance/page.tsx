@@ -1,0 +1,348 @@
+"use client";
+
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useSession } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/AdminLayout";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+interface ComplianceSubmission {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  nationality: string;
+  complianceAgreed: boolean;
+  complianceAgreedAt: string;
+  complianceStatus: "pending" | "submitted" | "approved" | "rejected";
+  complianceSubmittedAt: string;
+  complianceDocuments: string[];
+}
+
+export default function AdminCompliancePage() {
+  const { t } = useLanguage();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [submissions, setSubmissions] = useState<ComplianceSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "submitted" | "approved" | "rejected">("all");
+  const [selectedSubmission, setSelectedSubmission] = useState<ComplianceSubmission | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const loadingRef = useRef(false);
+
+  const loadSubmissions = useCallback(async () => {
+    // Prevent duplicate concurrent calls
+    if (loadingRef.current) {
+      return;
+    }
+    loadingRef.current = true;
+    setLoading(true);
+    try {
+      const response = await fetch("/api/users");
+      if (!response.ok) {
+        throw new Error("Failed to load users");
+      }
+      
+      const contentType = response.headers.get("content-type");
+      const isJson = contentType && contentType.includes("application/json");
+      
+      if (isJson) {
+        const text = await response.text();
+        const trimmedText = text.trim();
+        
+        if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+          const data = JSON.parse(text);
+          const students = (data.users || []).filter((u: any) => u.role === "student");
+          
+          // Extract compliance data from student profiles (already merged in readUsers)
+          const submissionsWithCompliance = students
+            .map((student: any) => ({
+              userId: student.id,
+              userName: student.name,
+              userEmail: student.email,
+              nationality: student.nationality || "",
+              complianceAgreed: student.complianceAgreed || false,
+              complianceAgreedAt: student.complianceAgreedAt,
+              complianceStatus: student.complianceStatus || "pending",
+              complianceSubmittedAt: student.complianceSubmittedAt,
+              complianceDocuments: student.complianceDocuments || [],
+            }))
+            .filter((s: ComplianceSubmission) => s.complianceAgreed || s.complianceStatus !== "pending");
+          
+          setSubmissions(submissionsWithCompliance.filter((s): s is ComplianceSubmission => s !== null));
+        }
+      }
+    } catch (error) {
+      console.error("Error loading compliance submissions:", error);
+    } finally {
+      setLoading(false);
+      loadingRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+
+    if (status === "authenticated" && session?.user?.role !== "admin") {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (status === "authenticated" && session?.user?.role === "admin") {
+      loadSubmissions();
+    }
+  }, [status, session?.user?.role, router, loadSubmissions]);
+
+  const handleUpdateStatus = async (userId: string, newStatus: "approved" | "rejected") => {
+    setUpdatingStatus(true);
+    try {
+      const response = await fetch("/api/admin/compliance", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          status: newStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update compliance status");
+      }
+
+      await loadSubmissions();
+      setSelectedSubmission(null);
+    } catch (error) {
+      console.error("Error updating compliance status:", error);
+      alert("Failed to update compliance status");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  if (status === "loading" || loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  const filteredSubmissions = statusFilter === "all" 
+    ? submissions 
+    : submissions.filter(s => s.complianceStatus === statusFilter);
+
+  const pendingCount = submissions.filter(s => s.complianceStatus === "pending" || s.complianceStatus === "submitted").length;
+  const approvedCount = submissions.filter(s => s.complianceStatus === "approved").length;
+  const rejectedCount = submissions.filter(s => s.complianceStatus === "rejected").length;
+
+  const getDocumentName = (docUrl: string): string => {
+    if (docUrl.includes("permission") || docUrl.includes("activity")) {
+      return "Permission for Activities Outside Qualification";
+    }
+    if (docUrl.includes("japanese") || docUrl.includes("jlpt") || docUrl.includes("cert")) {
+      return "Japanese Language Certification";
+    }
+    return "Document";
+  };
+
+  return (
+    <AdminLayout>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-1" style={{ color: '#111827' }}>
+          Student Compliance Review
+        </h1>
+        <p style={{ color: '#6B7280' }}>
+          Review and approve student compliance documents (features.md 4.2)
+        </p>
+      </div>
+
+      {/* Statistics */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="bg-white border rounded p-4" style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}>
+          <p className="text-sm" style={{ color: '#6B7280' }}>Total Submissions</p>
+          <p className="text-2xl font-bold" style={{ color: '#111827' }}>{submissions.length}</p>
+        </div>
+        <div className="bg-yellow-50 border rounded p-4" style={{ borderColor: '#FCD34D', borderRadius: '6px' }}>
+          <p className="text-sm" style={{ color: '#6B7280' }}>Pending Review</p>
+          <p className="text-2xl font-bold" style={{ color: '#92400E' }}>{pendingCount}</p>
+        </div>
+        <div className="bg-green-50 border rounded p-4" style={{ borderColor: '#86EFAC', borderRadius: '6px' }}>
+          <p className="text-sm" style={{ color: '#6B7280' }}>Approved</p>
+          <p className="text-2xl font-bold" style={{ color: '#166534' }}>{approvedCount}</p>
+        </div>
+        <div className="bg-red-50 border rounded p-4" style={{ borderColor: '#FCA5A5', borderRadius: '6px' }}>
+          <p className="text-sm" style={{ color: '#6B7280' }}>Rejected</p>
+          <p className="text-2xl font-bold" style={{ color: '#991B1B' }}>{rejectedCount}</p>
+        </div>
+      </div>
+
+      {/* Filter */}
+      <div className="mb-4">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as any)}
+          className="px-4 py-2 border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+        >
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="submitted">Submitted</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+
+      {/* Submissions List */}
+      {filteredSubmissions.length === 0 ? (
+        <div className="bg-white border rounded p-8 text-center" style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}>
+          <p style={{ color: '#6B7280' }}>No compliance submissions found.</p>
+        </div>
+      ) : (
+        <div className="bg-white border rounded divide-y" style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}>
+          {filteredSubmissions.map((submission) => {
+            const isInternational = submission.nationality && 
+              submission.nationality.toLowerCase() !== "japan" && 
+              submission.nationality.toLowerCase() !== "japanese";
+            
+            return (
+              <div
+                key={submission.userId}
+                className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => setSelectedSubmission(submission)}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-medium" style={{ color: '#111827' }}>
+                      {submission.userName}
+                    </p>
+                    <p className="text-sm" style={{ color: '#6B7280' }}>
+                      {submission.userEmail}
+                    </p>
+                    {isInternational && (
+                      <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
+                        International Student ({submission.nationality})
+                      </p>
+                    )}
+                    <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
+                      Submitted: {submission.complianceSubmittedAt 
+                        ? new Date(submission.complianceSubmittedAt).toLocaleDateString()
+                        : "Not submitted"}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded text-xs font-medium ${
+                    submission.complianceStatus === "approved"
+                      ? "bg-green-100 text-green-800"
+                      : submission.complianceStatus === "rejected"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}>
+                    {submission.complianceStatus || "pending"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {selectedSubmission && (
+        <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: '#111827' }}>
+                  {selectedSubmission.userName}
+                </h2>
+                <p className="text-sm" style={{ color: '#6B7280' }}>
+                  {selectedSubmission.userEmail}
+                </p>
+                {selectedSubmission.nationality && (
+                  <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                    Nationality: {selectedSubmission.nationality}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedSubmission(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                  Compliance Status
+                </p>
+                <span className={`px-3 py-1 rounded text-sm font-medium inline-block ${
+                  selectedSubmission.complianceStatus === "approved"
+                    ? "bg-green-100 text-green-800"
+                    : selectedSubmission.complianceStatus === "rejected"
+                    ? "bg-red-100 text-red-800"
+                    : "bg-yellow-100 text-yellow-800"
+                }`}>
+                  {selectedSubmission.complianceStatus || "pending"}
+                </span>
+              </div>
+
+              {selectedSubmission.complianceDocuments && selectedSubmission.complianceDocuments.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                    Submitted Documents
+                  </p>
+                  <div className="space-y-2">
+                    {selectedSubmission.complianceDocuments.map((docUrl, index) => {
+                      const cleanUrl = docUrl.includes(":") ? docUrl.split(":")[1] : docUrl;
+                      return (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded" style={{ borderColor: '#E5E7EB' }}>
+                          <span className="text-sm" style={{ color: '#374151' }}>
+                            {getDocumentName(docUrl)}
+                          </span>
+                          <a
+                            href={cleanUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-sm underline"
+                          >
+                            View Document
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {selectedSubmission.complianceStatus === "submitted" || selectedSubmission.complianceStatus === "pending" ? (
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={() => handleUpdateStatus(selectedSubmission.userId, "approved")}
+                    disabled={updatingStatus}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {updatingStatus ? "Updating..." : "Approve"}
+                  </button>
+                  <button
+                    onClick={() => handleUpdateStatus(selectedSubmission.userId, "rejected")}
+                    disabled={updatingStatus}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {updatingStatus ? "Updating..." : "Reject"}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      )}
+    </AdminLayout>
+  );
+}

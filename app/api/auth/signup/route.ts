@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { UserRole } from "@/types";
 import { createMultilingualContent } from "@/lib/translate";
+import { isBlockedFreeDomain, getBlockedDomainError } from "@/lib/blocked-email-domains";
 
 /**
  * Student Signup API Endpoint
@@ -66,6 +67,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // TODO: Uncomment for production - Block free email providers (features.md 4.1)
+    // if (isBlockedFreeDomain(email)) {
+    //   return NextResponse.json(
+    //     { error: getBlockedDomainError() },
+    //     { status: 400 }
+    //   );
+    // }
+
     // Validate role
     const validRoles: UserRole[] = ["student", "obog", "company"];
     if (!validRoles.includes(role)) {
@@ -78,15 +87,56 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const adminClient = createAdminClient();
 
-    // Create auth user with Supabase
+    // Prepare auth metadata with all profile data for the trigger
+    // The handle_new_user() trigger will use this to create complete user and profile records
+    const authMetadata: any = {
+      name,
+      role,
+    };
+
+    // Add role-specific profile data to metadata for the trigger
+    if (role === "student") {
+      authMetadata.nickname = profileData.nickname || "";
+      authMetadata.university = profileData.university || "";
+      authMetadata.year = profileData.year || null;
+      authMetadata.nationality = profileData.nationality || "";
+      authMetadata.jlptLevel = profileData.jlptLevel || "";
+      authMetadata.languages = Array.isArray(profileData.languages) ? profileData.languages : [];
+      authMetadata.interests = Array.isArray(profileData.interests) ? profileData.interests : [];
+      authMetadata.skills = Array.isArray(profileData.skills) ? profileData.skills : [];
+      authMetadata.desiredIndustry = profileData.desiredIndustry || "";
+      authMetadata.profilePhoto = profileData.profilePhoto || null;
+    } else if (role === "obog") {
+      authMetadata.nickname = profileData.nickname || "";
+      authMetadata.type = profileData.type || "working-professional";
+      authMetadata.university = profileData.university || "";
+      authMetadata.company = profileData.company || "";
+      authMetadata.nationality = profileData.nationality || "";
+      authMetadata.languages = Array.isArray(profileData.languages) ? profileData.languages : [];
+      authMetadata.topics = Array.isArray(profileData.topics) ? profileData.topics : [];
+      authMetadata.oneLineMessage = profileData.oneLineMessage || null;
+      authMetadata.studentEraSummary = profileData.studentEraSummary || null;
+      authMetadata.profilePhoto = profileData.profilePhoto || null;
+    } else if (role === "company") {
+      authMetadata.companyName = profileData.companyName || "";
+      authMetadata.contactName = profileData.contactName || name;
+      authMetadata.overview = profileData.overview || null;
+      authMetadata.workLocation = profileData.workLocation || "";
+      authMetadata.hourlyWage = profileData.hourlyWage || null;
+      authMetadata.weeklyHours = profileData.weeklyHours || null;
+      authMetadata.sellingPoints = profileData.sellingPoints || null;
+      authMetadata.idealCandidate = profileData.idealCandidate || null;
+      authMetadata.internshipDetails = profileData.internshipDetails || null;
+      authMetadata.newGradDetails = profileData.newGradDetails || null;
+      authMetadata.logo = profileData.logo || null;
+    }
+
+    // Create auth user with Supabase - trigger will create user and profile records
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          name,
-          role,
-        },
+        data: authMetadata,
       },
     });
 
@@ -113,37 +163,35 @@ export async function POST(request: NextRequest) {
 
     const userId = authData.user.id;
 
-    // IMPORTANT: Insert into users table FIRST using admin client (bypasses RLS)
-    // This creates the row in the users table with email, password_hash, name, role, created_at, etc.
+    // Wait a moment for the trigger to complete (handle_new_user trigger fires on auth.users insert)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Check if trigger created the user record
     const { data: existingUser } = await adminClient
       .from("users")
-      .select("id")
+      .select("id, email, name, role")
       .eq("id", userId)
       .single();
 
     if (!existingUser) {
-      // Insert into users table with all required fields matching the exact structure:
-      // id, email, password_hash, name, role, credits, strikes, is_banned, created_at, updated_at
-      // Note: password_hash is empty string because Supabase Auth handles password hashing separately
-      // The actual password hash is stored by Supabase Auth, not in our users table
+      // Trigger didn't create user (shouldn't happen, but fallback)
+      console.log("⚠️ Trigger didn't create user, manually inserting...");
       const timestamp = new Date().toISOString();
       const { error: userError } = await adminClient.from("users").insert({
-        id: userId, // From Supabase Auth user ID
-        email: email, // Email from signup form
-        password_hash: "", // Empty string - Supabase Auth handles password hashing
-        name: name, // Full name from signup form
-        role: role, // "student" for student signup
-        credits: 0, // Default credits
-        strikes: role === "student" ? 0 : null, // Students start with 0 strikes
-        is_banned: role === "student" ? false : null, // Students start unbanned
-        created_at: timestamp, // Initial timestamp
-        updated_at: timestamp, // Same as created_at on initial creation
+        id: userId,
+        email: email,
+        password_hash: "",
+        name: name,
+        role: role,
+        credits: 0,
+        strikes: role === "student" ? 0 : null,
+        is_banned: role === "student" ? false : null,
+        created_at: timestamp,
+        updated_at: timestamp,
       });
 
       if (userError) {
         console.error("❌ USER INSERT ERROR:", userError);
-        console.error("Error details:", JSON.stringify(userError, null, 2));
-        // Cleanup: delete auth user if we can't create the user record
         try {
           await adminClient.auth.admin.deleteUser(userId);
         } catch (deleteError) {
@@ -154,72 +202,60 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-      console.log("✅ User created in users table:", userId, email);
+      console.log("✅ User created manually (trigger fallback):", userId, email);
     } else {
-      console.log("⚠️ User already exists in users table, skipping insert");
+      console.log("✅ User created by trigger:", userId, email, existingUser);
     }
 
-    // IMPORTANT: Create student profile in student_profiles table
-    // This saves all the profile data: nickname, university, year, nationality, languages, etc.
+    // Check if trigger created the profile, then update with any additional data if needed
     if (role === "student") {
       const { data: existingProfile } = await adminClient
         .from("student_profiles")
-        .select("id")
+        .select("id, nickname, university")
         .eq("id", userId)
         .single();
 
       if (!existingProfile) {
-        // Insert new student profile with all data from signup form
-        // This matches exactly the structure expected in student_profiles table
+        // Trigger didn't create profile (fallback - should rarely happen)
+        console.log("⚠️ Trigger didn't create student profile, manually inserting...");
         const profileInsertData = {
-          id: userId, // Same ID as users table (foreign key) - REQUIRED
-          nickname: profileData.nickname || "", // From signup form
-          university: profileData.university || "", // From signup form
-          year: profileData.year || null, // From signup form (parsed to integer)
-          nationality: profileData.nationality || "", // From signup form
-          jlpt_level: profileData.jlptLevel || "", // From signup form
-          languages: Array.isArray(profileData.languages) ? profileData.languages : [], // From signup form - array
-          interests: Array.isArray(profileData.interests) ? profileData.interests : [], // From signup form - array
-          skills: Array.isArray(profileData.skills) ? profileData.skills : [], // From signup form - array
-          desired_industry: profileData.desiredIndustry || "", // From signup form (joined string)
-          profile_photo: profileData.profilePhoto || null, // Optional profile photo
-          // Compliance tracking fields (defaults set by database)
-          compliance_agreed: false, // Default: false
-          compliance_agreed_at: null, // Default: null
-          compliance_documents: [], // Default: empty array
-          compliance_status: "pending", // Default: "pending"
-          compliance_submitted_at: null, // Default: null
-          profile_completed: false, // Default: false
+          id: userId,
+          nickname: profileData.nickname || "",
+          university: profileData.university || "",
+          year: profileData.year || null,
+          nationality: profileData.nationality || "",
+          jlpt_level: profileData.jlptLevel || "",
+          languages: Array.isArray(profileData.languages) ? profileData.languages : [],
+          interests: Array.isArray(profileData.interests) ? profileData.interests : [],
+          skills: Array.isArray(profileData.skills) ? profileData.skills : [],
+          desired_industry: profileData.desiredIndustry || "",
+          profile_photo: profileData.profilePhoto || null,
+          compliance_agreed: false,
+          compliance_agreed_at: null,
+          compliance_documents: [],
+          compliance_status: "pending",
+          compliance_submitted_at: null,
+          profile_completed: false,
         };
 
-        const { error: profileError, data: insertedProfile } = await adminClient
+        const { error: profileError } = await adminClient
           .from("student_profiles")
-          .insert(profileInsertData)
-          .select()
-          .single();
+          .insert(profileInsertData);
 
         if (profileError) {
           console.error("❌ STUDENT PROFILE INSERT ERROR:", profileError);
-          console.error("Profile data attempted:", JSON.stringify(profileInsertData, null, 2));
-          console.error("Error details:", JSON.stringify(profileError, null, 2));
-          // Don't fail the whole signup, but log the error
         } else {
-          console.log("✅ Student profile created in student_profiles table:", userId);
-          console.log("Profile data saved:", {
-            nickname: profileInsertData.nickname,
-            university: profileInsertData.university,
-            year: profileInsertData.year,
-            nationality: profileInsertData.nationality,
-          });
+          console.log("✅ Student profile created manually (trigger fallback):", userId);
         }
       } else {
-        // Update existing profile with provided data (shouldn't happen on signup, but handle it)
-        console.log("⚠️ Student profile already exists, updating with signup data");
+        // Profile exists (created by trigger), update with any missing data
+        console.log("✅ Student profile created by trigger:", userId);
+        // Update profile to ensure all data is present (trigger might have defaults)
         const { error: updateError } = await adminClient
           .from("student_profiles")
           .update({
-            nickname: profileData.nickname || "",
-            university: profileData.university || "",
+            nickname: profileData.nickname || existingProfile.nickname || "",
+            university: profileData.university || existingProfile.university || "",
             year: profileData.year || null,
             nationality: profileData.nationality || "",
             jlpt_level: profileData.jlptLevel || "",
@@ -233,7 +269,7 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error("❌ Student profile update error:", updateError);
         } else {
-          console.log("✅ Student profile updated successfully");
+          console.log("✅ Student profile updated with signup data");
         }
       }
     } else if (role === "obog") {
@@ -257,21 +293,48 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const { error: profileError } = await adminClient.from("obog_profiles").insert({
-        id: userId,
-        nickname: profileData.nickname || "",
-        type: profileData.type || "working-professional",
-        university: profileData.university || "",
-        company: profileData.company || "",
-        nationality: profileData.nationality || "",
-        languages: profileData.languages || [],
-        topics: profileData.topics || [],
-        one_line_message: oneLineMessage || null,
-        student_era_summary: studentEraSummary || null,
-        profile_photo: profileData.profilePhoto || null,
-      });
-      if (profileError) {
-        console.error("OBOG profile insert error:", profileError);
+      // Check if trigger created profile
+      const { data: existingOBOGProfile } = await adminClient
+        .from("obog_profiles")
+        .select("id")
+        .eq("id", userId)
+        .single();
+
+      if (!existingOBOGProfile) {
+        // Trigger didn't create profile (fallback)
+        const { error: profileError } = await adminClient.from("obog_profiles").insert({
+          id: userId,
+          nickname: profileData.nickname || "",
+          type: profileData.type || "working-professional",
+          university: profileData.university || "",
+          company: profileData.company || "",
+          nationality: profileData.nationality || "",
+          languages: profileData.languages || [],
+          topics: profileData.topics || [],
+          one_line_message: oneLineMessage || null,
+          student_era_summary: studentEraSummary || null,
+          profile_photo: profileData.profilePhoto || null,
+        });
+        if (profileError) {
+          console.error("❌ OBOG profile insert error:", profileError);
+        } else {
+          console.log("✅ OBOG profile created manually (trigger fallback):", userId);
+        }
+      } else {
+        // Profile exists, update with translated data
+        console.log("✅ OBOG profile created by trigger:", userId);
+        const { error: updateError } = await adminClient
+          .from("obog_profiles")
+          .update({
+            one_line_message: oneLineMessage || null,
+            student_era_summary: studentEraSummary || null,
+          })
+          .eq("id", userId);
+        if (updateError) {
+          console.error("❌ OBOG profile update error:", updateError);
+        } else {
+          console.log("✅ OBOG profile updated with translated data");
+        }
       }
     } else if (role === "company") {
       // Translate company multilingual fields
@@ -304,22 +367,52 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const { error: profileError } = await adminClient.from("company_profiles").insert({
-        id: userId,
-        company_name: profileData.companyName || "",
-        contact_name: profileData.contactName || name,
-        overview: overview || null,
-        work_location: profileData.workLocation || "",
-        hourly_wage: profileData.hourlyWage || null,
-        weekly_hours: profileData.weeklyHours || null,
-        selling_points: sellingPoints || null,
-        ideal_candidate: idealCandidate || null,
-        internship_details: internshipDetails || null,
-        new_grad_details: newGradDetails || null,
-        logo: profileData.logo || null,
-      });
-      if (profileError) {
-        console.error("Company profile insert error:", profileError);
+      // Check if trigger created profile
+      const { data: existingCompanyProfile } = await adminClient
+        .from("company_profiles")
+        .select("id")
+        .eq("id", userId)
+        .single();
+
+      if (!existingCompanyProfile) {
+        // Trigger didn't create profile (fallback)
+        const { error: profileError } = await adminClient.from("company_profiles").insert({
+          id: userId,
+          company_name: profileData.companyName || "",
+          contact_name: profileData.contactName || name,
+          overview: overview || null,
+          work_location: profileData.workLocation || "",
+          hourly_wage: profileData.hourlyWage || null,
+          weekly_hours: profileData.weeklyHours || null,
+          selling_points: sellingPoints || null,
+          ideal_candidate: idealCandidate || null,
+          internship_details: internshipDetails || null,
+          new_grad_details: newGradDetails || null,
+          logo: profileData.logo || null,
+        });
+        if (profileError) {
+          console.error("❌ Company profile insert error:", profileError);
+        } else {
+          console.log("✅ Company profile created manually (trigger fallback):", userId);
+        }
+      } else {
+        // Profile exists, update with translated data
+        console.log("✅ Company profile created by trigger:", userId);
+        const { error: updateError } = await adminClient
+          .from("company_profiles")
+          .update({
+            overview: overview || null,
+            internship_details: internshipDetails || null,
+            new_grad_details: newGradDetails || null,
+            ideal_candidate: idealCandidate || null,
+            selling_points: sellingPoints || null,
+          })
+          .eq("id", userId);
+        if (updateError) {
+          console.error("❌ Company profile update error:", updateError);
+        } else {
+          console.log("✅ Company profile updated with translated data");
+        }
       }
     }
 

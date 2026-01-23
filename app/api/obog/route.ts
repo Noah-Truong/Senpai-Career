@@ -5,8 +5,8 @@ export async function GET(request: NextRequest) {
   try {
     const obogUsers = await getOBOGUsers();
 
-    // Return users without passwords
-    const usersWithoutPasswords = obogUsers.map(({ password, ...user }: any) => user);
+    // Return users without password fields
+    const usersWithoutPasswords = obogUsers.map(({ password, password_hash, ...user }: any) => user);
 
     return NextResponse.json({ users: usersWithoutPasswords });
   } catch (error: any) {

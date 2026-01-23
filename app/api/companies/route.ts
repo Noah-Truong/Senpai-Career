@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const users = await readUsers();
     const companies = users
       .filter(u => u.role === "company")
-      .map(({ password, ...company }) => company);
+      .map(({ password, password_hash, ...company }: any) => company);
 
     return NextResponse.json({ companies });
   } catch (error: any) {
