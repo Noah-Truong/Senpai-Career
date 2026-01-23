@@ -156,16 +156,9 @@ export default function AvailabilityCalendar({
           });
           
           if (isInRange) {
-            // For view mode, show all durations. For edit mode, filter by selected duration
-            if (duration === 1440) {
-              // Show all-day slots
-              if (timeStr === "all-day" || timeStr === "00:00") {
-                filteredSlots.add(key);
-              }
-            } else {
-              // Show time slots that match the duration
-              filteredSlots.add(key);
-            }
+            // Show all slots regardless of duration in view mode
+            // In edit mode, we still show all slots but the user can select based on duration
+            filteredSlots.add(key);
           }
         });
         
@@ -320,24 +313,22 @@ export default function AvailabilityCalendar({
             </button>
           </div>
 
-          {/* Duration Selector - Only show for OBOGs configuring their own calendar */}
-          {canConfigure && (
-            <div className="flex gap-2">
-              {[15, 30, 60, 1440].map((mins) => (
-                <button
-                  key={mins}
-                  onClick={() => setDuration(mins as 15 | 30 | 60 | 1440)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    duration === mins
-                      ? "bg-navy text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {mins === 1440 ? "Day" : `${mins}min`}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Duration Selector - Show to all users, allow changing to filter view */}
+          <div className="flex gap-2">
+            {[15, 30, 60, 1440].map((mins) => (
+              <button
+                key={mins}
+                onClick={() => setDuration(mins as 15 | 30 | 60 | 1440)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  duration === mins
+                    ? "bg-navy text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {mins === 1440 ? "Day" : `${mins}min`}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Calendar Grid */}
@@ -420,29 +411,43 @@ export default function AvailabilityCalendar({
           )}
         </div>
 
-        {/* Footer - Only show save controls for OBOGs configuring their own calendar */}
-        {canConfigure && (
-          <div className="card-gradient p-6 border-t border-gray-200 flex justify-between items-center">
-            <div className="text-sm text-gray-600">
-              Click on time slots to mark your availability. Green indicates available times.
-            </div>
-            <div className="flex gap-4">
+        {/* Footer */}
+        <div className="card-gradient p-6 border-t border-gray-200 flex justify-between items-center">
+          {canConfigure ? (
+            <>
+              <div className="text-sm text-gray-600">
+                Click on time slots to mark your availability. Green indicates available times.
+              </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={onClose}
+                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveAvailability}
+                  disabled={saving}
+                  className="btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? "Saving..." : "Save Availability"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-sm text-gray-600">
+                Green indicates available times. You can view but not edit this calendar.
+              </div>
               <button
                 onClick={onClose}
                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
               >
-                Cancel
+                Close
               </button>
-              <button
-                onClick={saveAvailability}
-                disabled={saving}
-                className="btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? "Saving..." : "Save Availability"}
-              </button>
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </motion.div>
     </motion.div>
   );

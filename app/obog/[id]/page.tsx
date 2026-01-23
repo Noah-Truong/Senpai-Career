@@ -8,7 +8,8 @@ import OBOGDetailContent from "@/components/OBOGDetailContent";
 export default async function OBOGDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
 
-  if (!session || session.user?.role !== "student") {
+  // Allow authenticated users (students, companies, other OB/OG) to view OB/OG profiles
+  if (!session) {
     redirect("/login");
   }
 

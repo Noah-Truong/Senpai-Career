@@ -8,6 +8,11 @@ import { useTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import ReviewModal from "@/components/ReviewModal";
+import MeetingStatusBlock from "@/components/MeetingStatusBlock";
+import MeetingOperationButtons from "@/components/MeetingOperationButtons";
+import TermsAgreementModal from "@/components/TermsAgreementModal";
+import EvaluationForm from "@/components/EvaluationForm";
+import AdditionalQuestionForm from "@/components/AdditionalQuestionForm";
 
 export default function MessageThreadPage() {
   const { t, language } = useLanguage();
@@ -25,6 +30,22 @@ export default function MessageThreadPage() {
   const [otherUser, setOtherUser] = useState<any>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
+  const [meeting, setMeeting] = useState<any>(null);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showEvaluationModal, setShowEvaluationModal] = useState(false);
+  const [showAdditionalQuestionModal, setShowAdditionalQuestionModal] = useState(false);
+
+  const loadMeeting = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/meetings/${threadId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setMeeting(data.meeting);
+      }
+    } catch (error) {
+      console.error("Error loading meeting:", error);
+    }
+  }, [threadId]);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -99,6 +120,10 @@ export default function MessageThreadPage() {
     }
   }, [threadId, session?.user?.id]);
 
+  const handleMeetingUpdate = useCallback(() => {
+    loadMeeting();
+  }, [loadMeeting]);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -107,8 +132,9 @@ export default function MessageThreadPage() {
 
     if (status === "authenticated" && threadId) {
       loadMessages();
+      loadMeeting();
     }
-  }, [status, threadId, router, loadMessages]);
+  }, [status, threadId, router, loadMessages, loadMeeting]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +187,69 @@ export default function MessageThreadPage() {
       setError(err.message || "Failed to send message");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleAcceptTerms = async () => {
+    try {
+      const response = await fetch(`/api/meetings/${threadId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "accept_terms" }),
+      });
+
+      if (response.ok) {
+        loadMeeting();
+        setShowTermsModal(false);
+      }
+    } catch (error) {
+      console.error("Error accepting terms:", error);
+    }
+  };
+
+  const handleSubmitEvaluation = async (rating: number, comment: string) => {
+    try {
+      const response = await fetch(`/api/meetings/${threadId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "submit_evaluation",
+          rating,
+          comment,
+        }),
+      });
+
+      if (response.ok) {
+        loadMeeting();
+        setShowEvaluationModal(false);
+        
+        // If student, show additional question form
+        if (session?.user?.role === "student" && meeting && !meeting.student_additional_question_answered) {
+          setShowAdditionalQuestionModal(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting evaluation:", error);
+    }
+  };
+
+  const handleSubmitAdditionalQuestion = async (data: any) => {
+    try {
+      const response = await fetch(`/api/meetings/${threadId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "submit_additional_question",
+          additionalQuestionData: data,
+        }),
+      });
+
+      if (response.ok) {
+        loadMeeting();
+        setShowAdditionalQuestionModal(false);
+      }
+    } catch (error) {
+      console.error("Error submitting additional question:", error);
     }
   };
 
@@ -241,6 +330,16 @@ export default function MessageThreadPage() {
             <p className="text-center py-8" style={{ color: '#6B7280' }}>{t("messages.empty")}</p>
           ) : (
             <div className="space-y-4">
+              {/* Meeting Status Block - Rendered as system message */}
+              {meeting && (
+                <MeetingStatusBlock
+                  threadId={threadId}
+                  otherUser={otherUser}
+                  meeting={meeting}
+                  onUpdate={handleMeetingUpdate}
+                />
+              )}
+              
               {messages.map((message) => {
                 const isOwn = message.fromUserId === session?.user?.id;
                 return (
@@ -270,6 +369,24 @@ export default function MessageThreadPage() {
             </div>
           )}
         </div>
+
+        {/* Meeting Operation Buttons - Left side of message input */}
+        {otherUser && (
+          <div className="mb-4">
+            <MeetingOperationButtons
+              meeting={meeting}
+              threadId={threadId}
+              isStudent={session?.user?.role === "student"}
+              isObog={session?.user?.role === "obog"}
+              isStudentInMeeting={meeting?.student_id === session?.user?.id}
+              isObogInMeeting={meeting?.obog_id === session?.user?.id}
+              onUpdate={handleMeetingUpdate}
+              onShowTermsModal={() => setShowTermsModal(true)}
+              onShowEvaluationModal={() => setShowEvaluationModal(true)}
+              onShowAdditionalQuestionModal={() => setShowAdditionalQuestionModal(true)}
+            />
+          </div>
+        )}
 
         {/* Message Input */}
         <form 
@@ -306,6 +423,35 @@ export default function MessageThreadPage() {
             setHasReviewed(true);
             setShowReviewModal(false);
           }}
+        />
+      )}
+
+      {/* Terms Agreement Modal */}
+      {showTermsModal && otherUser && (
+        <TermsAgreementModal
+          isOpen={showTermsModal}
+          onClose={() => setShowTermsModal(false)}
+          onAccept={handleAcceptTerms}
+          userRole={session?.user?.role as string}
+          otherUserRole={otherUser?.role}
+        />
+      )}
+
+      {/* Evaluation Form Modal */}
+      {showEvaluationModal && meeting && (
+        <EvaluationForm
+          isOpen={showEvaluationModal}
+          onClose={() => setShowEvaluationModal(false)}
+          onSubmit={handleSubmitEvaluation}
+        />
+      )}
+
+      {/* Additional Question Form (International Students Only) */}
+      {showAdditionalQuestionModal && meeting && session?.user?.role === "student" && (
+        <AdditionalQuestionForm
+          isOpen={showAdditionalQuestionModal}
+          onClose={() => setShowAdditionalQuestionModal(false)}
+          onSubmit={handleSubmitAdditionalQuestion}
         />
       )}
     </div>

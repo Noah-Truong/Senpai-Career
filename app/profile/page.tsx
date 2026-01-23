@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
+import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 
 // Options for multi-select dropdowns (same as signup pages)
 const languageOptions = ["Japanese", "English", "Chinese", "Korean", "Spanish", "French", "German", "Portuguese"];
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const { t, language } = useLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const handleSignOut = async () => {
@@ -39,6 +41,17 @@ export default function ProfilePage() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showAvailabilityCalendar, setShowAvailabilityCalendar] = useState(false);
+
+  // Check if we should auto-open availability calendar from query param
+  useEffect(() => {
+    const openParam = searchParams?.get("open");
+    if (openParam === "availability" && user && user.role === "obog") {
+      setShowAvailabilityCalendar(true);
+      // Remove query param from URL
+      router.replace("/profile", { scroll: false });
+    }
+  }, [searchParams, user, router]);
 
   const loadProfile = useCallback(async () => {
     try {
@@ -1103,6 +1116,17 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Availability Calendar Modal */}
+        {isOBOG && user && (
+          <AvailabilityCalendar
+            obogId={user.id}
+            obogName={user.nickname || user.name}
+            isOpen={showAvailabilityCalendar}
+            onClose={() => setShowAvailabilityCalendar(false)}
+            isOwner={true}
+          />
         )}
       </div>
     </div>

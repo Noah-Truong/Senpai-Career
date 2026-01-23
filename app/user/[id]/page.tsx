@@ -7,6 +7,7 @@ import Avatar from "@/components/Avatar";
 import Link from "next/link";
 import { useSession } from "@/contexts/AuthContext";
 import { getTranslated } from "@/lib/translation-helpers";
+import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 
 export default function PublicProfilePage() {
   const { t, language } = useLanguage();
@@ -18,6 +19,7 @@ export default function PublicProfilePage() {
 
   const currentUserId = (session?.user as any)?.id;
   const isOwnProfile = currentUserId === id;
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const loadUser = useCallback(async () => {
     if (!id) return;
@@ -401,14 +403,36 @@ export default function PublicProfilePage() {
 
         {/* Action Buttons */}
         {!isOwnProfile && session && (
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             <Link 
               href={`/messages/new?userId=${user.id}`} 
               className="btn-primary"
             >
               {t("button.sendMessage")}
             </Link>
+            {isOBOG && (
+              <button
+                onClick={() => setShowCalendar(true)}
+                className="btn-primary px-6 py-2 flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {t("profile.availability.view") || "View Availability"}
+              </button>
+            )}
           </div>
+        )}
+
+        {/* Availability Calendar Modal for OB/OG profiles */}
+        {isOBOG && user && (
+          <AvailabilityCalendar
+            obogId={user.id}
+            obogName={user.nickname || user.name}
+            isOpen={showCalendar}
+            onClose={() => setShowCalendar(false)}
+            isOwner={isOwnProfile && session?.user?.role === "obog"}
+          />
         )}
       </div>
     </div>
