@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { modalVariants, modalContentVariants } from "@/lib/animations";
 import { createClient } from "@/lib/supabase/client";
 import { useSession } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AvailabilityCalendarProps {
   obogId: string;
@@ -21,11 +22,17 @@ export default function AvailabilityCalendar({
   onClose,
   isOwner = false,
 }: AvailabilityCalendarProps) {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const [duration, setDuration] = useState<15 | 30 | 60 | 1440>(60);
   const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set());
+  const [bookedSlots, setBookedSlots] = useState<Map<string, any>>(new Map()); // Map of slot key -> booking data
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [bookingSlot, setBookingSlot] = useState<string | null>(null);
+  const [bookingNotes, setBookingNotes] = useState("");
+  const [bookingDuration, setBookingDuration] = useState<15 | 30 | 60 | 1440>(60);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const day = today.getDay();
@@ -40,6 +47,8 @@ export default function AvailabilityCalendar({
 
   // Additional security check: Only OBOGs can configure
   const canConfigure = isOwner && session?.user?.role === "obog" && session?.user?.id === obogId;
+  const isStudent = session?.user?.role === "student";
+  const canBook = !isOwner && isStudent; // Students can book when viewing someone else's calendar
 
   // Generate dates for the next 3 weeks (21 days)
   const generateDates = () => {
@@ -115,10 +124,11 @@ export default function AvailabilityCalendar({
     return times.join(",");
   };
 
-  // Load existing availability from CSV
+  // Load existing availability from CSV and bookings
   useEffect(() => {
     if (isOpen) {
       loadAvailability();
+      loadBookings();
     }
   }, [isOpen, obogName, duration]);
 
@@ -174,12 +184,104 @@ export default function AvailabilityCalendar({
     }
   };
 
+  const loadBookings = async () => {
+    try {
+      const response = await fetch(`/api/bookings?obogId=${obogId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const bookingsMap = new Map<string, any>();
+        
+        (data.bookings || []).forEach((booking: any) => {
+          if (booking.status === "pending" || booking.status === "confirmed") {
+            const dateTime = booking.booking_date_time;
+            // Convert "YYYY-MM-DD HH:MM" to our key format "YYYY-MM-DD_HH:MM"
+            const [date, time] = dateTime.split(" ");
+            if (date && time) {
+              const key = `${date}_${time}`;
+              bookingsMap.set(key, booking);
+            }
+          }
+        });
+        
+        setBookedSlots(bookingsMap);
+      }
+    } catch (error) {
+      console.error("Error loading bookings:", error);
+    }
+  };
+
+  const handleBookSlot = async () => {
+    if (!bookingSlot) return;
+
+    setBookingLoading(true);
+    try {
+      const [dateStr, timeStr] = bookingSlot.split("_");
+      const bookingDateTime = `${dateStr} ${timeStr}`;
+
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          obogId,
+          bookingDateTime,
+          durationMinutes: bookingDuration,
+          notes: bookingNotes || null,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Reload bookings to show the new booking
+        await loadBookings();
+        // Reload availability to refresh the view
+        await loadAvailability();
+        setBookingSlot(null);
+        setBookingNotes("");
+        alert(t("booking.success") || "Booking request sent! The OB/OG will be notified.");
+      } else {
+        let errorMessage = "Failed to create booking";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If response is not JSON, use default message
+        }
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      alert("Failed to create booking");
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
   const toggleSlot = (date: Date, timeSlot: string) => {
+    const dateStr = date.toISOString().split("T")[0];
+    const key = `${dateStr}_${timeSlot}`;
+
+    // If student is booking, open booking modal
+    if (canBook && !canConfigure) {
+      // Check if slot is available and not booked
+      if (selectedSlots.has(key) && !bookedSlots.has(key)) {
+        setBookingSlot(key);
+        return;
+      } else {
+        // Debug: log why booking isn't working
+        console.log("Booking check:", {
+          key,
+          isSelected: selectedSlots.has(key),
+          isBooked: bookedSlots.has(key),
+          canBook,
+          canConfigure
+        });
+        return;
+      }
+    }
+
     // Only allow configuration if user is authenticated OBOG and owns this profile
     if (!canConfigure) return;
 
-    const dateStr = date.toISOString().split("T")[0];
-    const key = `${dateStr}_${timeSlot}`;
     const newSelected = new Set(selectedSlots);
 
     if (newSelected.has(key)) {
@@ -366,7 +468,13 @@ export default function AvailabilityCalendar({
                           const dateStr = date.toISOString().split("T")[0];
                           const key = `${dateStr}_${timeSlot}`;
                           const isSelected = selectedSlots.has(key);
+                          const isBooked = bookedSlots.has(key);
+                          const booking = bookedSlots.get(key);
                           const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
+                          const isClickable = !isPast && (
+                            canConfigure || 
+                            (canBook && isSelected && !isBooked)
+                          );
 
                           return (
                             <td
@@ -376,11 +484,19 @@ export default function AvailabilityCalendar({
                               }`}
                             >
                               <button
-                                onClick={() => !isPast && toggleSlot(date, timeSlot)}
-                                disabled={isPast || !canConfigure}
+                                onClick={() => {
+                                  if (isClickable) {
+                                    toggleSlot(date, timeSlot);
+                                  }
+                                }}
+                                disabled={!isClickable || isBooked}
                                 className={`w-full h-10 rounded transition-all ${
-                                  isSelected
-                                    ? "bg-green-500 hover:bg-green-600 text-white"
+                                  isBooked
+                                    ? "bg-blue-500 hover:bg-blue-600 text-white"
+                                    : isSelected
+                                    ? canBook && !canConfigure
+                                      ? "bg-green-400 hover:bg-green-500 text-white cursor-pointer"
+                                      : "bg-green-500 hover:bg-green-600 text-white"
                                     : isPast
                                     ? "bg-gray-200 cursor-not-allowed"
                                     : canConfigure
@@ -388,8 +504,10 @@ export default function AvailabilityCalendar({
                                     : "bg-gray-50 cursor-default"
                                 }`}
                                 title={
-                                  isSelected
-                                    ? "Available"
+                                  isBooked
+                                    ? `Booked${booking?.status === "pending" ? " (Pending)" : ""}`
+                                    : isSelected
+                                    ? canBook ? "Click to book this slot" : "Available"
                                     : isPast
                                     ? "Past date"
                                     : canConfigure
@@ -397,7 +515,7 @@ export default function AvailabilityCalendar({
                                     : "Not available"
                                 }
                               >
-                                {isSelected ? "✓" : ""}
+                                {isBooked ? "📅" : isSelected ? "✓" : ""}
                               </button>
                             </td>
                           );
@@ -449,6 +567,100 @@ export default function AvailabilityCalendar({
           )}
         </div>
       </motion.div>
+
+      {/* Booking Modal */}
+      {bookingSlot && canBook && (
+        <motion.div
+          className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-[60] p-4"
+          variants={modalVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          onClick={() => setBookingSlot(null)}
+        >
+          <motion.div
+            className="bg-white rounded-lg max-w-md w-full p-6"
+            variants={modalContentVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-4" style={{ color: '#111827' }}>
+              {t("booking.title") || "Book Meeting Time"}
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium mb-1" style={{ color: '#374151' }}>
+                  {t("booking.dateTime") || "Date & Time"}
+                </p>
+                <p className="text-sm" style={{ color: '#6B7280' }}>
+                  {(() => {
+                    const [dateStr, timeStr] = bookingSlot.split("_");
+                    const date = new Date(dateStr);
+                    return `${date.toLocaleDateString()} at ${timeStr}`;
+                  })()}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                  {t("booking.duration") || "Duration"}
+                </label>
+                <div className="flex gap-2">
+                  {[15, 30, 60, 1440].map((mins) => (
+                    <button
+                      key={mins}
+                      onClick={() => setBookingDuration(mins as 15 | 30 | 60 | 1440)}
+                      className={`px-3 py-1 rounded text-sm ${
+                        bookingDuration === mins
+                          ? "bg-navy text-white"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {mins === 1440 ? "Day" : `${mins}min`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                  {t("booking.notes") || "Notes (Optional)"}
+                </label>
+                <textarea
+                  value={bookingNotes}
+                  onChange={(e) => setBookingNotes(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border rounded text-sm"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px' }}
+                  placeholder={t("booking.notesPlaceholder") || "Add any notes about the meeting..."}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4 justify-end mt-6">
+              <button
+                onClick={() => {
+                  setBookingSlot(null);
+                  setBookingNotes("");
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              >
+                {t("button.cancel") || "Cancel"}
+              </button>
+              <button
+                onClick={handleBookSlot}
+                disabled={bookingLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                {bookingLoading ? t("common.loading") : t("booking.book") || "Book Meeting"}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

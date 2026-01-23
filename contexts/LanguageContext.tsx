@@ -771,6 +771,18 @@ const translations: Record<Language, Record<string, string>> = {
     "admin.meetings.notesPlaceholder": "Add review notes...",
     "admin.meetings.markReviewed": "Mark as Reviewed",
     
+    // Bookings
+    "booking.title": "Book Meeting Time",
+    "booking.dateTime": "Date & Time",
+    "booking.duration": "Duration",
+    "booking.notes": "Notes (Optional)",
+    "booking.notesPlaceholder": "Add any notes about the meeting...",
+    "booking.book": "Book Meeting",
+    "booking.success": "Booking request sent! The OB/OG will be notified.",
+    "booking.pending": "Pending",
+    "booking.confirmed": "Confirmed",
+    "booking.cancelled": "Cancelled",
+    
     // Recruitment Process Page
     "recruitmentProcess.title": "Recruitment Process",
     "recruitmentProcess.subtitle": "Learn about our structured approach to connecting companies with international talent",
