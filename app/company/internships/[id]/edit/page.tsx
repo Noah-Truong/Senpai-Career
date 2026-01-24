@@ -24,6 +24,7 @@ export default function EditInternshipPage({ params }: { params: { id: string } 
     workDetails: "",
     skillsGained: "",
     whyThisCompany: "",
+    status: "public" as "public" | "stopped",
   });
 
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function EditInternshipPage({ params }: { params: { id: string } 
                 workDetails: internship.workDetails || "",
                 skillsGained: internship.skillsGained?.join(", ") || "",
                 whyThisCompany: internship.whyThisCompany || "",
+                status: internship.status || "public",
               });
             } else {
               throw new Error("Failed to load internship listing");
@@ -140,6 +142,7 @@ export default function EditInternshipPage({ params }: { params: { id: string } 
           workDetails: formData.workDetails,
           skillsGained,
           whyThisCompany: formData.whyThisCompany,
+          status: formData.status,
         }),
       });
 

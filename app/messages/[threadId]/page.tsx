@@ -13,6 +13,7 @@ import MeetingOperationButtons from "@/components/MeetingOperationButtons";
 import TermsAgreementModal from "@/components/TermsAgreementModal";
 import EvaluationForm from "@/components/EvaluationForm";
 import AdditionalQuestionForm from "@/components/AdditionalQuestionForm";
+import { dispatchCreditsRefresh } from "@/components/AppLayout";
 
 export default function MessageThreadPage() {
   const { t, language } = useLanguage();
@@ -34,6 +35,7 @@ export default function MessageThreadPage() {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
   const [showAdditionalQuestionModal, setShowAdditionalQuestionModal] = useState(false);
+  const [optimisticCredits, setOptimisticCredits] = useState<number | null>(null);
 
   const loadMeeting = useCallback(async () => {
     try {
@@ -47,56 +49,24 @@ export default function MessageThreadPage() {
     }
   }, [threadId]);
 
-  const loadMessages = useCallback(async () => {
+  const loadMessages = useCallback(async (backgroundRefetch = false) => {
+    if (!backgroundRefetch) setLoading(true);
     try {
       const response = await fetch(`/api/messages/${threadId}`);
       if (response.ok) {
-        // Check if response is JSON before parsing
         const contentType = response.headers.get("content-type");
         const isJson = contentType && contentType.includes("application/json");
-        
+
         if (isJson) {
           try {
             const text = await response.text();
             const trimmedText = text.trim();
-            
+
             if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
               const data = JSON.parse(text);
-              
-              if (data.messages) {
-                setMessages(data.messages);
-              }
-              if (data.otherUser) {
-                setOtherUser(data.otherUser);
-                if (session?.user?.id && data.otherUser.id) {
-                  try {
-                    const reviewResponse = await fetch(`/api/reviews?userId=${data.otherUser.id}`);
-                    if (reviewResponse.ok) {
-                      const reviewContentType = reviewResponse.headers.get("content-type");
-                      const reviewIsJson = reviewContentType && reviewContentType.includes("application/json");
-                      
-                      if (reviewIsJson) {
-                        try {
-                          const reviewText = await reviewResponse.text();
-                          const reviewTrimmed = reviewText.trim();
-                          
-                          if (reviewTrimmed.startsWith("{") || reviewTrimmed.startsWith("[")) {
-                            const reviewData = JSON.parse(reviewText);
-                            const existingReview = reviewData.reviews?.find(
-                              (r: any) => r.reviewerUserId === session.user.id
-                            );
-                            setHasReviewed(!!existingReview);
-                          }
-                        } catch (reviewJsonError) {
-                          console.error("Failed to parse reviews JSON:", reviewJsonError);
-                        }
-                      }
-                    }
-                  } catch (err) {
-                    console.error("Error checking reviews:", err);
-                  }
-                }
-              }
+
+              if (data.messages) setMessages(data.messages);
+              if (data.otherUser) setOtherUser(data.otherUser);
             } else {
               console.warn("Messages API returned non-JSON response");
               setError("Failed to load messages");
@@ -118,7 +88,28 @@ export default function MessageThreadPage() {
     } finally {
       setLoading(false);
     }
-  }, [threadId, session?.user?.id]);
+  }, [threadId]);
+
+  const loadHasReviewed = useCallback(
+    async (otherUserId: string, currentUserId: string) => {
+      try {
+        const reviewResponse = await fetch(`/api/reviews?userId=${otherUserId}`);
+        if (!reviewResponse.ok) return;
+        const reviewContentType = reviewResponse.headers.get("content-type");
+        const reviewIsJson = reviewContentType?.includes("application/json");
+        if (!reviewIsJson) return;
+        const reviewText = await reviewResponse.text();
+        const reviewTrimmed = reviewText.trim();
+        if (!reviewTrimmed.startsWith("{") && !reviewTrimmed.startsWith("[")) return;
+        const reviewData = JSON.parse(reviewText);
+        const existing = reviewData.reviews?.find((r: any) => r.reviewerUserId === currentUserId);
+        setHasReviewed(!!existing);
+      } catch (err) {
+        console.error("Error checking reviews:", err);
+      }
+    },
+    []
+  );
 
   const handleMeetingUpdate = useCallback(() => {
     loadMeeting();
@@ -135,6 +126,11 @@ export default function MessageThreadPage() {
       loadMeeting();
     }
   }, [status, threadId, router, loadMessages, loadMeeting]);
+
+  useEffect(() => {
+    if (!otherUser?.id || !session?.user?.id) return;
+    loadHasReviewed(otherUser.id, session.user.id);
+  }, [otherUser?.id, session?.user?.id, loadHasReviewed]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,7 +178,11 @@ export default function MessageThreadPage() {
       }
 
       setNewMessage("");
-      loadMessages();
+      loadMessages(true);
+      // Refresh credits display after successful message send (small delay to ensure API processed)
+      setTimeout(() => {
+        dispatchCreditsRefresh();
+      }, 500);
     } catch (err: any) {
       setError(err.message || "Failed to send message");
     } finally {
@@ -342,6 +342,9 @@ export default function MessageThreadPage() {
               
               {messages.map((message) => {
                 const isOwn = message.fromUserId === session?.user?.id;
+                const isAdminView = session?.user?.role === "admin";
+                const senderName = message.sender?.name || message.sender?.email || "Unknown";
+                
                 return (
                   <div
                     key={message.id}
@@ -355,6 +358,17 @@ export default function MessageThreadPage() {
                         borderRadius: '6px'
                       }}
                     >
+                      {isAdminView && (
+                        <p 
+                          className="text-xs font-medium mb-1"
+                          style={{ 
+                            color: isOwn ? 'rgba(255,255,255,0.9)' : '#6B7280',
+                            opacity: 0.8
+                          }}
+                        >
+                          {senderName} {message.sender?.role && `(${message.sender.role})`}
+                        </p>
+                      )}
                       <p className="text-sm whitespace-pre-wrap">{translate(message.content)}</p>
                       <p 
                         className="text-xs mt-1"

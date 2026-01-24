@@ -4,6 +4,7 @@ import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Link from "next/link";
 
 export default function CompanyProfilePage() {
   const { t } = useLanguage();
@@ -28,23 +29,6 @@ export default function CompanyProfilePage() {
     sellingPoints: "",
     oneLineMessage: "",
   });
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-      return;
-    }
-
-    if (status === "authenticated" && session?.user?.role !== "company") {
-      router.push("/dashboard");
-      return;
-    }
-
-    // Only load data when we have a confirmed authenticated session with user ID
-    if (status === "authenticated" && session?.user?.id && session?.user?.role === "company") {
-      loadCompanyData();
-    }
-  }, [status, session, router, loadCompanyData]);
 
   const loadCompanyData = useCallback(async () => {
     setLoading(true);
@@ -135,6 +119,22 @@ export default function CompanyProfilePage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+
+    if (status === "authenticated" && session?.user?.role !== "company") {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (status === "authenticated" && session?.user?.id && session?.user?.role === "company") {
+      loadCompanyData();
+    }
+  }, [status, session, router, loadCompanyData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -215,10 +215,20 @@ export default function CompanyProfilePage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>{t("company.profile.title") || "Company Profile"}</h1>
-        <p className="mb-8" style={{ color: '#6B7280' }}>
-          {t("company.profile.subtitle") || "Edit your company profile page that students will see when browsing opportunities."}
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold mb-2" style={{ color: '#111827' }}>{t("company.profile.title") || "Company Profile"}</h1>
+            <p className="mb-2" style={{ color: '#6B7280' }}>
+              {t("company.profile.subtitle") || "Edit your company profile page that students will see when browsing opportunities."}
+            </p>
+          </div>
+          <Link
+            href="/company/internships"
+            className="btn-primary"
+          >
+            {t("company.profile.manageRecruitments") || "Manage Recruitments"}
+          </Link>
+        </div>
 
         {error && (
           <div 

@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabase = await createClient();
     const body = await request.json();
     const { complianceAgreed, complianceDocuments } = body;
 
@@ -63,8 +64,6 @@ export async function POST(request: NextRequest) {
         );
       }
     }
-
-    const supabase = await createClient();
 
     // Update student profile with compliance information
     const { error: updateError } = await supabase

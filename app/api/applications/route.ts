@@ -88,6 +88,18 @@ export async function POST(request: NextRequest) {
       status: "pending",
     });
 
+    // Notify company about new application
+    if (listing.companyId) {
+      const { sendRoleBasedNotification } = await import("@/lib/notification-helpers");
+      await sendRoleBasedNotification(
+        listing.companyId,
+        "application",
+        "New Application Received",
+        `A student has applied to your listing: ${listing.title}`,
+        `/company/internships/${listingId}/applications`
+      );
+    }
+
     return NextResponse.json(
       { application, message: "Application submitted successfully" },
       { status: 201 }

@@ -134,16 +134,16 @@ export async function POST(
 
     if (user1?.role === "student") {
       studentId = user1.id;
-      obogId = participants.find(id => id !== studentId) || participants[1];
+      obogId = participants.find((id: string) => id !== studentId) || participants[1];
     } else if (user2?.role === "student") {
       studentId = user2.id;
-      obogId = participants.find(id => id !== studentId) || participants[0];
+      obogId = participants.find((id: string) => id !== studentId) || participants[0];
     } else if (user1?.role === "obog") {
       obogId = user1.id;
-      studentId = participants.find(id => id !== obogId) || participants[1];
+      studentId = participants.find((id: string) => id !== obogId) || participants[1];
     } else if (user2?.role === "obog") {
       obogId = user2.id;
-      studentId = participants.find(id => id !== obogId) || participants[0];
+      studentId = participants.find((id: string) => id !== obogId) || participants[0];
     } else {
       // Fallback: assume first is student, second is OB/OG
       studentId = participants[0];
@@ -211,6 +211,21 @@ export async function POST(
 
       meeting = created;
       operationType = "create";
+      
+      // Notify the other party about meeting request (OB/OG when student creates, else student)
+      try {
+        const { sendMeetingNotification } = await import("@/lib/notification-helpers");
+        const requesterIsStudent = session.user.id === studentId;
+        const notifyUserId = requesterIsStudent ? meeting.obog_id : meeting.student_id;
+        await sendMeetingNotification(
+          notifyUserId,
+          "request",
+          meetingDateTime || "",
+          threadId
+        );
+      } catch (notifError) {
+        console.error("Error sending meeting request notification:", notifError);
+      }
     }
 
     // Log operation
@@ -302,6 +317,25 @@ export async function PUT(
       }
       updates.status = "confirmed";
       operationType = "confirm";
+      
+      // Notify both parties
+      try {
+        const { sendMeetingNotification } = await import("@/lib/notification-helpers");
+        await sendMeetingNotification(
+          meeting.student_id,
+          "confirm",
+          meeting.meeting_date_time || "",
+          threadId
+        );
+        await sendMeetingNotification(
+          meeting.obog_id,
+          "confirm",
+          meeting.meeting_date_time || "",
+          threadId
+        );
+      } catch (notifError) {
+        console.error("Error sending meeting confirmation notifications:", notifError);
+      }
     } else if (action === "complete") {
       if (isStudent) {
         updates.student_post_status = "completed";
@@ -318,6 +352,25 @@ export async function PUT(
       
       if (studentStatus === "completed" && (obogStatus === "completed" || !obogStatus)) {
         updates.status = "completed";
+        
+        // Notify both parties when meeting is completed
+        try {
+          const { sendMeetingNotification } = await import("@/lib/notification-helpers");
+          await sendMeetingNotification(
+            meeting.student_id,
+            "complete",
+            meeting.meeting_date_time || "",
+            threadId
+          );
+          await sendMeetingNotification(
+            meeting.obog_id,
+            "complete",
+            meeting.meeting_date_time || "",
+            threadId
+          );
+        } catch (notifError) {
+          console.error("Error sending meeting completion notifications:", notifError);
+        }
       }
     } else if (action === "mark_no_show") {
       if (isStudent) {
@@ -338,9 +391,50 @@ export async function PUT(
         updates.requires_review = true;
         updates.review_reason = "No-show reported by one party while other marked complete";
       }
+      
+      // Notify the other party about no-show
+      try {
+        const { sendMeetingNotification } = await import("@/lib/notification-helpers");
+        const notifyUserId = isStudent ? meeting.obog_id : meeting.student_id;
+        await sendMeetingNotification(
+          notifyUserId,
+          "no-show",
+          meeting.meeting_date_time || "",
+          threadId
+        );
+      } catch (notifError) {
+        console.error("Error sending no-show notification:", notifError);
+      }
     } else if (action === "cancel") {
       updates.status = "cancelled";
       operationType = "cancel";
+      
+      // Notify both parties
+      try {
+        const { sendMeetingNotification } = await import("@/lib/notification-helpers");
+        const { data: currentUser } = await supabase
+          .from("users")
+          .select("name")
+          .eq("id", session.user.id)
+          .single();
+        
+        await sendMeetingNotification(
+          meeting.student_id,
+          "cancel",
+          meeting.meeting_date_time || "",
+          threadId,
+          currentUser?.name
+        );
+        await sendMeetingNotification(
+          meeting.obog_id,
+          "cancel",
+          meeting.meeting_date_time || "",
+          threadId,
+          currentUser?.name
+        );
+      } catch (notifError) {
+        console.error("Error sending meeting cancellation notifications:", notifError);
+      }
     } else if (action === "submit_evaluation") {
       if (isStudent) {
         updates.student_evaluated = true;

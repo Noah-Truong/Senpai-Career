@@ -142,9 +142,9 @@ export default function AdminUsersPage() {
     <AdminLayout>
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1" style={{ color: '#111827' }}>
-          User Management
+          {t("admin.users.title")}
         </h1>
-        <p style={{ color: '#6B7280' }}>Manage all users, apply strikes, and ban users</p>
+        <p style={{ color: '#6B7280' }}>{t("admin.users.subtitle")}</p>
       </div>
 
       {error && (
@@ -175,7 +175,7 @@ export default function AdminUsersPage() {
             Students ({students.length})
           </h2>
         </div>
-        <div className="overflow-x-auto">
+        <div className="table-responsive overflow-x-auto">
           <table className="min-w-full divide-y" style={{ borderColor: '#E5E7EB' }}>
             <thead style={{ backgroundColor: '#D7FFEF' }}>
               <tr>
@@ -215,17 +215,17 @@ export default function AdminUsersPage() {
                       (user.strikes || 0) === 1 ? "bg-yellow-100 text-yellow-800" :
                       "bg-red-100 text-red-800"
                     }`}>
-                      {(user.strikes || 0)} Strike{(user.strikes || 0) !== 1 ? "s" : ""}
+                      {(user.strikes || 0)} {t("admin.users.strikes")}{((user.strikes || 0) as number) !== 1 ? "s" : ""}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {user.isBanned ? (
                       <span className="px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-800">
-                        Banned
+                        {t("admin.users.banned")}
                       </span>
                     ) : (
                       <span className="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">
-                        Active
+                        {t("admin.users.active")}
                       </span>
                     )}
                   </td>
@@ -237,7 +237,7 @@ export default function AdminUsersPage() {
                           className="hover:underline"
                           style={{ color: '#D97706' }}
                         >
-                          Add Strike
+                          {t("admin.users.addStrike")}
                         </button>
                       )}
                       {(user.strikes || 0) > 0 && (
@@ -246,7 +246,7 @@ export default function AdminUsersPage() {
                           className="hover:underline"
                           style={{ color: '#059669' }}
                         >
-                          Remove Strike
+                          {t("admin.users.removeStrike")}
                         </button>
                       )}
                       {!user.isBanned ? (
@@ -256,7 +256,7 @@ export default function AdminUsersPage() {
                           className="hover:underline disabled:opacity-50"
                           style={{ color: '#DC2626' }}
                         >
-                          {banningUser === user.id ? "Banning..." : "Ban"}
+                          {banningUser === user.id ? t("admin.users.banning") : t("admin.users.ban")}
                         </button>
                       ) : (
                         <button
@@ -265,7 +265,7 @@ export default function AdminUsersPage() {
                           className="hover:underline disabled:opacity-50"
                           style={{ color: '#059669' }}
                         >
-                          {banningUser === user.id ? "Unbanning..." : "Unban"}
+                          {banningUser === user.id ? t("admin.users.unbanning") : t("admin.users.unban")}
                         </button>
                       )}
                     </div>
@@ -284,17 +284,17 @@ export default function AdminUsersPage() {
       >
         <div className="p-4 border-b" style={{ borderColor: '#E5E7EB' }}>
           <h2 className="text-lg font-semibold" style={{ color: '#111827' }}>
-            All Users ({users.length})
+            {t("admin.users.allUsers")} ({users.length})
           </h2>
         </div>
-        <div className="overflow-x-auto">
+        <div className="table-responsive overflow-x-auto">
           <table className="min-w-full divide-y" style={{ borderColor: '#E5E7EB' }}>
             <thead style={{ backgroundColor: '#D7FFEF' }}>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Created</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.name")}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.email")}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.role")}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.created")}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y" style={{ borderColor: '#E5E7EB' }}>
@@ -334,11 +334,11 @@ export default function AdminUsersPage() {
             style={{ borderRadius: '6px' }}
           >
             <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>
-              {strikeAction === "add" ? "Add Strike" : "Remove Strike"} - {selectedUser.name}
+              {strikeAction === "add" ? t("admin.users.strikeModal.addTitle") : t("admin.users.strikeModal.removeTitle")} - {selectedUser.name}
             </h3>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
-                Reason (optional)
+                {t("admin.users.strikeModal.reason")}
               </label>
               <textarea
                 value={strikeReason}
@@ -346,17 +346,17 @@ export default function AdminUsersPage() {
                 rows={3}
                 className="w-full px-3 py-2 border rounded"
                 style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
-                placeholder="Enter reason for this action..."
+                placeholder={t("admin.users.strikeModal.reasonPlaceholder")}
               />
             </div>
             <div className="mb-4 text-sm" style={{ color: '#6B7280' }}>
-              Current strikes: <strong style={{ color: '#111827' }}>{selectedUser.strikes || 0}</strong>
+              {t("admin.users.strikeModal.currentStrikes")}: <strong style={{ color: '#111827' }}>{selectedUser.strikes || 0}</strong>
               {strikeAction === "add" && (
                 <span className="block mt-1">
-                  After this action: <strong style={{ color: '#111827' }}>{(selectedUser.strikes || 0) + 1}</strong>
+                  {t("admin.users.strikeModal.afterAction")}: <strong style={{ color: '#111827' }}>{(selectedUser.strikes || 0) + 1}</strong>
                   {(selectedUser.strikes || 0) + 1 >= 2 && (
                     <span className="block mt-1" style={{ color: '#DC2626' }}>
-                      ⚠️ User will be automatically banned (2 strikes = ban)
+                      {t("admin.users.strikeModal.willBeBanned")}
                     </span>
                   )}
                 </span>
@@ -367,7 +367,7 @@ export default function AdminUsersPage() {
                 onClick={handleStrikeAction}
                 className="flex-1 btn-primary"
               >
-                {strikeAction === "add" ? "Add Strike" : "Remove Strike"}
+                {strikeAction === "add" ? t("admin.users.strikeModal.addTitle") : t("admin.users.strikeModal.removeTitle")}
               </button>
               <button
                 onClick={() => {
@@ -376,7 +376,7 @@ export default function AdminUsersPage() {
                 }}
                 className="flex-1 btn-secondary"
               >
-                Cancel
+                {t("button.cancel")}
               </button>
             </div>
           </div>

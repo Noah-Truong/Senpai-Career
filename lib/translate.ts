@@ -53,19 +53,23 @@ export async function translateText(
   try {
     // Try Google Translate API if configured
     const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY;
-    if (apiKey) {
+    if (apiKey && apiKey !== "your-api-key-here") {
       const translated = await translateWithGoogle(text, targetLang, detectedSourceLang, apiKey);
       translationCache.set(cacheKey, translated);
       return translated;
     }
-  } catch (error) {
-    console.error("Google Translate API error:", error);
+  } catch (error: any) {
+    // Only log errors if they're not expected (e.g., API key not configured)
+    // Suppress errors for missing/invalid API keys to reduce noise
+    const errorMessage = error?.message || String(error);
+    if (!errorMessage.includes("API key") && !errorMessage.includes("403") && !errorMessage.includes("401")) {
+      // Log unexpected errors (network issues, rate limits, etc.) but don't throw
+      console.warn(`Translation API error (falling back to original): ${errorMessage}`);
+    }
   }
 
-  // Fallback: Return original text with a note (or implement a simpler translation)
-  // In production, you might want to use a different free service or implement
-  // a basic translation dictionary
-  console.warn(`Translation not available. Returning original text.`);
+  // Fallback: Return original text
+  // This is expected behavior when API is not configured or fails
   return text;
 }
 
@@ -94,10 +98,26 @@ async function translateWithGoogle(
   );
 
   if (!response.ok) {
-    throw new Error(`Translation API error: ${response.statusText}`);
+    // Try to get more detailed error information
+    let errorMessage = `Translation API error: ${response.status} ${response.statusText}`;
+    try {
+      const errorData = await response.json();
+      if (errorData.error?.message) {
+        errorMessage = `Translation API error: ${errorData.error.message}`;
+      }
+    } catch (parseError) {
+      // If we can't parse the error, use the status text
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
+  
+  // Validate response structure
+  if (!data?.data?.translations?.[0]?.translatedText) {
+    throw new Error("Invalid translation response format");
+  }
+  
   return data.data.translations[0].translatedText;
 }
 

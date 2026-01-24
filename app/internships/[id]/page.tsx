@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import CompanyLogo from "@/components/CompanyLogo";
 import Link from "next/link";
+import SaveButton from "@/components/SaveButton";
 
 export default function InternshipDetailPage() {
   const { t } = useLanguage();
@@ -29,6 +30,17 @@ export default function InternshipDetailPage() {
       checkApplicationStatus();
     }
   }, [listingId]);
+
+  // Record browsing history (students only)
+  useEffect(() => {
+    if (listing && session?.user?.role === "student" && listingId) {
+      fetch("/api/browsing-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemType: "recruitment", itemId: listingId }),
+      }).catch(console.error);
+    }
+  }, [listing, listingId, session]);
 
   const loadListing = async () => {
     try {
@@ -160,15 +172,22 @@ export default function InternshipDetailPage() {
               className="mr-4"
             />
             <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">
-                {listing.titleKey ? t(listing.titleKey) : listing.title}
-              </h1>
-              <p className="text-lg text-gray-600">{listing.companyName}</p>
-              <p className="text-xl font-semibold text-gray-900 mt-2">
-                {listing.compensationType === "hourly" && `${t("compensation.hourly")}: ¥${listing.hourlyWage?.toLocaleString()}/hr`}
-                {listing.compensationType === "fixed" && `${t("compensation.fixed")}: ¥${listing.fixedSalary?.toLocaleString()}/year`}
-                {listing.compensationType === "other" && `${t("compensation.other")}: ${listing.otherCompensation}`}
-              </p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">
+                    {listing.titleKey ? t(listing.titleKey) : listing.title}
+                  </h1>
+                  <p className="text-lg text-gray-600">{listing.companyName}</p>
+                  <p className="text-xl font-semibold text-gray-900 mt-2">
+                    {listing.compensationType === "hourly" && `${t("compensation.hourly")}: ¥${listing.hourlyWage?.toLocaleString()}/hr`}
+                    {listing.compensationType === "fixed" && `${t("compensation.fixed")}: ¥${listing.fixedSalary?.toLocaleString()}/year`}
+                    {listing.compensationType === "other" && `${t("compensation.other")}: ${listing.otherCompensation}`}
+                  </p>
+                </div>
+                {session?.user?.role === "student" && (
+                  <SaveButton itemType="recruitment" itemId={listingId} />
+                )}
+              </div>
             </div>
           </div>
         </div>

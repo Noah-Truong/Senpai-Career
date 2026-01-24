@@ -68,7 +68,7 @@ export default function AdminCompliancePage() {
             }))
             .filter((s: ComplianceSubmission) => s.complianceAgreed || s.complianceStatus !== "pending");
           
-          setSubmissions(submissionsWithCompliance.filter((s): s is ComplianceSubmission => s !== null));
+          setSubmissions(submissionsWithCompliance.filter((s: ComplianceSubmission | null): s is ComplianceSubmission => s !== null));
         }
       }
     } catch (error) {
@@ -117,7 +117,7 @@ export default function AdminCompliancePage() {
       setSelectedSubmission(null);
     } catch (error) {
       console.error("Error updating compliance status:", error);
-      alert("Failed to update compliance status");
+      alert(t("admin.compliance.error.update") || "Failed to update compliance status");
     } finally {
       setUpdatingStatus(false);
     }
@@ -155,29 +155,29 @@ export default function AdminCompliancePage() {
     <AdminLayout>
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1" style={{ color: '#111827' }}>
-          Student Compliance Review
+          {t("admin.compliance.title")}
         </h1>
         <p style={{ color: '#6B7280' }}>
-          Review and approve student compliance documents (features.md 4.2)
+          {t("admin.compliance.subtitle")}
         </p>
       </div>
 
       {/* Statistics */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-white border rounded p-4" style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}>
-          <p className="text-sm" style={{ color: '#6B7280' }}>Total Submissions</p>
+          <p className="text-sm" style={{ color: '#6B7280' }}>{t("admin.compliance.totalSubmissions")}</p>
           <p className="text-2xl font-bold" style={{ color: '#111827' }}>{submissions.length}</p>
         </div>
         <div className="bg-yellow-50 border rounded p-4" style={{ borderColor: '#FCD34D', borderRadius: '6px' }}>
-          <p className="text-sm" style={{ color: '#6B7280' }}>Pending Review</p>
+          <p className="text-sm" style={{ color: '#6B7280' }}>{t("admin.compliance.pendingReview")}</p>
           <p className="text-2xl font-bold" style={{ color: '#92400E' }}>{pendingCount}</p>
         </div>
         <div className="bg-green-50 border rounded p-4" style={{ borderColor: '#86EFAC', borderRadius: '6px' }}>
-          <p className="text-sm" style={{ color: '#6B7280' }}>Approved</p>
+          <p className="text-sm" style={{ color: '#6B7280' }}>{t("admin.compliance.approved")}</p>
           <p className="text-2xl font-bold" style={{ color: '#166534' }}>{approvedCount}</p>
         </div>
         <div className="bg-red-50 border rounded p-4" style={{ borderColor: '#FCA5A5', borderRadius: '6px' }}>
-          <p className="text-sm" style={{ color: '#6B7280' }}>Rejected</p>
+          <p className="text-sm" style={{ color: '#6B7280' }}>{t("admin.compliance.rejected")}</p>
           <p className="text-2xl font-bold" style={{ color: '#991B1B' }}>{rejectedCount}</p>
         </div>
       </div>
@@ -190,18 +190,18 @@ export default function AdminCompliancePage() {
           className="px-4 py-2 border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
         >
-          <option value="all">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="submitted">Submitted</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
+          <option value="all">{t("admin.compliance.allStatuses")}</option>
+          <option value="pending">{t("admin.compliance.pending")}</option>
+          <option value="submitted">{t("admin.compliance.submitted")}</option>
+          <option value="approved">{t("admin.compliance.approved")}</option>
+          <option value="rejected">{t("admin.compliance.rejected")}</option>
         </select>
       </div>
 
       {/* Submissions List */}
       {filteredSubmissions.length === 0 ? (
         <div className="bg-white border rounded p-8 text-center" style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}>
-          <p style={{ color: '#6B7280' }}>No compliance submissions found.</p>
+          <p style={{ color: '#6B7280' }}>{t("admin.compliance.noSubmissions")}</p>
         </div>
       ) : (
         <div className="bg-white border rounded divide-y" style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}>
@@ -226,13 +226,13 @@ export default function AdminCompliancePage() {
                     </p>
                     {isInternational && (
                       <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
-                        International Student ({submission.nationality})
+                        {t("admin.compliance.internationalStudent")} ({submission.nationality})
                       </p>
                     )}
                     <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
-                      Submitted: {submission.complianceSubmittedAt 
+                      {t("admin.compliance.submittedDate")}: {submission.complianceSubmittedAt 
                         ? new Date(submission.complianceSubmittedAt).toLocaleDateString()
-                        : "Not submitted"}
+                        : t("admin.compliance.notSubmitted")}
                     </p>
                   </div>
                   <span className={`px-3 py-1 rounded text-xs font-medium ${
@@ -280,7 +280,7 @@ export default function AdminCompliancePage() {
             <div className="space-y-4">
               <div>
                 <p className="text-sm font-medium mb-2" style={{ color: '#374151' }}>
-                  Compliance Status
+                  {t("admin.compliance.complianceStatus")}
                 </p>
                 <span className={`px-3 py-1 rounded text-sm font-medium inline-block ${
                   selectedSubmission.complianceStatus === "approved"
@@ -289,22 +289,30 @@ export default function AdminCompliancePage() {
                     ? "bg-red-100 text-red-800"
                     : "bg-yellow-100 text-yellow-800"
                 }`}>
-                  {selectedSubmission.complianceStatus || "pending"}
+                  {selectedSubmission.complianceStatus === "approved" ? t("admin.compliance.status.approved") :
+                   selectedSubmission.complianceStatus === "rejected" ? t("admin.compliance.status.rejected") :
+                   selectedSubmission.complianceStatus === "submitted" ? t("admin.compliance.status.submitted") :
+                   t("admin.compliance.status.pending")}
                 </span>
               </div>
 
               {selectedSubmission.complianceDocuments && selectedSubmission.complianceDocuments.length > 0 && (
                 <div>
                   <p className="text-sm font-medium mb-2" style={{ color: '#374151' }}>
-                    Submitted Documents
+                    {t("admin.compliance.submittedDocuments")}
                   </p>
                   <div className="space-y-2">
                     {selectedSubmission.complianceDocuments.map((docUrl, index) => {
                       const cleanUrl = docUrl.includes(":") ? docUrl.split(":")[1] : docUrl;
+                      const docName = docUrl.includes("permission") || docUrl.includes("activity")
+                        ? t("admin.compliance.permissionDocument")
+                        : docUrl.includes("japanese") || docUrl.includes("jlpt") || docUrl.includes("cert")
+                        ? t("admin.compliance.japaneseCert")
+                        : t("admin.compliance.document");
                       return (
                         <div key={index} className="flex items-center justify-between p-3 border rounded" style={{ borderColor: '#E5E7EB' }}>
                           <span className="text-sm" style={{ color: '#374151' }}>
-                            {getDocumentName(docUrl)}
+                            {docName}
                           </span>
                           <a
                             href={cleanUrl}
@@ -312,7 +320,7 @@ export default function AdminCompliancePage() {
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 text-sm underline"
                           >
-                            View Document
+                            {t("admin.compliance.viewDocument")}
                           </a>
                         </div>
                       );
@@ -328,14 +336,14 @@ export default function AdminCompliancePage() {
                     disabled={updatingStatus}
                     className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                   >
-                    {updatingStatus ? "Updating..." : "Approve"}
+                    {updatingStatus ? t("admin.compliance.updating") : t("admin.compliance.approve")}
                   </button>
                   <button
                     onClick={() => handleUpdateStatus(selectedSubmission.userId, "rejected")}
                     disabled={updatingStatus}
                     className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
                   >
-                    {updatingStatus ? "Updating..." : "Reject"}
+                    {updatingStatus ? t("admin.compliance.updating") : t("admin.compliance.reject")}
                   </button>
                 </div>
               ) : null}

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useSession } from "@/contexts/AuthContext";
 import { getTranslated } from "@/lib/translation-helpers";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
+import SaveButton from "@/components/SaveButton";
 
 export default function PublicProfilePage() {
   const { t, language } = useLanguage();
@@ -325,6 +326,14 @@ export default function PublicProfilePage() {
             {/* Company Profile */}
             {isCompany && (
               <>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold" style={{ color: '#111827' }}>
+                    {t("company.profile.title") || "Company Profile"}
+                  </h2>
+                  {session?.user?.role === "student" && (
+                    <SaveButton itemType="company" itemId={user.id} />
+                  )}
+                </div>
                 {user.overview && (
                   <div>
                     <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("company.profile.overview")}</h3>

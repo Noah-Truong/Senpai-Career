@@ -160,6 +160,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Alumni (obog) cannot initiate new conversations - they can only reply
+      // Companies and students can initiate conversations
       if (fromUser.role === "obog") {
         return NextResponse.json(
           { error: "Alumni cannot start new conversations. Please wait for a student to message you first.", code: "ALUMNI_CANNOT_INITIATE" },
@@ -193,7 +194,7 @@ export async function POST(request: NextRequest) {
       await updateUser(fromUserId, {
         credits: newCredits
       });
-      console.log(`Credits deducted: User ${fromUserId}, ${currentCredits} -> ${newCredits} (cost: ${creditsCost})`);
+      // Credits deducted successfully
     } catch (creditError: any) {
       console.error("Error deducting credits:", creditError);
       return NextResponse.json(
@@ -230,6 +231,28 @@ export async function POST(request: NextRequest) {
 
     saveMessage(message);
     saveThread(thread);
+
+    // Send notification to recipient
+    try {
+      const { sendRoleBasedNotification } = await import("@/lib/notification-helpers");
+      const supabase = await createClient();
+      const { data: fromUser } = await supabase
+        .from("users")
+        .select("name")
+        .eq("id", fromUserId)
+        .single();
+      
+      await sendRoleBasedNotification(
+        actualToUserId,
+        "message",
+        "New Message",
+        `You have a new message from ${fromUser?.name || "a user"}`,
+        `/messages/${thread.id}`
+      );
+    } catch (notifError) {
+      // Don't fail message sending if notification fails
+      console.error("Error sending message notification:", notifError);
+    }
 
     return NextResponse.json(
       { 

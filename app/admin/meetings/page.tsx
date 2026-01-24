@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/AdminLayout";
@@ -23,6 +23,7 @@ interface FlaggedMeeting {
   student_opportunity_types: string[];
   student_evidence_screenshot: string;
   student_evidence_description: string;
+  admin_notes?: string;
   student_name?: string;
   student_email?: string;
   obog_name?: string;
@@ -39,30 +40,27 @@ export default function AdminMeetingsPage() {
   const [selectedMeeting, setSelectedMeeting] = useState<FlaggedMeeting | null>(null);
   const [reviewing, setReviewing] = useState(false);
   const loadingRef = useRef(false);
+  const isAdmin = session?.user?.role === "admin";
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-      return;
+  const getMeetingStatusText = useCallback((status: string | null | undefined) => {
+    if (!status) return t("admin.meetings.status.pending");
+    switch (status.toLowerCase()) {
+      case "unconfirmed": return t("admin.meetings.status.unconfirmed");
+      case "confirmed": return t("admin.meetings.status.confirmed");
+      case "completed": return t("admin.meetings.status.completed");
+      case "cancelled": return t("admin.meetings.status.cancelled");
+      case "no-show": return t("admin.meetings.status.noShow");
+      case "no_show": return t("admin.meetings.status.noShow");
+      case "pending": return t("admin.meetings.status.pending");
+      default: return status;
     }
+  }, [t]);
 
-    if (status === "authenticated" && session?.user?.role !== "admin") {
-      router.push("/dashboard");
-      return;
-    }
+  const supabase = useMemo(() => createClient(), []);
 
-    if (status === "authenticated" && session?.user?.role === "admin" && !loadingRef.current) {
-      loadingRef.current = true;
-      loadFlaggedMeetings().finally(() => {
-        loadingRef.current = false;
-      });
-    }
-  }, [status, session, router]);
-
-  const loadFlaggedMeetings = async () => {
+  const loadFlaggedMeetings = useCallback(async () => {
     setLoading(true);
     try {
-      const supabase = createClient();
       
       // Fetch meetings that require review
       const { data: flaggedMeetings, error } = await supabase
@@ -103,12 +101,30 @@ export default function AdminMeetingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+
+    if (status === "authenticated" && !isAdmin) {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (status === "authenticated" && isAdmin && !loadingRef.current) {
+      loadingRef.current = true;
+      loadFlaggedMeetings().finally(() => {
+        loadingRef.current = false;
+      });
+    }
+  }, [status, isAdmin, router, loadFlaggedMeetings]);
 
   const handleMarkReviewed = async (meetingId: string, notes: string) => {
     setReviewing(true);
     try {
-      const supabase = createClient();
       const { error } = await supabase
         .from("meetings")
         .update({
@@ -127,7 +143,7 @@ export default function AdminMeetingsPage() {
       setSelectedMeeting(null);
     } catch (error) {
       console.error("Error marking as reviewed:", error);
-      alert("Failed to update meeting review status");
+      alert(t("admin.meetings.error.update"));
     } finally {
       setReviewing(false);
     }
@@ -229,13 +245,46 @@ export default function AdminMeetingsPage() {
                 </p>
               </div>
 
+              <div>
+                <p className="text-sm font-medium mb-1" style={{ color: '#374151' }}>
+                  {t("admin.meetings.status") || "Meeting Status"}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    selectedMeeting.status === "confirmed" ? "bg-blue-100 text-blue-800" :
+                    selectedMeeting.status === "completed" ? "bg-green-100 text-green-800" :
+                    selectedMeeting.status === "cancelled" ? "bg-gray-100 text-gray-800" :
+                    selectedMeeting.status === "no-show" || selectedMeeting.status === "no_show" ? "bg-red-100 text-red-800" :
+                    "bg-yellow-100 text-yellow-800"
+                  }`}>
+                    {getMeetingStatusText(selectedMeeting.status)}
+                  </span>
+                  {selectedMeeting.student_post_status && (
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      selectedMeeting.student_post_status === "completed" ? "bg-green-100 text-green-800" :
+                      "bg-red-100 text-red-800"
+                    }`}>
+                      {t("admin.meetings.studentStatus") || "Student"}: {getMeetingStatusText(selectedMeeting.student_post_status)}
+                    </span>
+                  )}
+                  {selectedMeeting.obog_post_status && (
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      selectedMeeting.obog_post_status === "completed" ? "bg-green-100 text-green-800" :
+                      "bg-red-100 text-red-800"
+                    }`}>
+                      {t("admin.meetings.obogStatus") || "OB/OG"}: {getMeetingStatusText(selectedMeeting.obog_post_status)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
               {selectedMeeting.student_offered_opportunity && (
                 <div className="p-4 bg-yellow-50 border rounded" style={{ borderColor: '#FCD34D' }}>
                   <p className="text-sm font-medium mb-2" style={{ color: '#92400E' }}>
                     {t("admin.meetings.studentReported") || "Student Reported Opportunity Offered"}
                   </p>
                   <p className="text-xs mb-2" style={{ color: '#78350F' }}>
-                    {t("admin.meetings.types") || "Types"}: {selectedMeeting.student_opportunity_types?.join(", ") || "N/A"}
+                    {t("admin.meetings.types") || "Types"}: {selectedMeeting.student_opportunity_types?.join(", ") || t("admin.reports.nA")}
                   </p>
                   {selectedMeeting.student_evidence_description && (
                     <p className="text-xs" style={{ color: '#78350F' }}>

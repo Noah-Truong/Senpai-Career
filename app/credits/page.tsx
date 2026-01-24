@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { loadStripe } from "@stripe/stripe-js";
-import { createClient } from "@/lib/supabase/client";
+import { dispatchCreditsRefresh } from "@/components/AppLayout";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
@@ -21,7 +21,6 @@ export default function CreditsPage() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
   const [userRole, setUserRole] = useState<"company" | "student" | "obog" | undefined>(undefined);
-  const supabase = createClient();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -31,42 +30,21 @@ export default function CreditsPage() {
 
     if (status === "authenticated" && session?.user?.id) {
       loadUserCredits();
-      
-      // Set up Supabase real-time subscription for credits updates
-      const channel = supabase
-        .channel(`credits-page-${session.user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'users',
-            filter: `id=eq.${session.user.id}`
-          },
-          (payload) => {
-            console.log('Credits updated via real-time (Credits Page):', payload);
-            if (payload.new && 'credits' in payload.new) {
-              const newCredits = payload.new.credits as number;
-              setUserCredits(newCredits ?? 0);
-            }
-          }
-        )
-        .subscribe();
-      
+
       const success = searchParams.get("success");
-      
       if (success) {
+        // Load credits first, then refresh sidebar, then clean up URL
+        loadUserCredits();
         setTimeout(() => {
-          loadUserCredits();
+          dispatchCreditsRefresh();
+        }, 500);
+        const timer = setTimeout(() => {
           router.replace("/credits");
         }, 1000);
+        return () => clearTimeout(timer);
       }
-      
-      return () => {
-        supabase.removeChannel(channel);
-      };
     }
-  }, [status, router, searchParams, session?.user?.id, supabase]);
+  }, [status, router, searchParams, session?.user?.id]);
 
   const loadUserCredits = async () => {
     try {
@@ -94,12 +72,12 @@ export default function CreditsPage() {
     const credits = parseInt(customCredits);
     
     if (!credits || credits <= 0) {
-      setError("Please enter a valid number of credits");
+      setError(t("credits.error.invalidAmount") || "Please enter a valid number of credits");
       return;
     }
 
     if (credits < 20) {
-      setError("Minimum purchase is 20 credits");
+      setError(t("credits.error.minimum") || "Minimum purchase is 20 credits");
       return;
     }
 
@@ -149,15 +127,19 @@ export default function CreditsPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>Pricing</h1>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>
+          {t("credits.title") || "Pricing"}
+        </h1>
 
         {/* Current Credits Display */}
         <div 
           className="p-6 mb-8 bg-white border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
         >
-          <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>Current Credits</h2>
-          <p className="text-3xl font-bold mb-4" style={{ color: '#059669' }}>
+          <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>
+            {t("credits.currentCredits") || "Current Credits"}
+          </h2>
+          <p className="text-3xl font-bold mb-4" style={{ color: '#10B981' }}>
             {userCredits !== null ? userCredits.toLocaleString() : 0}
           </p>
           <p className="text-sm mb-2" style={{ color: '#6B7280' }}>
@@ -173,23 +155,27 @@ export default function CreditsPage() {
           className="p-6 mb-8 bg-white border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
         >
-          <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>Pricing</h2>
+          <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>
+            {t("credits.pricing") || "Pricing"}
+          </h2>
           <div className="space-y-3">
             <div 
               className="flex items-center justify-between p-3 rounded"
               style={{ backgroundColor: '#D7FFEF' }}
             >
-              <span className="font-bold" style={{ color: '#111827' }}>Rate:</span>
+              <span className="font-bold" style={{ color: '#111827' }}>
+                {t("credits.rate") || "Rate:"}
+              </span>
               <span className="text-lg font-semibold" style={{ color: '#111827' }}>
                 {userRole === "company" 
-                  ? "20 credits = ¥300"
-                  : "20 credits = ¥600"}
+                  ? t("credits.companyRate") || "20 credits = ¥300"
+                  : t("credits.standardRate") || "20 credits = ¥600"}
               </span>
             </div>
             <p className="text-sm" style={{ color: '#6B7280' }}>
               {userRole === "company"
-                ? "Companies receive credits at a discounted rate"
-                : "Standard rate for students and OB/OG"}
+                ? t("credits.companyDiscount") || "Companies receive credits at a discounted rate"
+                : t("credits.standardRateDesc") || "Standard rate for students and OB/OG"}
             </p>
           </div>
         </div>
@@ -244,14 +230,14 @@ export default function CreditsPage() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold" style={{ color: '#111827' }}>
-                    Total Price:
+                    {t("credits.totalPrice") || "Total Price:"}
                   </span>
                   <span className="text-2xl font-bold" style={{ color: '#2563EB' }}>
                     ¥{priceJPY.toLocaleString()}
                   </span>
                 </div>
                 <p className="text-sm" style={{ color: '#6B7280' }}>
-                  Credits: {creditsValue.toLocaleString()}
+                  {t("credits.creditsLabel") || "Credits:"} {creditsValue.toLocaleString()}
                 </p>
               </div>
             )}
@@ -290,10 +276,10 @@ export default function CreditsPage() {
               className="btn-primary w-full py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {processing 
-                ? "Processing..."
+                ? t("credits.processing") || "Processing..."
                 : isRecurring
-                ? "Subscribe"
-                : "Purchase Credits"}
+                ? t("credits.subscribe") || "Subscribe"
+                : t("credits.purchase") || "Purchase Credits"}
             </button>
           </div>
         </div>
@@ -304,7 +290,7 @@ export default function CreditsPage() {
             className="mb-4 px-4 py-3 rounded border"
             style={{ backgroundColor: '#D1FAE5', borderColor: '#A7F3D0', color: '#059669' }}
           >
-            Payment successful! Your credits have been added.
+            {t("credits.success") || "Payment successful! Your credits have been added."}
           </div>
         )}
 
@@ -314,7 +300,7 @@ export default function CreditsPage() {
             className="mb-4 px-4 py-3 rounded border"
             style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D', color: '#D97706' }}
           >
-            Payment was canceled.
+            {t("credits.canceled") || "Payment was canceled."}
           </div>
         )}
       </div>

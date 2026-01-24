@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
             });
 
             // Store subscription info (you might want to create a subscriptions table)
-            console.log(`Subscription created for user ${userId}: ${subscriptionId}`);
+            // Subscription created
           }
         }
       } else {
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
             await updateUser(userId, {
               credits: currentCredits + credits,
             });
-            console.log(`Recurring payment: Added ${credits} credits to user ${userId}`);
+            // Recurring payment: Credits added
           }
         }
       }

@@ -75,12 +75,20 @@
 /* ============================================
    BASE STYLES
    ============================================ */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   color: var(--text-body);
   background: var(--color-bg-white);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   scroll-behavior: smooth;
   line-height: 1.6;
+  /* Safe area for notched devices */
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 /* ============================================
@@ -91,12 +99,21 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.3;
 }
 
-h1 { font-size: 2.25rem; }
-h2 { font-size: 1.875rem; }
-h3 { font-size: 1.5rem; }
-h4 { font-size: 1.25rem; }
-h5 { font-size: 1.125rem; }
-h6 { font-size: 1rem; }
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.125rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.9375rem; }
+
+@media (min-width: 768px) {
+  h1 { font-size: 2.25rem; }
+  h2 { font-size: 1.875rem; }
+  h3 { font-size: 1.5rem; }
+  h4 { font-size: 1.25rem; }
+  h5 { font-size: 1.125rem; }
+  h6 { font-size: 1rem; }
+}
 
 /* ============================================
    TRANSITIONS
@@ -183,15 +200,28 @@ a, button, input, textarea, select {
   .link-gradient:hover {
     color: var(--color-accent);
   }
+
+  /* Scrollable tables on mobile */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* ============================================
    COMPONENT CLASSES
    ============================================ */
 @layer components {
+  /* Touch-friendly tap targets (min 44x44px) */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
   /* Primary Button - Navy */
   .btn-primary {
     @apply px-4 py-2 text-white font-medium transition-all;
+    min-height: 44px;
     background-color: var(--color-navy);
     border-radius: var(--radius-md);
   }
@@ -216,6 +246,7 @@ a, button, input, textarea, select {
   /* Secondary Button - Navy outline */
   .btn-secondary {
     @apply px-4 py-2 font-medium transition-all;
+    min-height: 44px;
     background-color: var(--color-bg-white);
     color: var(--color-navy);
     border: 1px solid var(--color-navy);

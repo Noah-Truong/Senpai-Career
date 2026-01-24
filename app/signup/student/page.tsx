@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -12,7 +12,7 @@ import { isBlockedFreeDomain, getBlockedDomainError } from "@/lib/blocked-email-
 export default function StudentSignupPage() {
   const { t } = useLanguage();
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,9 +29,38 @@ export default function StudentSignupPage() {
     jlptLevel: "",
   });
 
-  const languageOptions = ["Japanese", "English", "Chinese", "Korean", "Spanish", "French", "German", "Portuguese"];
-  const interestOptions = ["Technology", "Finance", "Consulting", "Marketing", "Engineering", "Design", "Healthcare", "Education"];
-  const skillOptions = ["Programming", "Data Analysis", "Project Management", "Design", "Marketing", "Sales", "Research", "Writing"];
+  const languageOptions = useMemo(() => [
+    t("form.language.japanese") || "Japanese",
+    t("form.language.english") || "English",
+    t("form.language.chinese") || "Chinese",
+    t("form.language.korean") || "Korean",
+    t("form.language.spanish") || "Spanish",
+    t("form.language.french") || "French",
+    t("form.language.german") || "German",
+    t("form.language.portuguese") || "Portuguese",
+  ], [t]);
+
+  const interestOptions = useMemo(() => [
+    t("form.interest.technology") || "Technology",
+    t("form.interest.finance") || "Finance",
+    t("form.interest.consulting") || "Consulting",
+    t("form.interest.marketing") || "Marketing",
+    t("form.interest.engineering") || "Engineering",
+    t("form.interest.design") || "Design",
+    t("form.interest.healthcare") || "Healthcare",
+    t("form.interest.education") || "Education",
+  ], [t]);
+
+  const skillOptions = useMemo(() => [
+    t("form.skill.programming") || "Programming",
+    t("form.skill.dataAnalysis") || "Data Analysis",
+    t("form.skill.projectManagement") || "Project Management",
+    t("form.skill.design") || "Design",
+    t("form.skill.marketing") || "Marketing",
+    t("form.skill.sales") || "Sales",
+    t("form.skill.research") || "Research",
+    t("form.skill.writing") || "Writing",
+  ], [t]);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -112,7 +141,7 @@ export default function StudentSignupPage() {
         });
 
         if (signInError) {
-          console.log("Auto-login failed:", signInError);
+          // Auto-login failed (non-critical)
           setSuccess(t("signup.success.checkEmail") || "Account created successfully! Please check your email to confirm your account.");
           setVerificationEmailSent(true);
         } else if (signInData?.user) {
@@ -321,7 +350,7 @@ export default function StudentSignupPage() {
                     required
                     placeholder={t("form.languagesPlaceholder") || "Select languages..."}
                     allowOther={true}
-                    otherPlaceholder="Enter other language"
+                    otherPlaceholder={t("form.otherLanguage") || "Enter other language"}
                   />
                 </div>
                 <div>
@@ -352,7 +381,7 @@ export default function StudentSignupPage() {
                     label={t("form.interests")}
                     placeholder={t("form.interestsPlaceholder") || "Select interests..."}
                     allowOther={true}
-                    otherPlaceholder="Enter other interest"
+                    otherPlaceholder={t("form.otherInterest") || "Enter other interest"}
                   />
                 </div>
                 <div>
@@ -374,7 +403,7 @@ export default function StudentSignupPage() {
                     label={t("form.desiredIndustry")}
                     placeholder={t("form.desiredIndustryPlaceholder") || "Select desired industries..."}
                     allowOther={true}
-                    otherPlaceholder="Enter other industry"
+                    otherPlaceholder={t("form.otherIndustry") || "Enter other industry"}
                   />
                 </div>
               </div>

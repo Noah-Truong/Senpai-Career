@@ -149,41 +149,6 @@ export default function MeetingOperationButtons({
   const obogPostStatus = meeting?.obog_post_status;
   const hasPostStatus = isStudentInMeeting ? studentPostStatus : obogPostStatus;
 
-  // Show create meeting button if no meeting exists (only for students)
-  if (!meeting && isStudent) {
-    return (
-      <div className="mb-4">
-        <button
-          onClick={async () => {
-            setLoading(true);
-            try {
-              const response = await fetch(`/api/meetings/${threadId}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  meetingDateTime: null,
-                  meetingUrl: null,
-                }),
-              });
-
-              if (response.ok) {
-                onUpdate();
-              }
-            } catch (error) {
-              console.error("Error creating meeting:", error);
-            } finally {
-              setLoading(false);
-            }
-          }}
-          disabled={loading}
-          className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? t("common.loading") : t("meeting.create") || "Create Meeting"}
-        </button>
-      </div>
-    );
-  }
-
   if (!meeting || !canEdit) {
     return null;
   }

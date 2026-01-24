@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
 import Link from "next/link";
+import { dispatchCreditsRefresh } from "@/components/AppLayout";
 
 export default function NewMessagePage() {
   const { t } = useLanguage();
@@ -13,10 +14,13 @@ export default function NewMessagePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const obogId = searchParams.get("obogId");
+  const userId = searchParams.get("userId");
+  const studentId = searchParams.get("studentId");
+  const targetUserId = obogId || userId || studentId;
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [obog, setObog] = useState<any>(null);
+  const [targetUser, setTargetUser] = useState<any>(null);
 
   const userRole = session?.user?.role as string | undefined;
   const isAlumni = userRole === "obog";
@@ -32,24 +36,23 @@ export default function NewMessagePage() {
       return;
     }
 
-    if (status === "authenticated" && obogId) {
-      // TODO: Fetch OB/OG user details from API
-      // For now, we'll handle it client-side
-      fetch(`/api/users/${obogId}`)
+    if (status === "authenticated" && targetUserId) {
+      // Fetch user details from API
+      fetch(`/api/users/${targetUserId}`)
         .then(res => res.json())
         .then(data => {
           if (data.user) {
-            setObog(data.user);
+            setTargetUser(data.user);
           } else {
             setError(t("messages.new.notFound"));
           }
         })
         .catch(err => {
-          console.error("Error fetching OB/OG:", err);
+          console.error("Error fetching user:", err);
           setError(t("messages.new.failed"));
         });
     }
-  }, [status, router, obogId, isAlumni, t]);
+  }, [status, router, targetUserId, isAlumni, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +72,7 @@ export default function NewMessagePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          toUserId: obogId,
+          toUserId: targetUserId,
           content: message,
         }),
       });
@@ -121,6 +124,11 @@ export default function NewMessagePage() {
         throw new Error("Invalid response format");
       }
 
+      // Refresh credits display after successful message send (small delay to ensure API processed)
+      setTimeout(() => {
+        dispatchCreditsRefresh();
+      }, 500);
+      
       // Redirect to the message thread
       router.push(`/messages/${data.threadId}`);
     } catch (err: any) {
@@ -190,19 +198,28 @@ export default function NewMessagePage() {
     );
   }
 
-  if (!obogId) {
+  if (!targetUserId) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card-gradient p-8 text-center">
             <p className="text-gray-700 text-lg mb-4">{t("messages.new.notFound")}</p>
-            <button
-              onClick={() => router.push("/ob-visit")}
-              className="btn-primary"
-            >
-              {t("nav.obogList")}
-            </button>
+            {userRole === "company" ? (
+              <button
+                onClick={() => router.push("/company/students")}
+                className="btn-primary"
+              >
+                {t("button.browseStudents") || "Browse Students"}
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push("/ob-list")}
+                className="btn-primary"
+              >
+                {t("nav.obogList")}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -216,11 +233,18 @@ export default function NewMessagePage() {
         <div className="card-gradient p-8">
           <h1 className="text-3xl font-bold mb-6">{t("messages.new.title")}</h1>
           
-          {obog && (
+          {targetUser && (
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">{t("label.to")}:</p>
-              <p className="font-semibold">{obog.nickname || obog.name}</p>
-              {obog.company && <p className="text-sm text-gray-600">{obog.company}</p>}
+              <p className="font-semibold">{targetUser.nickname || targetUser.name}</p>
+              {targetUser.company && <p className="text-sm text-gray-600">{targetUser.company}</p>}
+              {targetUser.role && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {targetUser.role === "student" ? t("label.student") || "Student" :
+                   targetUser.role === "obog" ? t("label.obog") || "OB/OG" :
+                   targetUser.role === "company" ? t("label.company") || "Company" : ""}
+                </p>
+              )}
             </div>
           )}
 
@@ -258,7 +282,7 @@ export default function NewMessagePage() {
               </button>
               <Link
                 type="button"
-                href="/ob-list"
+                href={userRole === "company" ? "/company/students" : "/ob-list"}
                 className="btn-secondary"
               >
                 {t("button.cancel")}

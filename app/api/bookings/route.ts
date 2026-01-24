@@ -38,11 +38,23 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { obogId, bookingDateTime, durationMinutes, notes } = body;
+    const { obogId, bookingDateTime, durationMinutes, notes, meetingUrl } = body;
 
     if (!obogId || !bookingDateTime) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Validate and sanitize inputs
+    const sanitizedNotes = notes ? String(notes).trim() : null;
+    const sanitizedMeetingUrl = meetingUrl ? String(meetingUrl).trim() : null;
+    
+    // Basic URL validation for meeting URL
+    if (sanitizedMeetingUrl && !sanitizedMeetingUrl.match(/^https?:\/\/.+/)) {
+      return NextResponse.json(
+        { error: "Meeting URL must be a valid HTTP/HTTPS URL" },
         { status: 400 }
       );
     }
@@ -108,7 +120,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if the requested time is in the availability CSV
-    const availableTimes = availability.times_csv.split(",").map(t => t.trim()).filter(t => t);
+    const availableTimes = availability.times_csv.split(",").map((t: string) => t.trim()).filter((t: string) => t);
     const requestedTime = bookingDateTime.trim();
     
     if (!availableTimes.includes(requestedTime)) {
@@ -153,7 +165,8 @@ export async function POST(request: NextRequest) {
       fs.writeFileSync(THREADS_FILE, JSON.stringify(threads, null, 2));
     }
 
-    // Create the booking
+
+    // Create the booking with meeting data directly
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
       .insert({
@@ -163,7 +176,9 @@ export async function POST(request: NextRequest) {
         booking_date_time: requestedTime,
         duration_minutes: durationMinutes || 60,
         status: "pending",
-        notes: notes || null,
+        notes: sanitizedNotes,
+        meeting_url: sanitizedMeetingUrl,
+        meeting_status: "unconfirmed",
       })
       .select()
       .single();
@@ -176,39 +191,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create a meeting for this booking
-    const { data: meeting, error: meetingError } = await supabase
-      .from("meetings")
-      .insert({
-        thread_id: thread.id,
-        student_id: session.user.id,
-        obog_id: obogId,
-        meeting_date_time: requestedTime,
-        status: "unconfirmed",
-      })
-      .select()
-      .single();
-
-    if (meetingError && meetingError.code !== '23505') { // Ignore unique constraint if meeting already exists
-      console.error("Error creating meeting:", meetingError);
-    } else if (meeting) {
-      // Link booking to meeting
-      await supabase
-        .from("bookings")
-        .update({ meeting_id: meeting.id })
-        .eq("id", booking.id);
-    }
-
-    // Send notification to OB/OG
-    await supabase.from("notifications").insert({
-      user_id: obogId,
+    // Send notification to OB/OG using saveNotification (handles email)
+    const { saveNotification } = await import("@/lib/notifications");
+    await saveNotification({
+      userId: obogId,
       type: "system",
       title: "New Booking Request",
       content: `A student has requested to book a meeting on ${requestedTime}`,
       link: `/messages/${thread.id}`,
     });
 
-    return NextResponse.json({ booking, meeting: meeting || null });
+    // Booking created successfully
+
+    return NextResponse.json({ 
+      booking: {
+        ...booking,
+        notes: sanitizedNotes,
+        meeting_url: sanitizedMeetingUrl,
+      }
+    });
   } catch (error: any) {
     console.error("Error creating booking:", error);
     return NextResponse.json(
@@ -257,7 +258,58 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ bookings: bookings || [] });
+    // Fetch student profiles and booking info for each booking
+    const bookingsWithStudentInfo = await Promise.all(
+      (bookings || []).map(async (booking: any) => {
+        try {
+          // Fetch student profile
+          const { data: studentProfile } = await supabase
+            .from("student_profiles")
+            .select("nickname, profile_photo")
+            .eq("id", booking.student_id)
+            .single();
+
+          const { data: studentUser } = await supabase
+            .from("users")
+            .select("name")
+            .eq("id", booking.student_id)
+            .single();
+
+          // Meeting data is now directly in bookings table
+          return {
+            ...booking,
+            student: {
+              id: booking.student_id,
+              name: studentUser?.name || "Unknown",
+              nickname: studentProfile?.nickname,
+              profilePhoto: studentProfile?.profile_photo,
+            },
+            // Map booking fields to expected frontend format
+            meetingStatus: booking.meeting_status || null,
+            meetingPostStatus: booking.obog_post_status || booking.student_post_status || null,
+            meetingUrl: booking.meeting_url || null,
+            meetingDateTime: booking.booking_date_time || null,
+          };
+        } catch (err) {
+          console.error(`Error fetching student info for booking ${booking.id}:`, err);
+          return {
+            ...booking,
+            student: {
+              id: booking.student_id,
+              name: "Unknown",
+              nickname: null,
+              profilePhoto: null,
+            },
+            meetingStatus: null,
+            meetingPostStatus: null,
+            meetingUrl: null,
+            meetingDateTime: null,
+          };
+        }
+      })
+    );
+
+    return NextResponse.json({ bookings: bookingsWithStudentInfo });
   } catch (error: any) {
     console.error("Error fetching bookings:", error);
     return NextResponse.json(

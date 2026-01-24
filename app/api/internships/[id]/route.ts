@@ -8,11 +8,31 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth();
     const { id } = await params;
-    const internships = await readInternships();
+    const isCompany = session?.user?.role === "company";
+    
+    // Companies can see all listings (including stopped), students can only see public
+    const internships = await readInternships(isCompany);
     const internship = internships.find(i => i.id === id);
 
     if (!internship) {
+      return NextResponse.json(
+        { error: "Internship listing not found" },
+        { status: 404 }
+      );
+    }
+
+    // Students cannot access stopped listings
+    if (!isCompany && internship.status === "stopped") {
+      return NextResponse.json(
+        { error: "Internship listing not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if company owns this listing (for stopped listings)
+    if (internship.status === "stopped" && internship.companyId !== session?.user?.id) {
       return NextResponse.json(
         { error: "Internship listing not found" },
         { status: 404 }
@@ -58,7 +78,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, compensationType, hourlyWage, fixedSalary, otherCompensation, workDetails, skillsGained, whyThisCompany } = body;
+    const { title, compensationType, hourlyWage, fixedSalary, otherCompensation, workDetails, skillsGained, whyThisCompany, status } = body;
 
     // Validate required fields
     if (!title || !compensationType || !workDetails) {
@@ -96,6 +116,17 @@ export async function PUT(
       skillsGained: skillsGained || [],
       whyThisCompany: whyThisCompany || "",
     };
+
+    // Allow status updates
+    if (status !== undefined) {
+      if (status !== "public" && status !== "stopped") {
+        return NextResponse.json(
+          { error: "Invalid status. Must be 'public' or 'stopped'" },
+          { status: 400 }
+        );
+      }
+      updateData.status = status;
+    }
 
     if (compensationType === "hourly") {
       updateData.hourlyWage = parseFloat(hourlyWage);

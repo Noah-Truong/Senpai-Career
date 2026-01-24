@@ -6,6 +6,8 @@ import { modalVariants, modalContentVariants } from "@/lib/animations";
 import { createClient } from "@/lib/supabase/client";
 import { useSession } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Avatar from "./Avatar";
+import { AnimatePresence } from "framer-motion";
 
 interface AvailabilityCalendarProps {
   obogId: string;
@@ -32,7 +34,10 @@ export default function AvailabilityCalendar({
   const [bookingSlot, setBookingSlot] = useState<string | null>(null);
   const [bookingNotes, setBookingNotes] = useState("");
   const [bookingDuration, setBookingDuration] = useState<15 | 30 | 60 | 1440>(60);
+  const [bookingMeetingUrl, setBookingMeetingUrl] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const day = today.getDay();
@@ -192,7 +197,9 @@ export default function AvailabilityCalendar({
         const bookingsMap = new Map<string, any>();
         
         (data.bookings || []).forEach((booking: any) => {
-          if (booking.status === "pending" || booking.status === "confirmed") {
+          // Show all bookings (pending, confirmed, completed, cancelled)
+          // But filter out cancelled ones from display
+          if (booking.status !== "cancelled") {
             const dateTime = booking.booking_date_time;
             // Convert "YYYY-MM-DD HH:MM" to our key format "YYYY-MM-DD_HH:MM"
             const [date, time] = dateTime.split(" ");
@@ -226,6 +233,7 @@ export default function AvailabilityCalendar({
           bookingDateTime,
           durationMinutes: bookingDuration,
           notes: bookingNotes || null,
+          meetingUrl: bookingMeetingUrl.trim() || null,
         }),
       });
 
@@ -237,6 +245,7 @@ export default function AvailabilityCalendar({
         await loadAvailability();
         setBookingSlot(null);
         setBookingNotes("");
+        setBookingMeetingUrl("");
         alert(t("booking.success") || "Booking request sent! The OB/OG will be notified.");
       } else {
         let errorMessage = "Failed to create booking";
@@ -296,7 +305,7 @@ export default function AvailabilityCalendar({
   const saveAvailability = async () => {
     // Security check: Only authenticated OBOGs can save their own availability
     if (!canConfigure) {
-      alert("Only alumni can configure availability.");
+      alert(t("profile.availability.onlyAlumniCanConfigure") || "Only alumni can configure availability.");
       return;
     }
 
@@ -357,7 +366,7 @@ export default function AvailabilityCalendar({
         }
       }
 
-      alert("Availability saved successfully!");
+      alert(t("profile.availability.saved") || "Availability saved successfully!");
     } catch (error: any) {
       console.error("Error saving availability:", error);
       const errorMessage = error?.message || "Failed to save availability. Please try again.";
@@ -374,7 +383,7 @@ export default function AvailabilityCalendar({
   };
 
   const formatTime = (time: string) => {
-    if (time === "all-day") return "All Day";
+    if (time === "all-day") return t("profile.availability.allDay");
     const [hour, minute] = time.split(":");
     const hourNum = parseInt(hour);
     const period = hourNum >= 12 ? "pm" : "am";
@@ -382,11 +391,89 @@ export default function AvailabilityCalendar({
     return `${displayHour}:${minute}${period}`;
   };
 
+  // Get status color based on booking and meeting status
+  const getStatusColor = (booking: any) => {
+    if (!booking) return "bg-blue-500";
+    
+    // Check meeting post-status first (completed, no-show)
+    if (booking.meetingPostStatus === "no-show") {
+      return "bg-red-500";
+    }
+    if (booking.meetingPostStatus === "completed") {
+      return "bg-gray-500";
+    }
+    
+    // Check meeting status
+    if (booking.meetingStatus === "completed") {
+      return "bg-gray-500";
+    }
+    if (booking.meetingStatus === "no-show") {
+      return "bg-red-500";
+    }
+    if (booking.meetingStatus === "confirmed") {
+      return "bg-green-500";
+    }
+    
+    // Fall back to booking status
+    if (booking.status === "confirmed") {
+      return "bg-green-500";
+    }
+    if (booking.status === "pending") {
+      return "bg-yellow-500";
+    }
+    
+    return "bg-blue-500";
+  };
+
+  // Get status text
+  const getStatusText = (booking: any) => {
+    if (!booking) return "";
+    
+    if (booking.meetingPostStatus === "no-show") {
+      return t("profile.availability.status.noShow") || "No Show";
+    }
+    if (booking.meetingPostStatus === "completed") {
+      return t("profile.availability.status.completed") || "Completed";
+    }
+    
+    if (booking.meetingStatus === "completed") {
+      return t("profile.availability.status.completed") || "Completed";
+    }
+    if (booking.meetingStatus === "no-show") {
+      return t("profile.availability.status.noShow") || "No Show";
+    }
+    if (booking.meetingStatus === "confirmed") {
+      return t("profile.availability.status.confirmed") || "Confirmed";
+    }
+    
+    if (booking.status === "confirmed") {
+      return t("profile.availability.status.confirmed") || "Confirmed";
+    }
+    if (booking.status === "pending") {
+      return t("profile.availability.status.pending") || "Pending";
+    }
+    
+    return "";
+  };
+
+  const handleSlotHover = (e: React.MouseEvent, key: string) => {
+    const booking = bookedSlots.get(key);
+    if (booking && booking.student) {
+      setHoveredSlot(key);
+      setHoverPosition({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleSlotLeave = () => {
+    setHoveredSlot(null);
+    setHoverPosition(null);
+  };
+
   if (!isOpen) return null;
 
   return (
     <motion.div
-      className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 p-2 sm:p-4"
       variants={modalVariants}
       initial="initial"
       animate="animate"
@@ -405,7 +492,9 @@ export default function AvailabilityCalendar({
         <div className="card-gradient p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900">
-              {canConfigure ? "Configure Your Availability" : `${obogName}'s Availability`}
+              {canConfigure 
+                ? t("profile.availability.modal.title.configure") 
+                : t("profile.availability.modal.title.view").replace("{name}", obogName)}
             </h2>
             <button
               onClick={onClose}
@@ -427,7 +516,7 @@ export default function AvailabilityCalendar({
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
-                {mins === 1440 ? "Day" : `${mins}min`}
+                {mins === 1440 ? t("profile.availability.duration.day") : `${mins}${t("profile.availability.duration.min")}`}
               </button>
             ))}
           </div>
@@ -437,16 +526,16 @@ export default function AvailabilityCalendar({
         <div className="flex-1 overflow-auto p-6">
           {loading ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">Loading availability...</p>
+              <p className="text-gray-600">{t("profile.availability.loading")}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="table-responsive overflow-x-auto">
               <div className="inline-block min-w-full">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
                       <th className="sticky left-0 z-10 bg-white border-r border-b border-gray-300 p-2 text-left font-semibold text-gray-700 min-w-[100px]">
-                        Time
+                        {t("profile.availability.time")}
                       </th>
                       {dates.map((date) => (
                         <th
@@ -505,17 +594,17 @@ export default function AvailabilityCalendar({
                                 }`}
                                 title={
                                   isBooked
-                                    ? `Booked${booking?.status === "pending" ? " (Pending)" : ""}`
+                                    ? `${t("profile.availability.slot.booked")}${booking?.status === "pending" ? ` (${t("profile.availability.slot.pending")})` : ""}`
                                     : isSelected
-                                    ? canBook ? "Click to book this slot" : "Available"
+                                    ? canBook ? t("profile.availability.slot.clickToBook") : t("profile.availability.slot.available")
                                     : isPast
-                                    ? "Past date"
+                                    ? t("profile.availability.slot.pastDate")
                                     : canConfigure
-                                    ? "Click to toggle availability"
-                                    : "Not available"
+                                    ? t("profile.availability.slot.clickToToggle")
+                                    : t("profile.availability.slot.notAvailable")
                                 }
                               >
-                                {isBooked ? "📅" : isSelected ? "✓" : ""}
+                                {isBooked ? t("profile.availability.slot.booked") : isSelected ? t("profile.availability.slot.available") : ""}
                               </button>
                             </td>
                           );
@@ -529,39 +618,124 @@ export default function AvailabilityCalendar({
           )}
         </div>
 
+        {/* Hover Tooltip for Booked Slots */}
+        <AnimatePresence>
+          {hoveredSlot && hoverPosition && bookedSlots.has(hoveredSlot) && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed z-[100] pointer-events-none"
+              style={{
+                left: hoverPosition.x > (typeof window !== 'undefined' ? window.innerWidth : 1200) - 320 
+                  ? `${hoverPosition.x - 320}px` 
+                  : `${hoverPosition.x + 10}px`,
+                top: hoverPosition.y > (typeof window !== 'undefined' ? window.innerHeight : 800) - 200
+                  ? `${hoverPosition.y - 200}px`
+                  : `${hoverPosition.y + 10}px`,
+              }}
+            >
+              <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 min-w-[250px] max-w-[300px]">
+                {(() => {
+                  const booking = bookedSlots.get(hoveredSlot);
+                  if (!booking || !booking.student) return null;
+                  
+                  return (
+                    <>
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar
+                          src={booking.student.profilePhoto}
+                          alt={booking.student.name}
+                          size="md"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 truncate">
+                            {booking.student.nickname || booking.student.name}
+                          </p>
+                          {booking.student.nickname && (
+                            <p className="text-sm text-gray-600 truncate">
+                              {booking.student.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700">
+                            {t("profile.availability.status.label") || "Status"}:
+                          </span>
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              getStatusColor(booking) === "bg-red-500"
+                                ? "bg-red-100 text-red-800"
+                                : getStatusColor(booking) === "bg-gray-500"
+                                ? "bg-gray-100 text-gray-800"
+                                : getStatusColor(booking) === "bg-green-500"
+                                ? "bg-green-100 text-green-800"
+                                : getStatusColor(booking) === "bg-yellow-500"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {getStatusText(booking) || booking.status}
+                          </span>
+                        </div>
+                        {booking.booking_date_time && (
+                          <div className="text-gray-600">
+                            <span className="font-medium">{t("profile.availability.time") || "Time"}:</span>{" "}
+                            {new Date(booking.booking_date_time).toLocaleString()}
+                          </div>
+                        )}
+                        {booking.duration_minutes && (
+                          <div className="text-gray-600">
+                            <span className="font-medium">{t("booking.duration") || "Duration"}:</span>{" "}
+                            {booking.duration_minutes === 1440
+                              ? t("profile.availability.duration.day")
+                              : `${booking.duration_minutes}${t("profile.availability.duration.min")}`}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Footer */}
         <div className="card-gradient p-6 border-t border-gray-200 flex justify-between items-center">
           {canConfigure ? (
             <>
               <div className="text-sm text-gray-600">
-                Click on time slots to mark your availability. Green indicates available times.
+                {t("profile.availability.modal.footer.configure")}
               </div>
               <div className="flex gap-4">
                 <button
                   onClick={onClose}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="px-6 py-2 bg-gray-500 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Cancel
+                  {t("button.cancel")}
                 </button>
                 <button
                   onClick={saveAvailability}
                   disabled={saving}
                   className="btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {saving ? "Saving..." : "Save Availability"}
+                  {saving ? t("profile.availability.saving") : t("profile.availability.save")}
                 </button>
               </div>
             </>
           ) : (
             <>
               <div className="text-sm text-gray-600">
-                Green indicates available times. You can view but not edit this calendar.
+                {t("profile.availability.modal.footer.view")}
               </div>
               <button
                 onClick={onClose}
-                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-6 py-2 bg-navy text-white rounded-lg hover:bg-gray-300 transition-colors"
               >
-                Close
+                {t("button.close")}
               </button>
             </>
           )}
@@ -619,10 +793,24 @@ export default function AvailabilityCalendar({
                           : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                       }`}
                     >
-                      {mins === 1440 ? "Day" : `${mins}min`}
+                      {mins === 1440 ? t("profile.availability.duration.day") : `${mins}${t("profile.availability.duration.min")}`}
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                  {t("booking.meetingUrl") || "Meeting URL (Optional)"}
+                </label>
+                <input
+                  type="url"
+                  value={bookingMeetingUrl}
+                  onChange={(e) => setBookingMeetingUrl(e.target.value)}
+                  className="w-full px-3 py-2 border rounded text-sm"
+                  style={{ borderColor: '#D1D5DB', borderRadius: '6px' }}
+                  placeholder={t("booking.meetingUrlPlaceholder") || "https://meet.google.com/..."}
+                />
               </div>
 
               <div>
@@ -645,6 +833,7 @@ export default function AvailabilityCalendar({
                 onClick={() => {
                   setBookingSlot(null);
                   setBookingNotes("");
+                  setBookingMeetingUrl("");
                 }}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
               >

@@ -109,7 +109,7 @@ export async function PUT(request: NextRequest) {
     const updatedCompany = await updateUser(session.user.id, allowedUpdates);
 
     // Return updated company without password fields
-    const { password, password_hash, ...companyWithoutPassword } = updatedCompany as any;
+    const { password: _pw, password_hash: _ph, ...companyWithoutPassword } = updatedCompany as any;
     return NextResponse.json(
       { company: companyWithoutPassword, message: "Company profile updated successfully" },
       { status: 200 }

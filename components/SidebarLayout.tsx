@@ -25,8 +25,8 @@ export default function SidebarLayout({ children, role }: SidebarLayoutProps) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
+    // Use window.location for a hard redirect to ensure clean state
+    window.location.href = "/login";
   };
 
   const userRole = session?.user?.role as string;

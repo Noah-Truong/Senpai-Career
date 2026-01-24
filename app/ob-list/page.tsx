@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession } from "@/contexts/AuthContext";
 import OBOGListContent from "@/components/OBOGListContent";
 import SidebarLayout from "@/components/SidebarLayout";
@@ -26,8 +26,7 @@ export default function OBVisitPage() {
   const [isAccepting, setIsAccepting] = useState(false);
 
   // Check compliance status and viewed_rules on load
-  useEffect(() => {
-    const checkCompliance = async () => {
+  const checkCompliance = useCallback(async () => {
       if (session?.user?.id) {
         try {
           // Check profile for viewed_rules
@@ -87,49 +86,49 @@ export default function OBVisitPage() {
         }
       }
       setCheckingCompliance(false);
-    };
-
-    checkCompliance();
   }, [isStudent, session?.user?.id]);
 
   useEffect(() => {
-    fetch("/api/obog")
-      .then(async res => {
-        if (res.ok) {
-          const contentType = res.headers.get("content-type");
-          const isJson = contentType && contentType.includes("application/json");
-          
-          if (isJson) {
-            try {
-              const text = await res.text();
-              const trimmedText = text.trim();
-              
-              if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
-                const data = JSON.parse(text);
-                setObogUsers(data.users || []);
-              } else {
-                console.error("OB/OG API returned non-JSON response");
-                setObogUsers([]);
-              }
-            } catch (jsonError) {
-              console.error("Failed to parse OB/OG JSON:", jsonError);
+    if (session?.user?.id) {
+      checkCompliance();
+    }
+  }, [session?.user?.id, checkCompliance]);
+
+  const loadObogUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/obog");
+      if (res.ok) {
+        const contentType = res.headers.get("content-type");
+        const isJson = contentType && contentType.includes("application/json");
+        
+        if (isJson) {
+          try {
+            const text = await res.text();
+            const trimmedText = text.trim();
+            
+            if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
+              const data = JSON.parse(text);
+              setObogUsers(data.users || []);
+            } else {
               setObogUsers([]);
             }
-          } else {
-            console.error("OB/OG API returned non-JSON content type");
+          } catch (jsonError) {
+            console.error("Failed to parse OB/OG JSON:", jsonError);
             setObogUsers([]);
           }
         } else {
-          console.error("OB/OG API returned error status:", res.status);
           setObogUsers([]);
         }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error loading OB/OG users:", err);
-        setLoading(false);
+      } else {
         setObogUsers([]);
-      });
+      }
+    } catch (err) {
+      console.error("Error loading OB/OG users:", err);
+      setObogUsers([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // Progress bar animation - fills up over 5 seconds

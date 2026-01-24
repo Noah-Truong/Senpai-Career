@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "@/contexts/AuthContext";
@@ -16,15 +16,11 @@ export default function RecruitingPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    loadListings();
-  }, []);
-
-  const loadListings = async () => {
+  const loadListings = useCallback(async () => {
     try {
       const response = await fetch("/api/internships?type=new-grad");
       if (!response.ok) {
-        throw new Error("Failed to load listings");
+        throw new Error(t("recruiting.error.load") || "Failed to load listings");
       }
       const data = await response.json();
       setListings(data.internships || []);
@@ -33,27 +29,39 @@ export default function RecruitingPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadListings();
+  }, [loadListings]);
+
+  // Pre-compute translated descriptions for better performance
+  const listingsWithDescriptions = useMemo(() => {
+    return listings.map((listing) => ({
+      ...listing,
+      _title: listing.titleKey ? t(listing.titleKey) : listing.title,
+      _workDetails: listing.workDetailsKey ? t(listing.workDetailsKey) : (listing.workDetails || listing.newGradDetails || ""),
+      _skills: (listing.skillsGainedKeys || listing.skillsGained || [])
+        .map((s: string) => listing.skillsGainedKeys ? t(s) : s),
+      _whyCompany: listing.whyThisCompanyKey ? t(listing.whyThisCompanyKey) : (listing.whyThisCompany || listing.sellingPoints || ""),
+    }));
+  }, [listings, t]);
 
   // Filter listings based on search
-  const filteredListings = listings.filter((listing) => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    const title = listing.titleKey ? t(listing.titleKey) : listing.title;
-    const workDetails = listing.workDetailsKey ? t(listing.workDetailsKey) : (listing.workDetails || listing.newGradDetails);
-    const skills = (listing.skillsGainedKeys || listing.skillsGained || [])
-      .map((s: string) => listing.skillsGainedKeys ? t(s) : s)
-      .join(" ");
-    const whyCompany = listing.whyThisCompanyKey ? t(listing.whyThisCompanyKey) : (listing.whyThisCompany || listing.sellingPoints);
+  const filteredListings = useMemo(() => {
+    if (!searchTerm) return listingsWithDescriptions;
     
-    return (
-      title?.toLowerCase().includes(search) ||
-      listing.companyName?.toLowerCase().includes(search) ||
-      workDetails?.toLowerCase().includes(search) ||
-      skills.toLowerCase().includes(search) ||
-      whyCompany?.toLowerCase().includes(search)
-    );
-  });
+    const search = searchTerm.toLowerCase();
+    return listingsWithDescriptions.filter((listing) => {
+      return (
+        listing._title?.toLowerCase().includes(search) ||
+        listing.companyName?.toLowerCase().includes(search) ||
+        listing._workDetails?.toLowerCase().includes(search) ||
+        listing._skills.join(" ").toLowerCase().includes(search) ||
+        listing._whyCompany?.toLowerCase().includes(search)
+      );
+    });
+  }, [listingsWithDescriptions, searchTerm]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -204,7 +212,7 @@ export default function RecruitingPage() {
                       className="text-base font-semibold mb-1"
                       style={{ color: '#111827' }}
                     >
-                      {listing.titleKey ? t(listing.titleKey) : listing.title}
+                      {listing._title}
                     </h3>
                     <p className="text-sm" style={{ color: '#6B7280' }}>{listing.companyName}</p>
                   </div>
@@ -212,20 +220,20 @@ export default function RecruitingPage() {
                 
                 <div className="mb-4">
                   <p className="text-sm line-clamp-2" style={{ color: '#6B7280' }}>
-                    {listing.workDetailsKey ? t(listing.workDetailsKey) : listing.workDetails || listing.newGradDetails}
+                    {listing._workDetails}
                   </p>
                 </div>
 
-                {((listing.skillsGainedKeys && listing.skillsGainedKeys.length > 0) || (listing.skillsGained && listing.skillsGained.length > 0)) && (
+                {listing._skills && listing._skills.length > 0 && (
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
-                      {(listing.skillsGainedKeys || listing.skillsGained).slice(0, 3).map((skillKeyOrSkill: string, idx: number) => (
+                      {listing._skills.slice(0, 3).map((skill: string, idx: number) => (
                         <span 
                           key={idx} 
                           className="px-2 py-1 rounded text-xs"
                           style={{ backgroundColor: '#D7FFEF', color: '#374151' }}
                         >
-                          {listing.skillsGainedKeys ? t(skillKeyOrSkill) : skillKeyOrSkill}
+                          {skill}
                         </span>
                       ))}
                     </div>
@@ -234,7 +242,7 @@ export default function RecruitingPage() {
 
                 <div className="text-sm" style={{ color: '#6B7280' }}>
                   <p className="line-clamp-2">
-                    {listing.whyThisCompanyKey ? t(listing.whyThisCompanyKey) : listing.whyThisCompany || listing.sellingPoints}
+                    {listing._whyCompany}
                   </p>
                 </div>
                 </Link>

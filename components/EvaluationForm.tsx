@@ -78,7 +78,7 @@ export default function EvaluationForm({
             {/* Rating */}
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
-                {t("meeting.evaluation.rating") || "Rating"} (1-5) *
+                {t("meeting.evaluation.ratingLabel") || "Rating (1-5) *"}
               </label>
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((num) => (
@@ -101,7 +101,7 @@ export default function EvaluationForm({
             {/* Comment */}
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
-                {t("meeting.evaluation.comment") || "Comment"} (Optional)
+                {t("meeting.evaluation.commentLabel") || "Comment (Optional)"}
               </label>
               <textarea
                 value={comment}

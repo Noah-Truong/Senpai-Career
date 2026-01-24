@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Notification } from "@/types";
 import { v4 as uuidv4 } from "uuid";
+import { sendEmailNotification } from "./email-notifications";
 
 export interface NotificationData extends Omit<Notification, "createdAt"> {
   createdAt: string;
@@ -36,7 +37,8 @@ export const readNotifications = async (): Promise<NotificationData[]> => {
 };
 
 export const saveNotification = async (
-  notificationData: Omit<NotificationData, "id" | "createdAt" | "read">
+  notificationData: Omit<NotificationData, "id" | "createdAt" | "read">,
+  sendEmail: boolean = true
 ): Promise<NotificationData> => {
   const supabase = await createClient();
   const notificationId = uuidv4();
@@ -58,6 +60,32 @@ export const saveNotification = async (
   if (error) {
     console.error("Error saving notification:", error);
     throw new Error("Failed to create notification");
+  }
+
+  // Send email notification if requested and appropriate
+  if (sendEmail) {
+    try {
+      const htmlContent = `
+        <html>
+          <body>
+            <h2>${notificationData.title}</h2>
+            <p>${notificationData.content || ""}</p>
+            ${notificationData.link ? `<p><a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${notificationData.link}">View Details</a></p>` : ""}
+          </body>
+        </html>
+      `;
+      
+      await sendEmailNotification(
+        notificationData.userId,
+        notificationData.title,
+        htmlContent,
+        notificationData.content || "",
+        notificationData.type
+      );
+    } catch (emailError) {
+      // Don't fail notification creation if email fails
+      console.error("Error sending email notification:", emailError);
+    }
   }
 
   return transformNotification(data);

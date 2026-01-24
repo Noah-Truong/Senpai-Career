@@ -6,14 +6,24 @@ import { getUserById } from "@/lib/users";
 // GET - Fetch all internships (optionally filtered by type)
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") as "internship" | "new-grad" | null;
 
-    let internships = await readInternships();
+    // Companies can see all their listings (including stopped), students can only see public
+    const isCompany = session?.user?.role === "company";
+    const includeStopped = isCompany;
+
+    let internships = await readInternships(includeStopped);
 
     // Filter by type if specified
     if (type) {
-      internships = await getInternshipsByType(type);
+      internships = await getInternshipsByType(type, includeStopped);
+    }
+
+    // If student, filter out stopped listings (double-check)
+    if (!isCompany) {
+      internships = internships.filter(i => i.status === "public" || !i.status);
     }
 
     // Populate company information
@@ -92,15 +102,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const mappedComp =
+      compensationType === "monthly" ? "fixed" : compensationType === "project" ? "other" : compensationType;
     const newInternship = await saveInternship({
       companyId: session.user.id,
       title,
-      compensationType: compensationType as "hourly" | "monthly" | "project" | "other",
+      compensationType: mappedComp as "hourly" | "fixed" | "other",
       otherCompensation: otherCompensation || null,
       workDetails,
       skillsGained: skillsGained || [],
       whyThisCompany: whyThisCompany || "",
       type: type as "internship" | "new-grad",
+      status: "public", // New listings default to public
     });
 
     return NextResponse.json(

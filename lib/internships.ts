@@ -17,16 +17,23 @@ function transformInternship(row: any): InternshipListingData {
     skillsGained: row.skills_gained || [],
     whyThisCompany: row.why_this_company,
     type: row.type,
+    status: row.status || "public",
     createdAt: row.created_at,
   };
 }
 
-export const readInternships = async (): Promise<InternshipListingData[]> => {
+export const readInternships = async (includeStopped: boolean = false): Promise<InternshipListingData[]> => {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("internships")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("*");
+
+  // Filter by status: only show public unless explicitly including stopped
+  if (!includeStopped) {
+    query = query.eq("status", "public");
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error || !data) {
     console.error("Error reading internships:", error);
@@ -54,6 +61,7 @@ export const saveInternship = async (
       skills_gained: internshipData.skillsGained || [],
       why_this_company: internshipData.whyThisCompany,
       type: internshipData.type,
+      status: internshipData.status || "public",
     })
     .select()
     .single();
@@ -80,6 +88,7 @@ export const updateInternship = async (
   if (updates.skillsGained !== undefined) updateData.skills_gained = updates.skillsGained;
   if (updates.whyThisCompany !== undefined) updateData.why_this_company = updates.whyThisCompany;
   if (updates.type !== undefined) updateData.type = updates.type;
+  if (updates.status !== undefined) updateData.status = updates.status;
 
   const { data, error } = await supabase
     .from("internships")
@@ -120,13 +129,19 @@ export const getInternshipById = async (id: string): Promise<InternshipListingDa
   return transformInternship(data);
 };
 
-export const getInternshipsByCompanyId = async (companyId: string): Promise<InternshipListingData[]> => {
+export const getInternshipsByCompanyId = async (companyId: string, includeStopped: boolean = true): Promise<InternshipListingData[]> => {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("internships")
     .select("*")
-    .eq("company_id", companyId)
-    .order("created_at", { ascending: false });
+    .eq("company_id", companyId);
+
+  // Companies can see all their listings (including stopped) by default
+  if (!includeStopped) {
+    query = query.eq("status", "public");
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error || !data) {
     console.error("Error reading company internships:", error);
@@ -136,13 +151,19 @@ export const getInternshipsByCompanyId = async (companyId: string): Promise<Inte
   return data.map(transformInternship);
 };
 
-export const getInternshipsByType = async (type: "internship" | "new-grad"): Promise<InternshipListingData[]> => {
+export const getInternshipsByType = async (type: "internship" | "new-grad", includeStopped: boolean = false): Promise<InternshipListingData[]> => {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("internships")
     .select("*")
-    .eq("type", type)
-    .order("created_at", { ascending: false });
+    .eq("type", type);
+
+  // Filter by status: only show public unless explicitly including stopped
+  if (!includeStopped) {
+    query = query.eq("status", "public");
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error || !data) {
     console.error("Error reading internships by type:", error);

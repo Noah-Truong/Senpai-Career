@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import CompanyLogo from "@/components/CompanyLogo";
 import Link from "next/link";
+import SaveButton from "@/components/SaveButton";
 
 export default function RecruitingDetailPage() {
   const { t } = useLanguage();
@@ -30,6 +31,17 @@ export default function RecruitingDetailPage() {
     }
   }, [listingId]);
 
+  // Record browsing history (students only)
+  useEffect(() => {
+    if (listing && session?.user?.role === "student" && listingId) {
+      fetch("/api/browsing-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemType: "recruitment", itemId: listingId }),
+      }).catch(console.error);
+    }
+  }, [listing, listingId, session]);
+
   const loadListing = async () => {
     try {
       const response = await fetch(`/api/internships/${listingId}`);
@@ -37,7 +49,20 @@ export default function RecruitingDetailPage() {
         throw new Error("Failed to load listing");
       }
       const data = await response.json();
-      setListing(data.internship);
+      const internship = data.internship;
+      
+      // Pre-compute translated fields for better performance
+      if (internship) {
+        internship._title = internship.titleKey ? t(internship.titleKey) : internship.title;
+        internship._workDetails = internship.workDetailsKey 
+          ? t(internship.workDetailsKey) 
+          : (internship.workDetails || internship.newGradDetails || "");
+        internship._whyCompany = internship.whyThisCompanyKey 
+          ? t(internship.whyThisCompanyKey) 
+          : (internship.whyThisCompany || "");
+      }
+      
+      setListing(internship);
     } catch (err: any) {
       setError(err.message || "Failed to load listing");
     } finally {
@@ -158,10 +183,17 @@ export default function RecruitingDetailPage() {
               className="mr-4"
             />
             <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">
-                {listing.titleKey ? t(listing.titleKey) : listing.title}
-              </h1>
-              <p className="text-lg text-gray-600">{listing.companyName}</p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">
+                    {listing._title || listing.title}
+                  </h1>
+                  <p className="text-lg text-gray-600">{listing.companyName}</p>
+                </div>
+                {session?.user?.role === "student" && (
+                  <SaveButton itemType="recruitment" itemId={listingId} />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -169,7 +201,7 @@ export default function RecruitingDetailPage() {
         <div className="card-gradient p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">{t("listing.workDetails") || "Work Details"}</h2>
           <p className="text-gray-700 whitespace-pre-line">
-            {listing.workDetailsKey ? t(listing.workDetailsKey) : listing.workDetails || listing.newGradDetails}
+            {listing._workDetails || listing.workDetails || listing.newGradDetails}
           </p>
         </div>
 
@@ -186,11 +218,11 @@ export default function RecruitingDetailPage() {
           </div>
         )}
 
-        {listing.whyThisCompany && (
+        {(listing._whyCompany || listing.whyThisCompany) && (
           <div className="card-gradient p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">{t("listing.whyThisCompany") || "Why This Company"}</h2>
             <p className="text-gray-700">
-              {listing.whyThisCompanyKey ? t(listing.whyThisCompanyKey) : listing.whyThisCompany}
+              {listing._whyCompany || listing.whyThisCompany}
             </p>
           </div>
         )}

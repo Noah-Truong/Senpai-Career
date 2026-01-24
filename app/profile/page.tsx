@@ -10,6 +10,7 @@ import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
+import UserSettings from "@/components/UserSettings";
 
 // Options for multi-select dropdowns (same as signup pages)
 const languageOptions = ["Japanese", "English", "Chinese", "Korean", "Spanish", "French", "German", "Portuguese"];
@@ -26,8 +27,8 @@ export default function ProfilePage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
+    // Use window.location for a hard redirect to ensure clean state
+    window.location.href = "/login";
   };
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +43,7 @@ export default function ProfilePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showAvailabilityCalendar, setShowAvailabilityCalendar] = useState(false);
+  const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile");
 
   // Check if we should auto-open availability calendar from query param
   useEffect(() => {
@@ -328,14 +330,56 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-white">
      
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>{t("profile.title")}</h1>
+        {/* Tabs */}
+        <div className="flex gap-4 mb-6 border-b" style={{ borderColor: '#E5E7EB' }}>
           <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="btn-primary"
+            onClick={() => {
+              setActiveTab("profile");
+              setIsEditing(false);
+            }}
+            className={`px-4 py-2 font-medium transition-colors ${
+              activeTab === "profile"
+                ? "border-b-2 text-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+            style={{
+              borderBottomColor: activeTab === "profile" ? '#2563EB' : 'transparent',
+            }}
           >
-            {isEditing ? t("profile.view") : t("profile.edit")}
+            {t("profile.tab.profile") || "Profile"}
           </button>
+          {(isStudent || isOBOG) && (
+            <button
+              onClick={() => {
+                setActiveTab("settings");
+                setIsEditing(false);
+              }}
+              className={`px-4 py-2 font-medium transition-colors ${
+                activeTab === "settings"
+                  ? "border-b-2 text-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+              style={{
+                borderBottomColor: activeTab === "settings" ? '#2563EB' : 'transparent',
+              }}
+            >
+              {t("profile.tab.settings") || "Settings"}
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>
+            {activeTab === "profile" ? t("profile.title") : t("profile.settings.title") || "Settings"}
+          </h1>
+          {activeTab === "profile" && (
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="btn-primary"
+            >
+              {isEditing ? t("profile.view") : t("profile.edit")}
+            </button>
+          )}
         </div>
 
         {error && (
@@ -350,8 +394,13 @@ export default function ProfilePage() {
           </div>
         )}
 
+        {/* Settings Tab */}
+        {activeTab === "settings" && (isStudent || isOBOG) && (
+          <UserSettings />
+        )}
+
         {/* Profile Display Section */}
-        {!isEditing && (
+        {activeTab === "profile" && !isEditing && (
           <div className="card-gradient p-8 mb-6">
             {/* Profile Header */}
             <div className="flex items-start mb-6">
@@ -582,7 +631,7 @@ export default function ProfilePage() {
         )}
 
         {/* Edit Form Section */}
-        {isEditing && (
+        {activeTab === "profile" && isEditing && (
           <form onSubmit={handleSubmit} className="card-gradient p-8 space-y-6">
           {/* Profile Picture */}
           <div>

@@ -59,10 +59,10 @@ export default function AdminChatsPage() {
     <AdminLayout>
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1" style={{ color: "#111827" }}>
-          Chat History
+          {t("admin.chats.title")}
         </h1>
         <p style={{ color: "#6B7280" }}>
-          Read-only access to all chat threads (features.md 4.5, 4.8)
+          {t("admin.chats.subtitle")}
         </p>
       </div>
 
@@ -71,7 +71,7 @@ export default function AdminChatsPage() {
           className="bg-white border rounded p-8 text-center"
           style={{ borderColor: "#E5E7EB", borderRadius: "6px" }}
         >
-          <p style={{ color: "#6B7280" }}>No chat threads found.</p>
+          <p style={{ color: "#6B7280" }}>{t("admin.chats.noThreads")}</p>
         </div>
       ) : (
         <div
@@ -81,7 +81,7 @@ export default function AdminChatsPage() {
           {threads.map((thread) => {
             const participants = thread.participants || [];
             const names = participants
-              .map((p: any) => p?.name || p?.email || "Unknown")
+              .map((p: any) => p?.name || p?.email || t("admin.chats.unknown"))
               .filter(Boolean);
             const last = thread.lastMessage;
             return (

@@ -1,18 +1,58 @@
-import { auth } from "@/lib/auth-server";
-import { redirect } from "next/navigation";
-import Header from "@/components/Header";
-import { readUsers } from "@/lib/users";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSession } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-export default async function AdminDashboardPage() {
-  const session = await auth();
+export default function AdminDashboardPage() {
+  const { t } = useLanguage();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!session || session.user?.role !== "admin") {
-    redirect("/login");
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+
+    if (status === "authenticated" && session?.user?.role !== "admin") {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (status === "authenticated" && session?.user?.role === "admin") {
+      loadUsers();
+    }
+  }, [status, session, router]);
+
+  const loadUsers = async () => {
+    try {
+      const response = await fetch("/api/users");
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data.users || []);
+      }
+    } catch (error) {
+      console.error("Error loading users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (status === "loading" || loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
+        </div>
+      </div>
+    );
   }
 
-  // Get all users for admin view
-  const users = await readUsers();
   const students = users.filter((u: any) => u.role === "student");
   const obogs = users.filter((u: any) => u.role === "obog");
   const companies = users.filter((u: any) => u.role === "company");
@@ -21,28 +61,29 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-white">
+     
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage users, reports, and platform settings</p>
+          <h1 className="text-3xl font-bold mb-2">{t("admin.dashboard.title")}</h1>
+          <p className="text-gray-600">{t("admin.dashboard.subtitle")}</p>
         </div>
 
         {/* Statistics Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="card-gradient p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Total Users</h3>
+            <h3 className="text-sm font-medium text-gray-600 mb-2">{t("admin.dashboard.totalUsers")}</h3>
             <p className="text-3xl font-bold">{users.length}</p>
           </div>
           <div className="card-gradient p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Students</h3>
+            <h3 className="text-sm font-medium text-gray-600 mb-2">{t("admin.dashboard.students")}</h3>
             <p className="text-3xl font-bold">{students.length}</p>
           </div>
           <div className="card-gradient p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">OB/OG</h3>
+            <h3 className="text-sm font-medium text-gray-600 mb-2">{t("admin.dashboard.obog")}</h3>
             <p className="text-3xl font-bold">{obogs.length}</p>
           </div>
           <div className="card-gradient p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Companies</h3>
+            <h3 className="text-sm font-medium text-gray-600 mb-2">{t("admin.dashboard.companies")}</h3>
             <p className="text-3xl font-bold">{companies.length}</p>
           </div>
         </div>
@@ -92,55 +133,55 @@ export default async function AdminDashboardPage() {
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="card-gradient p-6">
-            <h3 className="text-xl font-semibold mb-4">User Management</h3>
+            <h3 className="text-xl font-semibold mb-4">{t("admin.dashboard.userManagement")}</h3>
             <p className="text-gray-700 mb-4">
-              View and manage all users on the platform.
+              {t("admin.dashboard.userManagementDesc")}
             </p>
             <Link href="/admin/users" className="btn-primary inline-block">
-              Manage Users
+              {t("admin.dashboard.manageUsers")}
             </Link>
           </div>
           <div className="card-gradient p-6">
-            <h3 className="text-xl font-semibold mb-4">Reports</h3>
+            <h3 className="text-xl font-semibold mb-4">{t("admin.dashboard.reports")}</h3>
             <p className="text-gray-700 mb-4">
-              Review user reports and safety issues.
+              {t("admin.dashboard.reportsDesc")}
             </p>
             <Link href="/admin/reports" className="btn-primary inline-block">
-              View Reports
+              {t("admin.dashboard.viewReports")}
             </Link>
           </div>
           <div className="card-gradient p-6">
-            <h3 className="text-xl font-semibold mb-4">Platform Settings</h3>
+            <h3 className="text-xl font-semibold mb-4">{t("admin.dashboard.platformSettings")}</h3>
             <p className="text-gray-700 mb-4">
-              Configure platform-wide settings and rules.
+              {t("admin.dashboard.platformSettingsDesc")}
             </p>
             <Link href="/admin/settings" className="btn-primary inline-block">
-              Settings
+              {t("admin.dashboard.settings")}
             </Link>
           </div>
         </div>
 
         {/* Recent Users Table */}
         <div className="card-gradient p-6">
-          <h3 className="text-xl font-semibold mb-4">Recent Users</h3>
-          <div className="overflow-x-auto">
+          <h3 className="text-xl font-semibold mb-4">{t("admin.dashboard.recentUsers")}</h3>
+          <div className="table-responsive overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
+                    {t("admin.dashboard.name")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
+                    {t("admin.dashboard.email")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
+                    {t("admin.dashboard.role")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created
+                    {t("admin.dashboard.created")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    {t("admin.dashboard.status")}
                   </th>
                 </tr>
               </thead>
@@ -169,15 +210,15 @@ export default async function AdminDashboardPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {(user as any).isBanned ? (
                         <span className="px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-800">
-                          Banned
+                          {t("admin.dashboard.banned")}
                         </span>
                       ) : (user as any).strikes > 0 ? (
                         <span className="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">
-                          {(user as any).strikes} Strike{(user as any).strikes > 1 ? "s" : ""}
+                          {(user as any).strikes} {t("admin.dashboard.strikes")}{((user as any).strikes as number) > 1 ? "s" : ""}
                         </span>
                       ) : (
                         <span className="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800">
-                          Active
+                          {t("admin.dashboard.active")}
                         </span>
                       )}
                     </td>

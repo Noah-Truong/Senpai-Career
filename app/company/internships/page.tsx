@@ -46,6 +46,7 @@ export default function CompanyInternshipsPage() {
 
   const loadInternships = async () => {
     try {
+      // Companies should see all their listings including stopped ones
       const response = await fetch("/api/internships");
       if (response.ok) {
         // Check if response is JSON before parsing
@@ -60,6 +61,7 @@ export default function CompanyInternshipsPage() {
             if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
               const data = JSON.parse(text);
               // Filter to show only this company's internships
+              // Companies see all their listings (including stopped)
               const companyInternships = (data.internships || []).filter(
                 (i: InternshipListing) => i.companyId === session?.user?.id
               );
@@ -105,6 +107,25 @@ export default function CompanyInternshipsPage() {
       loadInternships();
     } catch (err: any) {
       alert(err.message || "Failed to delete listing");
+    }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: "public" | "stopped") => {
+    try {
+      const response = await fetch(`/api/internships/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
+
+      // Reload internships
+      loadInternships();
+    } catch (err: any) {
+      alert(err.message || "Failed to update status");
     }
   };
 
@@ -160,15 +181,24 @@ export default function CompanyInternshipsPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-2">
-                      {(internship as any).titleKey ? t((internship as any).titleKey) : internship.title}
-                    </h3>
-                    <span
-                      className="inline-block px-2 py-1 text-xs font-semibold rounded"
-                      style={{ backgroundColor: '#D7FFEF', color: '#0F2A44' }}
-                    >
-                      {internship.type === "internship" ? "Internship" : "New Graduate"}
-                    </span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-lg font-semibold">
+                        {(internship as any).titleKey ? t((internship as any).titleKey) : internship.title}
+                      </h3>
+                      {(internship as any).status === "stopped" && (
+                        <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700">
+                          Stopped
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <span
+                        className="inline-block px-2 py-1 text-xs font-semibold rounded"
+                        style={{ backgroundColor: '#D7FFEF', color: '#0F2A44' }}
+                      >
+                        {internship.type === "internship" ? "Internship" : "New Graduate"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

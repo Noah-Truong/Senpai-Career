@@ -85,7 +85,7 @@ export interface MessageThread {
 export interface Notification {
   id: string;
   userId: string;
-  type: "internship" | "new-grad" | "message" | "system";
+  type: "internship" | "new-grad" | "message" | "system" | "application" | "meeting";
   title: string;
   content: string;
   link?: string;
@@ -127,6 +127,7 @@ export interface InternshipListing {
   whyThisCompany: string;
   companyLogo?: string;
   type: "internship" | "new-grad";
+  status?: "public" | "stopped";
   createdAt: Date;
   applicationQuestions?: string[];
 }

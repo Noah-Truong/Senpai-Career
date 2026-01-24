@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     if (!session) {
       // User is not authenticated in Supabase at all
       if (process.env.NODE_ENV === "development") {
-        console.log("Profile API: No session - user not authenticated in Supabase");
+        // Profile API: No session - user not authenticated in Supabase
       }
       return NextResponse.json(
         { error: "Unauthorized - Please log in again" },
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     if (!session.user) {
       // Session exists but user object is missing (shouldn't happen, but handle gracefully)
       if (process.env.NODE_ENV === "development") {
-        console.log("Profile API: Session exists but user object is missing");
+        // Profile API: Session exists but user object is missing
       }
       return NextResponse.json(
         { error: "Unauthorized - Invalid session" },
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
         if (createdUser) {
           user = createdUser;
           if (process.env.NODE_ENV === "development") {
-            console.log("Profile API: Successfully created user record from auth metadata");
+            // Profile API: Successfully created user record from auth metadata
           }
         } else {
           if (process.env.NODE_ENV === "development") {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -12,7 +12,7 @@ import { isBlockedFreeDomain, getBlockedDomainError } from "@/lib/blocked-email-
 export default function OBOGSignupPage() {
   const { t } = useLanguage();
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -28,17 +28,27 @@ export default function OBOGSignupPage() {
     oneLineMessage: "",
   });
 
-  const languageOptions = ["Japanese", "English", "Chinese", "Korean", "Spanish", "French", "German", "Portuguese"];
-  const topicOptions = [
-    "Career Change", 
-    "Job Search Strategy", 
-    "Interview Preparation", 
-    "Resume/CV Writing", 
-    "Industry Insights", 
-    "Networking", 
-    "Salary Negotiation",
-    "Work-Life Balance"
-  ];
+  const languageOptions = useMemo(() => [
+    t("form.language.japanese") || "Japanese",
+    t("form.language.english") || "English",
+    t("form.language.chinese") || "Chinese",
+    t("form.language.korean") || "Korean",
+    t("form.language.spanish") || "Spanish",
+    t("form.language.french") || "French",
+    t("form.language.german") || "German",
+    t("form.language.portuguese") || "Portuguese",
+  ], [t]);
+
+  const topicOptions = useMemo(() => [
+    t("form.topic.careerChange") || "Career Change",
+    t("form.topic.jobSearchStrategy") || "Job Search Strategy",
+    t("form.topic.interviewPreparation") || "Interview Preparation",
+    t("form.topic.resumeWriting") || "Resume/CV Writing",
+    t("form.topic.industryInsights") || "Industry Insights",
+    t("form.topic.networking") || "Networking",
+    t("form.topic.salaryNegotiation") || "Salary Negotiation",
+    t("form.topic.workLifeBalance") || "Work-Life Balance",
+  ], [t]);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -339,7 +349,7 @@ export default function OBOGSignupPage() {
                     required
                     placeholder={t("form.topicsPlaceholder") || "Select topics..."}
                     allowOther={true}
-                    otherPlaceholder="Enter other topic"
+                    otherPlaceholder={t("form.otherTopic") || "Enter other topic"}
                   />
                 </div>
                 <div>

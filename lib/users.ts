@@ -516,10 +516,131 @@ export const updateUser = async (
 export const deleteUser = async (userId: string): Promise<void> => {
   const supabase = await createClient();
 
+  // Get user info before deletion (for cleanup)
+  const { data: user } = await supabase
+    .from("users")
+    .select("id, name, role")
+    .eq("id", userId)
+    .single();
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Get profile info for cleanup (nickname/name for availability cleanup)
+  let alumniName: string | null = null;
+  if (user.role === "obog") {
+    const { data: obogProfile } = await supabase
+      .from("obog_profiles")
+      .select("nickname")
+      .eq("id", userId)
+      .single();
+    alumniName = obogProfile?.nickname || user.name;
+  }
+
+  // 1. Delete file-based data (threads and messages)
+  try {
+    const fs = await import("fs");
+    const path = await import("path");
+    
+    const THREADS_FILE = path.join(process.cwd(), "data", "threads.json");
+    const MESSAGES_FILE = path.join(process.cwd(), "data", "messages.json");
+
+    // Clean up threads that include this user
+    if (fs.existsSync(THREADS_FILE)) {
+      try {
+        const threadsData = fs.readFileSync(THREADS_FILE, "utf-8");
+        const threads = JSON.parse(threadsData);
+        const filteredThreads = threads.filter((t: any) => !t.participants?.includes(userId));
+        fs.writeFileSync(THREADS_FILE, JSON.stringify(filteredThreads, null, 2));
+      } catch (threadError) {
+        console.error("Error cleaning up threads:", threadError);
+      }
+    }
+
+    // Clean up messages from/to this user
+    if (fs.existsSync(MESSAGES_FILE)) {
+      try {
+        const messagesData = fs.readFileSync(MESSAGES_FILE, "utf-8");
+        const messages = JSON.parse(messagesData);
+        const filteredMessages = messages.filter(
+          (m: any) => m.fromUserId !== userId && m.toUserId !== userId
+        );
+        fs.writeFileSync(MESSAGES_FILE, JSON.stringify(filteredMessages, null, 2));
+      } catch (messageError) {
+        console.error("Error cleaning up messages:", messageError);
+      }
+    }
+  } catch (fileError) {
+    console.error("Error cleaning up file-based data:", fileError);
+    // Don't fail deletion if file cleanup fails
+  }
+
+  // 2. Delete availability records (uses alumni_name, not FK)
+  // Try both nickname and name in case of mismatch
+  if (alumniName) {
+    // Delete by nickname
+    await supabase
+      .from("availability")
+      .delete()
+      .eq("alumni_name", alumniName);
+    
+    // Also try deleting by name (in case nickname wasn't used)
+    if (alumniName !== user.name) {
+      await supabase
+        .from("availability")
+        .delete()
+        .eq("alumni_name", user.name);
+    }
+  }
+
+  // 3. Manually clean up data that might not have proper CASCADE
+  // (Most should be handled by CASCADE, but we'll be thorough)
+
+  // Delete from threads table (if any exist in DB - though they're file-based)
+  // Note: threads table uses participant_ids array, so we need to check if userId is in array
+  try {
+    const { data: threads } = await supabase
+      .from("threads")
+      .select("id, participant_ids");
+    
+    if (threads) {
+      const threadsToDelete = threads
+        .filter((t: any) => t.participant_ids?.includes(userId))
+        .map((t: any) => t.id);
+      
+      if (threadsToDelete.length > 0) {
+        await supabase
+          .from("threads")
+          .delete()
+          .in("id", threadsToDelete);
+      }
+    }
+  } catch (threadError) {
+    console.error("Error cleaning up threads from database:", threadError);
+    // Continue with deletion even if thread cleanup fails
+  }
+
+  // 4. Delete from users table (CASCADE will handle most related data)
+  // Tables with ON DELETE CASCADE that will be automatically cleaned:
+  // - student_profiles, obog_profiles, company_profiles
+  // - internships (company_id)
+  // - messages (sender_id) - DB table
+  // - notifications (user_id)
+  // - reports (reporter_id, reported_user_id)
+  // - applications (user_id)
+  // - reviews (reviewer_id, reviewee_id)
+  // - bookings (student_id, obog_id)
+  // - meetings (student_id, obog_id)
+  // - meeting_operation_logs (user_id)
+  // - user_settings (user_id)
+  // - notification_settings (user_id)
+  // - email_notification_queue (user_id)
+
   const { error } = await supabase.from("users").delete().eq("id", userId);
 
   if (error) {
     console.error("Error deleting user:", error);
-    throw new Error("User not found");
+    throw new Error("Failed to delete user account");
   }
 };

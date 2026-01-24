@@ -26,10 +26,14 @@ interface Notification {
 
 interface SidebarProps {
   userCredits?: number | null;
+  creditChange?: { type: 'add' | 'deduct' | null; amount: number };
   onCollapse?: (collapsed: boolean) => void;
+  isMobile?: boolean;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
+export default function Sidebar({ userCredits, creditChange, onCollapse, isMobile, mobileOpen, onMobileClose }: SidebarProps) {
   const { data: session, status } = useSession();
   const { t } = useLanguage();
   const pathname = usePathname();
@@ -39,8 +43,8 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
+    // Use window.location for a hard redirect to ensure clean state
+    window.location.href = "/login";
   };
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -49,9 +53,14 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
   const notificationsRef = useRef<HTMLDivElement>(null);
 
   const handleCollapse = () => {
+    if (isMobile) return;
     const newState = !isCollapsed;
     setIsCollapsed(newState);
     onCollapse?.(newState);
+  };
+
+  const closeIfMobile = () => {
+    if (isMobile) onMobileClose?.();
   };
 
   const userRole = session?.user?.role as "student" | "obog" | "company" | "admin" | undefined;
@@ -239,6 +248,24 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
             </svg>
           ),
         },
+        {
+          href: "/student/saved",
+          label: t("nav.saved") || "Saved",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/student/history",
+          label: t("nav.browsingHistory") || "Browsing History",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ),
+        },
       ];
     }
 
@@ -285,6 +312,15 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
         {
           href: "/profile?open=availability",
           label: t("nav.configureAvailability") || "Configure Availability",
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          ),
+        },
+        {
+          href: "/obog/bookings",
+          label: t("nav.bookedMeetings") || "Booked Meetings",
           icon: (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -412,45 +448,73 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
 
   const navItems = getNavItems();
 
+  const drawerWidth = isMobile ? "w-64" : isCollapsed ? "w-16" : "w-64";
+  const showCollapse = !isMobile;
+  const translated = isMobile && !mobileOpen;
+
   return (
-    <aside
-      className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-40 transition-all duration-300 ${
-        isCollapsed ? "w-16" : "w-64"
-      }`}
-      style={{ boxShadow: "2px 0 8px rgba(0, 0, 0, 0.05)" }}
-    >
-      <div className="flex flex-col h-full">
-        {/* Logo and collapse button */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          {!isCollapsed && (
-            <Link href="/" className="flex items-center">
-              <Logo />
-              {userRole === "student" && <StudentIcon />}
-              {userRole === "company" && <CompanyIcon />}
-              {userRole === "obog" && <AlumIcon />}
-            </Link>
-          )}
-          <button
-            onClick={handleCollapse}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg
-              className={`w-5 h-5 transition-transform ${isCollapsed ? "rotate-180" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-          </button>
-        </div>
+    <>
+      {/* Mobile overlay */}
+      {isMobile && mobileOpen && (
+        <button
+          type="button"
+          onClick={onMobileClose}
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          aria-label="Close menu"
+        />
+      )}
+      <aside
+        className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-40 transition-all duration-300 ease-out ${drawerWidth} ${
+          translated ? "-translate-x-full" : "translate-x-0"
+        }`}
+        style={{ boxShadow: "2px 0 8px rgba(0, 0, 0, 0.05)" }}
+      >
+        <div className="flex flex-col h-full w-full">
+          {/* Logo and collapse button */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            {(!isCollapsed || isMobile) && (
+              <Link href="/" className="flex items-center" onClick={closeIfMobile}>
+                <Logo />
+                {userRole === "student" && <StudentIcon />}
+                {userRole === "company" && <CompanyIcon />}
+                {userRole === "obog" && <AlumIcon />}
+              </Link>
+            )}
+            {showCollapse ? (
+              <button
+                onClick={handleCollapse}
+                className="tap-target p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg
+                  className={`w-5 h-5 transition-transform ${isCollapsed ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onMobileClose}
+                className="tap-target p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Close menu"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
 
         {/* User info */}
         {status !== "loading" && session?.user && (
-          <div className={`p-4 border-b border-gray-200 ${isCollapsed ? "flex justify-center" : ""}`}>
+          <div className={`p-4 border-b border-gray-200 ${isCollapsed && !isMobile ? "flex justify-center" : ""}`}>
             <Link 
               href="/profile"
-              className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}
+              className={`flex items-center gap-3 ${isCollapsed && !isMobile ? "justify-center" : ""}`}
+              onClick={closeIfMobile}
             >
               <Avatar
                 src={userProfilePhoto}
@@ -458,7 +522,7 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
                 size="md"
                 fallbackText={userName}
               />
-              {!isCollapsed && (
+              {(!isCollapsed || isMobile) && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
                     {userName}
@@ -472,10 +536,10 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
           </div>
         )}
         {status === "loading" && (
-          <div className={`p-4 border-b border-gray-200 ${isCollapsed ? "flex justify-center" : ""}`}>
-            <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
+          <div className={`p-4 border-b border-gray-200 ${isCollapsed && !isMobile ? "flex justify-center" : ""}`}>
+            <div className={`flex items-center gap-3 ${isCollapsed && !isMobile ? "justify-center" : ""}`}>
               <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
-              {!isCollapsed && (
+              {(!isCollapsed || isMobile) && (
                 <div className="flex-1 min-w-0">
                   <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-1" />
                   <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
@@ -487,23 +551,62 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
 
         {/* Credits (for non-admin users) */}
         {userCredits !== null && userRole !== "admin" && (
-          <div className={`px-4 py-3 border-b border-gray-200 ${isCollapsed ? "flex justify-center" : ""}`}>
+          <div className={`px-4 py-3 border-b border-gray-200 ${isCollapsed && !isMobile ? "flex justify-center" : ""}`}>
             <Link
               href="/credits"
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors bg-navy ${
+              onClick={closeIfMobile}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300 relative overflow-hidden ${
                 userCredits === 0
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "text-gray-700"
+              } ${
+                creditChange?.type === 'add' ? 'animate-pulse bg-green-50' :
+                creditChange?.type === 'deduct' ? 'animate-pulse bg-red-50' : ''
               }`}
-              style={userCredits !== 0 ? {color: '#0D7A4D' } : {}}
+              style={userCredits !== 0 ? {color: '#10B981' } : {}}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <motion.svg 
+                className="w-5 h-5" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                animate={creditChange?.type ? {
+                  scale: creditChange.type === 'add' ? [1, 1.2, 1] : [1, 0.8, 1],
+                  rotate: creditChange.type === 'add' ? [0, 360] : [0, -360]
+                } : {}}
+                transition={{ duration: 0.5 }}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {!isCollapsed && (
-                <span className="text-sm font-medium">
-                  {userCredits === 0 ? (t("nav.buyCredits") || "Buy Credits") : `${userCredits} Credits`}
-                </span>
+              </motion.svg>
+              {(!isCollapsed || isMobile) && (
+                <div className="flex items-center gap-2">
+                  <motion.span 
+                    className="text-sm font-medium"
+                    key={userCredits}
+                    initial={{ scale: 1 }}
+                    animate={creditChange?.type ? {
+                      scale: creditChange.type === 'add' ? [1, 1.3, 1] : [1, 0.9, 1],
+                      color: creditChange.type === 'add' ? '#10B981' : '#DC2626'
+                    } : {}}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {userCredits === 0 ? (t("nav.buyCredits") || "Buy Credits") : `${userCredits} Credits`}
+                  </motion.span>
+                  <AnimatePresence>
+                    {creditChange?.type && (
+                      <motion.span
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className={`text-xs font-bold ${
+                          creditChange.type === 'add' ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {creditChange.type === 'add' ? '+' : '-'}{creditChange.amount}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
               )}
             </Link>
           </div>
@@ -511,14 +614,14 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
 
         {/* Notifications */}
         <div className={`px-4 py-3 border-b border-gray-200`}>
-          <div className={`relative ${isCollapsed ? "flex justify-center" : ""}`} ref={notificationsRef}>
+          <div className={`relative ${isCollapsed && !isMobile ? "flex justify-center" : ""}`} ref={notificationsRef}>
             <button
               onClick={() => {
                 setShowNotifications(!showNotifications);
                 if (!showNotifications) loadNotifications();
               }}
-              className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-[#F0FFF8] ${isCollapsed ? "justify-center" : ""}`}
-              title={isCollapsed ? t("nav.notifications") : undefined}
+              className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-colors text-gray-700 hover:bg-[#F0FFF8] ${isCollapsed && !isMobile ? "justify-center" : ""}`}
+              title={isCollapsed && !isMobile ? t("nav.notifications") : undefined}
             >
               <div className="relative">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -533,7 +636,7 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
                   </span>
                 )}
               </div>
-              {!isCollapsed && (
+              {(!isCollapsed || isMobile) && (
                 <span className="text-sm font-medium">{t("nav.notifications")}</span>
               )}
             </button>
@@ -546,7 +649,7 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className={`absolute ${isCollapsed ? "left-full ml-2" : "left-0"} top-full mt-1 w-80 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto`}
+                  className={`absolute ${isCollapsed && !isMobile ? "left-full ml-2" : "left-0"} top-full mt-1 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto`}
                   style={{ borderColor: '#E5E7EB' }}
                 >
                   <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: '#E5E7EB' }}>
@@ -598,16 +701,17 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
           </div>
 
         
-          <div className={`relative ${isCollapsed ? "flex justify-center" : ""}`}>
+          <div className={`relative ${isCollapsed && !isMobile ? "flex justify-center" : ""}`}>
           <Link href="/messages" 
         className={`${getLinkClasses('/messages')} hover:bg-[#F0FFF8]`}
         style={getActiveStyle('/messages')}
-        title={isCollapsed ? t("nav.messages") || "Messages" : undefined}
+        title={isCollapsed && !isMobile ? t("nav.messages") || "Messages" : undefined}
+        onClick={closeIfMobile}
         >
            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
            </svg>
-          {!isCollapsed && <span>{t("nav.messages") || "Messages"}</span>}
+          {(!isCollapsed || isMobile) && <span>{t("nav.messages") || "Messages"}</span>}
         </Link>
         </div>
         </div>
@@ -622,12 +726,13 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`${getLinkClasses(item.href)} hover:bg-[#F0FFF8]`}
+                  className={`${getLinkClasses(item.href)} hover:bg-[#F0FFF8] tap-target min-h-[44px]`}
                   style={getActiveStyle(item.href)}
-                  title={isCollapsed ? item.label : undefined}
+                  title={isCollapsed && !isMobile ? item.label : undefined}
+                  onClick={closeIfMobile}
                 >
                   {item.icon}
-                  {!isCollapsed && <span>{item.label}</span>}
+                  {(!isCollapsed || isMobile) && <span>{item.label}</span>}
                 </Link>
               </li>
             ))}
@@ -637,17 +742,19 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
         {/* Bottom section */}
         <div className="p-3 border-t border-gray-200 space-y-1">
           {/* Report */}
+          {userRole !== "admin" && (
           <Link href="/report" 
-          className={`${getLinkClasses('/report')} hover:bg-[#F0FFF8]`}
+          className={`${getLinkClasses('/report')} hover:bg-[#F0FFF8] tap-target min-h-[44px]`}
           style={getActiveStyle('/report')}
-          title={isCollapsed ? t("nav.report") : undefined}
+          title={isCollapsed && !isMobile ? t("nav.report") : undefined}
+          onClick={closeIfMobile}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            {!isCollapsed && <span>{t("nav.report")}</span>}
+            {(!isCollapsed || isMobile) && <span>{t("nav.report")}</span>}
           </Link>
-          
+          )}
    
           {/* Sign out */}
           <button
@@ -663,5 +770,6 @@ export default function Sidebar({ userCredits, onCollapse }: SidebarProps) {
         </div>
       </div>
     </aside>
+    </>
   );
 }

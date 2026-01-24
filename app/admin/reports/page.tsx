@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/AdminLayout";
@@ -16,24 +16,13 @@ export default function AdminReportsPage() {
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const loadingRef = useRef(false);
+  const isAdmin = session?.user?.role === "admin";
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-      return;
-    }
-
-    if (status === "authenticated" && session?.user?.role !== "admin") {
-      router.push("/dashboard");
-      return;
-    }
-
-    if (status === "authenticated") {
-      loadReports();
-    }
-  }, [status, session, router]);
-
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    setLoading(true);
     try {
       const response = await fetch("/api/reports");
       if (!response.ok) {
@@ -45,10 +34,27 @@ export default function AdminReportsPage() {
       console.error("Error loading reports:", error);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
-  };
+  }, []);
 
-  const handleUpdateStatus = async (reportId: string, newStatus: string) => {
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+
+    if (status === "authenticated" && !isAdmin) {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (status === "authenticated" && isAdmin) {
+      loadReports();
+    }
+  }, [status, isAdmin, router, loadReports]);
+
+  const handleUpdateStatus = useCallback(async (reportId: string, newStatus: string) => {
     setUpdatingStatus(true);
     try {
       const response = await fetch("/api/reports", {
@@ -76,7 +82,18 @@ export default function AdminReportsPage() {
     } finally {
       setUpdatingStatus(false);
     }
-  };
+  }, [adminNotes, loadReports]);
+
+  const filteredReports = useMemo(() => {
+    return statusFilter === "all" 
+      ? reports 
+      : reports.filter(r => r.status === statusFilter);
+  }, [reports, statusFilter]);
+
+  const pendingCount = useMemo(() => reports.filter(r => r.status === "pending").length, [reports]);
+  const reviewedCount = useMemo(() => reports.filter(r => r.status === "reviewed").length, [reports]);
+  const resolvedCount = useMemo(() => reports.filter(r => r.status === "resolved").length, [reports]);
+  const dismissedCount = useMemo(() => reports.filter(r => r.status === "dismissed").length, [reports]);
 
   if (status === "loading" || loading) {
     return (
@@ -88,22 +105,13 @@ export default function AdminReportsPage() {
     );
   }
 
-  const filteredReports = statusFilter === "all" 
-    ? reports 
-    : reports.filter(r => r.status === statusFilter);
-
-  const pendingCount = reports.filter(r => r.status === "pending").length;
-  const reviewedCount = reports.filter(r => r.status === "reviewed").length;
-  const resolvedCount = reports.filter(r => r.status === "resolved").length;
-  const dismissedCount = reports.filter(r => r.status === "dismissed").length;
-
   return (
     <AdminLayout>
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1" style={{ color: '#111827' }}>
-          Reports Management
+          {t("admin.reports.title")}
         </h1>
-        <p style={{ color: '#6B7280' }}>Review and manage user reports</p>
+        <p style={{ color: '#6B7280' }}>{t("admin.reports.subtitle")}</p>
       </div>
 
       {/* Statistics */}
@@ -112,35 +120,35 @@ export default function AdminReportsPage() {
           className="bg-white p-4 border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>Total Reports</p>
+          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.totalReports")}</p>
           <p className="text-2xl font-bold" style={{ color: '#111827' }}>{reports.length}</p>
         </div>
         <div 
           className="bg-white p-4 border rounded border-l-4"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', borderLeftColor: '#F59E0B' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>Pending</p>
+          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.pending")}</p>
           <p className="text-2xl font-bold" style={{ color: '#D97706' }}>{pendingCount}</p>
         </div>
         <div 
           className="bg-white p-4 border rounded border-l-4"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', borderLeftColor: '#2563EB' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>Reviewed</p>
+          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.reviewed")}</p>
           <p className="text-2xl font-bold" style={{ color: '#2563EB' }}>{reviewedCount}</p>
         </div>
         <div 
           className="bg-white p-4 border rounded border-l-4"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', borderLeftColor: '#059669' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>Resolved</p>
+          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.resolved")}</p>
           <p className="text-2xl font-bold" style={{ color: '#059669' }}>{resolvedCount}</p>
         </div>
         <div 
           className="bg-white p-4 border rounded border-l-4"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', borderLeftColor: '#6B7280' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>Dismissed</p>
+          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.dismissed")}</p>
           <p className="text-2xl font-bold" style={{ color: '#6B7280' }}>{dismissedCount}</p>
         </div>
       </div>
@@ -148,7 +156,7 @@ export default function AdminReportsPage() {
       {/* Filter */}
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
-          Filter by Status
+          {t("admin.reports.filterByStatus")}
         </label>
         <select
           value={statusFilter}
@@ -156,11 +164,11 @@ export default function AdminReportsPage() {
           className="px-4 py-2 border rounded"
           style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
         >
-          <option value="all">All</option>
-          <option value="pending">Pending</option>
-          <option value="reviewed">Reviewed</option>
-          <option value="resolved">Resolved</option>
-          <option value="dismissed">Dismissed</option>
+          <option value="all">{t("admin.reports.filter.all")}</option>
+          <option value="pending">{t("admin.reports.filter.pending")}</option>
+          <option value="reviewed">{t("admin.reports.filter.reviewed")}</option>
+          <option value="resolved">{t("admin.reports.filter.resolved")}</option>
+          <option value="dismissed">{t("admin.reports.filter.dismissed")}</option>
         </select>
       </div>
 
@@ -170,10 +178,10 @@ export default function AdminReportsPage() {
         style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
       >
         <div className="p-4 border-b" style={{ borderColor: '#E5E7EB' }}>
-          <h3 className="font-semibold" style={{ color: '#111827' }}>Reports</h3>
+          <h3 className="font-semibold" style={{ color: '#111827' }}>{t("admin.reports.reports")}</h3>
         </div>
         {filteredReports.length === 0 ? (
-          <p className="text-center py-8" style={{ color: '#6B7280' }}>No reports found</p>
+          <p className="text-center py-8" style={{ color: '#6B7280' }}>{t("admin.reports.noReportsFound")}</p>
         ) : (
           <div className="divide-y" style={{ borderColor: '#E5E7EB' }}>
             {filteredReports.map((report) => (
@@ -207,20 +215,20 @@ export default function AdminReportsPage() {
                     </div>
                     <div className="mb-2 text-sm">
                       <p style={{ color: '#374151' }}>
-                        <strong>Reporter:</strong> {report.reporter?.name || "Unknown"} ({report.reporter?.email || "N/A"})
+                        <strong>{t("admin.reports.reporter")}:</strong> {report.reporter?.name || t("admin.reports.unknown")} ({report.reporter?.email || t("admin.reports.nA")})
                       </p>
                       {report.reportedUserId !== "PLATFORM" ? (
                         <p style={{ color: '#374151' }}>
-                          <strong>Reported:</strong> {report.reported?.name || "Unknown"} ({report.reported?.email || "N/A"})
+                          <strong>{t("admin.reports.reportedUser")}:</strong> {report.reported?.name || t("admin.reports.unknown")} ({report.reported?.email || t("admin.reports.nA")})
                         </p>
                       ) : (
                         <p style={{ color: '#374151' }}>
-                          <strong>Target:</strong> Platform Issue
+                          <strong>{t("admin.reports.target")}:</strong> {t("admin.reports.platformIssue")}
                         </p>
                       )}
                     </div>
                     <p className="text-sm font-medium mb-1" style={{ color: '#111827' }}>
-                      Reason: {report.reason}
+                      {t("admin.reports.reason")}: {report.reason}
                     </p>
                     <p className="text-sm line-clamp-2" style={{ color: '#6B7280' }}>
                       {report.description}
@@ -241,12 +249,12 @@ export default function AdminReportsPage() {
             style={{ borderRadius: '6px' }}
           >
             <h2 className="text-xl font-bold mb-4" style={{ color: '#111827' }}>
-              Report Details
+              {t("admin.reports.reportDetails")}
             </h2>
             
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>Status</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.status")}</label>
                 <span className={`px-2 py-1 rounded text-xs font-medium inline-block ${
                   selectedReport.status === "pending" ? "bg-yellow-100 text-yellow-800" :
                   selectedReport.status === "reviewed" ? "bg-blue-100 text-blue-800" :
@@ -258,54 +266,54 @@ export default function AdminReportsPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>Report Type</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.reportType")}</label>
                 <span className={`px-2 py-1 rounded text-xs font-medium inline-block ${
                   selectedReport.reportType === "user" ? "bg-red-100 text-red-800" :
                   selectedReport.reportType === "safety" ? "bg-orange-100 text-orange-800" :
                   selectedReport.reportType === "platform" ? "bg-blue-100 text-blue-800" :
                   "bg-gray-100 text-gray-800"
                 }`}>
-                  {selectedReport.reportType === "user" ? "User Report" :
-                   selectedReport.reportType === "safety" ? "Safety Concern" :
-                   selectedReport.reportType === "platform" ? "Platform Issue" : "Other"}
+                  {selectedReport.reportType === "user" ? t("admin.reports.userReport") :
+                   selectedReport.reportType === "safety" ? t("admin.reports.safetyConcern") :
+                   selectedReport.reportType === "platform" ? t("admin.reports.platformIssueType") : t("admin.reports.other")}
                 </span>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>Created</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.created")}</label>
                 <p className="text-sm" style={{ color: '#374151' }}>
                   {new Date(selectedReport.createdAt).toLocaleString()}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>Reporter</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.reporter")}</label>
                 <p className="text-sm" style={{ color: '#374151' }}>
-                  {selectedReport.reporter?.name || "Unknown"} ({selectedReport.reporter?.email || "N/A"}) - {selectedReport.reporter?.role || "N/A"}
+                  {selectedReport.reporter?.name || t("admin.reports.unknown")} ({selectedReport.reporter?.email || t("admin.reports.nA")}) - {selectedReport.reporter?.role || t("admin.reports.nA")}
                 </p>
               </div>
 
               {selectedReport.reportedUserId !== "PLATFORM" ? (
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>Reported User</label>
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.reportedUser")}</label>
                   <p className="text-sm" style={{ color: '#374151' }}>
-                    {selectedReport.reported?.name || "Unknown"} ({selectedReport.reported?.email || "N/A"}) - {selectedReport.reported?.role || "N/A"}
+                    {selectedReport.reported?.name || t("admin.reports.unknown")} ({selectedReport.reported?.email || t("admin.reports.nA")}) - {selectedReport.reported?.role || t("admin.reports.nA")}
                   </p>
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>Target</label>
-                  <p className="text-sm" style={{ color: '#374151' }}>Platform / System</p>
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.target")}</label>
+                  <p className="text-sm" style={{ color: '#374151' }}>{t("admin.reports.platformIssue")}</p>
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>Reason</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.reason")}</label>
                 <p className="text-sm" style={{ color: '#374151' }}>{selectedReport.reason}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>Description</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.description")}</label>
                 <p className="text-sm whitespace-pre-wrap" style={{ color: '#374151' }}>
                   {selectedReport.description}
                 </p>
@@ -313,7 +321,7 @@ export default function AdminReportsPage() {
 
               {selectedReport.adminNotes && (
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>Admin Notes</label>
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.adminNotes")}</label>
                   <p className="text-sm whitespace-pre-wrap" style={{ color: '#374151' }}>
                     {selectedReport.adminNotes}
                   </p>
@@ -323,7 +331,7 @@ export default function AdminReportsPage() {
 
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
-                Admin Notes
+                {t("admin.reports.adminNotes")}
               </label>
               <textarea
                 value={adminNotes}
@@ -331,7 +339,7 @@ export default function AdminReportsPage() {
                 rows={4}
                 className="w-full px-3 py-2 border rounded"
                 style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
-                placeholder="Add admin notes..."
+                placeholder={t("admin.reports.addAdminNotes")}
               />
             </div>
 
@@ -345,7 +353,7 @@ export default function AdminReportsPage() {
                 style={{ borderColor: '#D1D5DB', color: '#374151', borderRadius: '6px' }}
                 disabled={updatingStatus}
               >
-                Cancel
+                {t("button.cancel")}
               </button>
               {selectedReport.status !== "pending" && (
                 <button
@@ -354,7 +362,7 @@ export default function AdminReportsPage() {
                   style={{ backgroundColor: '#F59E0B', borderRadius: '6px' }}
                   disabled={updatingStatus}
                 >
-                  Mark Pending
+                  {t("admin.reports.markPending")}
                 </button>
               )}
               {selectedReport.status !== "reviewed" && (
@@ -364,7 +372,7 @@ export default function AdminReportsPage() {
                   style={{ backgroundColor: '#2563EB', borderRadius: '6px' }}
                   disabled={updatingStatus}
                 >
-                  Mark Reviewed
+                  {t("admin.reports.markReviewed")}
                 </button>
               )}
               {selectedReport.status !== "resolved" && (
@@ -374,7 +382,7 @@ export default function AdminReportsPage() {
                   style={{ backgroundColor: '#059669', borderRadius: '6px' }}
                   disabled={updatingStatus}
                 >
-                  Mark Resolved
+                  {t("admin.reports.markResolved")}
                 </button>
               )}
               {selectedReport.status !== "dismissed" && (
@@ -384,7 +392,7 @@ export default function AdminReportsPage() {
                   style={{ backgroundColor: '#6B7280', color: '#fff', borderRadius: '6px' }}
                   disabled={updatingStatus}
                 >
-                  Dismiss
+                  {t("admin.reports.dismiss")}
                 </button>
               )}
             </div>

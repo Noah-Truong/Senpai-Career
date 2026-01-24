@@ -64,8 +64,15 @@ export default function MessagesPage() {
       loadThreads();
 
       // Only redirect to new message page if not an alumni (alumni cannot start conversations)
+      // Support obogId, userId, or studentId parameters
       if (obogId && role !== "obog") {
         router.push(`/messages/new?obogId=${obogId}`);
+      } else {
+        const userId = searchParams.get("userId");
+        const studentId = searchParams.get("studentId");
+        if ((userId || studentId) && role !== "obog") {
+          router.push(`/messages/new?${userId ? `userId=${userId}` : `studentId=${studentId}`}`);
+        }
       }
     }
   }, [status, router, obogId, role, loadThreads]);
@@ -128,6 +135,10 @@ export default function MessagesPage() {
             ) : role === "student" ? (
               <Link href="/ob-list" className="btn-primary inline-block">
                 {t("button.browseObog")}
+              </Link>
+            ) : role === "company" ? (
+              <Link href="/company/students" className="btn-primary inline-block">
+                {t("button.browseStudents") || "Browse Students"}
               </Link>
             ) : (
               <Link href="/student-list" className="btn-primary inline-block">

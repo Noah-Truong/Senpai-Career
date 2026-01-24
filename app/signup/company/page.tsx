@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -10,7 +10,7 @@ import { isBlockedFreeDomain, getBlockedDomainError } from "@/lib/blocked-email-
 export default function CompanySignupPage() {
   const { t } = useLanguage();
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [formData, setFormData] = useState({
     email: "",
     password: "",

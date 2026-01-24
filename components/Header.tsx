@@ -122,8 +122,8 @@ export default function Header({ minimal = false }: HeaderProps) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
+    // Use window.location for a hard redirect to ensure clean state
+    window.location.href = "/login";
   };
 
   // Memoized helper functions to prevent unnecessary recalculations
@@ -208,42 +208,24 @@ export default function Header({ minimal = false }: HeaderProps) {
     }
   }, [isLoggedIn]);
 
-  // Fetch notifications and user credits when logged in - reduced polling frequency
+  // Fetch notifications and user credits when logged in; refresh credits on send/purchase
   useEffect(() => {
     if (isLoggedIn && session?.user?.id) {
       loadNotifications();
       loadUserCredits();
-      
-      // Set up Supabase real-time subscription for credits updates
-      const channel = supabase
-        .channel(`header-credits-${session.user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'users',
-            filter: `id=eq.${session.user.id}`
-          },
-          (payload) => {
-            console.log('Credits updated via real-time (Header):', payload);
-            if (payload.new && 'credits' in payload.new) {
-              const newCredits = payload.new.credits as number;
-              setUserCredits(newCredits ?? 0);
-            }
-          }
-        )
-        .subscribe();
-      
-      // Reduced polling frequency from 30s to 60s for better performance
       const interval = setInterval(loadNotifications, 60000);
-      
-      return () => {
-        clearInterval(interval);
-        supabase.removeChannel(channel);
-      };
+      return () => clearInterval(interval);
     }
-  }, [isLoggedIn, session?.user?.id, loadNotifications, loadUserCredits, supabase]);
+  }, [isLoggedIn, session?.user?.id, loadNotifications, loadUserCredits]);
+
+  // Set up credits refresh listener (always active, checks login inside)
+  useEffect(() => {
+    const onRefresh = () => {
+      loadUserCredits();
+    };
+    window.addEventListener("credits-refresh", onRefresh);
+    return () => window.removeEventListener("credits-refresh", onRefresh);
+  }, [loadUserCredits]);
 
   // Close notifications dropdown when clicking outside
   useEffect(() => {
@@ -312,7 +294,7 @@ export default function Header({ minimal = false }: HeaderProps) {
   // Minimal mode for logged-in users with sidebar - only notifications and messages
   if (minimal && isLoggedIn) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         {/* Notifications */}
         <div className="relative" ref={notificationRef}>
           <button
@@ -320,7 +302,7 @@ export default function Header({ minimal = false }: HeaderProps) {
               setShowNotifications(!showNotifications);
               if (!showNotifications) loadNotifications();
             }}
-            className="p-2 text-gray-500 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
+            className="tap-target p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
             style={{ color: '#6B7280' }}
             title={t("nav.notifications")}
           >
@@ -329,7 +311,7 @@ export default function Header({ minimal = false }: HeaderProps) {
             </svg>
             {unreadCount > 0 && (
               <span
-                className="absolute top-0 right-0 h-4 w-4 rounded-full text-xs flex items-center justify-center text-white"
+                className="absolute top-0.5 right-0.5 sm:top-0 sm:right-0 h-4 w-4 rounded-full text-xs flex items-center justify-center text-white"
                 style={{ backgroundColor: '#DC2626', fontSize: '10px' }}
               >
                 {unreadCount > 9 ? '9+' : unreadCount}
@@ -340,7 +322,7 @@ export default function Header({ minimal = false }: HeaderProps) {
           {/* Notifications dropdown */}
           {showNotifications && (
             <div
-              className="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+              className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
               style={{ borderColor: '#E5E7EB' }}
             >
               <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: '#E5E7EB' }}>
@@ -390,7 +372,7 @@ export default function Header({ minimal = false }: HeaderProps) {
         {/* Messages */}
         <button
           onClick={() => router.push("/messages")}
-          className="p-2 text-gray-500 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
+          className="tap-target p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-navy hover:bg-gray-100 rounded-lg transition-colors"
           style={{ color: '#6B7280' }}
           title={t("nav.messages")}
         >
@@ -410,8 +392,8 @@ export default function Header({ minimal = false }: HeaderProps) {
         boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[74px]">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-[74px] min-h-[56px]">
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0">
             <Logo />
@@ -565,7 +547,8 @@ export default function Header({ minimal = false }: HeaderProps) {
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-500 hover:text-navy rounded"
+              className="md:hidden tap-target p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-navy rounded-lg"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
@@ -580,32 +563,32 @@ export default function Header({ minimal = false }: HeaderProps) {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t py-4" style={{ borderColor: '#E5E7EB' }}>
-            <div className="space-y-2">
+          <div className="md:hidden border-t py-2" style={{ borderColor: '#E5E7EB' }}>
+            <div className="space-y-1">
               {!isLoggedIn ? (
                 <>
-                  <Link href="/" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.home") || "Home"}</Link>
-                  <Link href="/about" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.about")}</Link>
-                  <Link href="/how-to-use" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.howToUse")}</Link>
-                  <Link href="/internships" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.internships")}</Link>
-                  <Link href="/for-companies" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.forCompanies")}</Link>
+                  <Link href="/" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.home") || "Home"}</Link>
+                  <Link href="/about" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.about")}</Link>
+                  <Link href="/how-to-use" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.howToUse")}</Link>
+                  <Link href="/internships" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.internships")}</Link>
+                  <Link href="/for-companies" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.forCompanies")}</Link>
                   <div className="border-t mt-2 pt-2" style={{ borderColor: '#E5E7EB' }}>
-                    <Link href="/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.logIn")}</Link>
-                    <Link href="/register" className="block px-4 py-2 text-white rounded mt-2 text-center" style={{ backgroundColor: '#2563EB' }}>{t("nav.register")}</Link>
+                    <Link href="/login" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.logIn")}</Link>
+                    <Link href="/register" className="block px-4 py-3 min-h-[44px] flex items-center justify-center text-white rounded mt-2" style={{ backgroundColor: '#2563EB' }} onClick={() => setMobileMenuOpen(false)}>{t("nav.register")}</Link>
                   </div>
                 </>
               ) : (
                 <>
-                  <Link href="/" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.home") || "Home"}</Link>
-                  <Link href={`/user/${(session?.user as any)?.id}`} className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.myPage")}</Link>
-                  <Link href="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.profile")}</Link>
-                  <Link href="/messages" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.messages")}</Link>
+                  <Link href="/" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.home") || "Home"}</Link>
+                  <Link href={`/user/${(session?.user as any)?.id}`} className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.myPage")}</Link>
+                  <Link href="/profile" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.profile")}</Link>
+                  <Link href="/messages" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.messages")}</Link>
                   {userRole === "student" && (
                     <>
-                      <Link href="/ob-list" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.alumniVisits") || "Alumni Visits"}</Link>
-                      <Link href="/internships" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.internships")}</Link>
-                      <Link href="/recruiting" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.newGrad") || "New Grad"}</Link>
-                      <Link href="/companies" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.companies") || "Companies"}</Link>
+                      <Link href="/ob-list" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.alumniVisits") || "Alumni Visits"}</Link>
+                      <Link href="/internships" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.internships")}</Link>
+                      <Link href="/recruiting" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.newGrad") || "New Grad"}</Link>
+                      <Link href="/companies" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.companies") || "Companies"}</Link>
                     </>
                   )}
                   {userRole === "obog" && (
@@ -616,16 +599,16 @@ export default function Header({ minimal = false }: HeaderProps) {
                   )}
                   {userRole === "company" && (
                     <>
-                      <Link href="/company/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.companyProfile") || "Company Profile"}</Link>
-                      <Link href="/company/internships" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.jobListings") || "Job Listings"}</Link>
-                      <Link href="/companies" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.companies") || "Companies"}</Link>
-                      <Link href="/company/students" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.studentList")}</Link>
+                      <Link href="/company/profile" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.companyProfile") || "Company Profile"}</Link>
+                      <Link href="/company/internships" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.jobListings") || "Job Listings"}</Link>
+                      <Link href="/companies" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.companies") || "Companies"}</Link>
+                      <Link href="/company/students" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.studentList")}</Link>
                     </>
                   )}
                   <div className="border-t mt-2 pt-2" style={{ borderColor: '#E5E7EB' }}>
                     <button
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded"
+                      onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
+                      className="block w-full text-left px-4 py-3 min-h-[44px] flex items-center text-red-600 hover:bg-red-50 rounded"
                     >
                       {t("nav.signOut")}
                     </button>

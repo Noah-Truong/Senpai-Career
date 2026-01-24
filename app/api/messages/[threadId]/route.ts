@@ -75,7 +75,7 @@ export async function GET(
       );
     }
 
-    const messages = readMessages()
+    let messages = readMessages()
       .filter((m: any) => m.threadId === threadId)
       .sort((a: any, b: any) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -94,11 +94,46 @@ export async function GET(
           return rest;
         })
       );
+      
+      // Enrich messages with sender information for admin view
+      const messagesWithSenders = await Promise.all(
+        messages.map(async (message: any) => {
+          const sender = await getUserById(message.fromUserId);
+          if (!sender) return message;
+          const { password: _p, password_hash: _ph, ...senderWithoutPassword } = sender as any;
+          return {
+            ...message,
+            sender: senderWithoutPassword,
+          };
+        })
+      );
+      
       return NextResponse.json({
-        messages,
+        messages: messagesWithSenders,
         otherUser: participants[0] || otherUserWithoutPassword,
         adminView: true,
         participants: participants.filter(Boolean),
+      });
+    }
+
+    // For admin participants, also enrich messages with sender info
+    if (isAdmin && isParticipant) {
+      const messagesWithSenders = await Promise.all(
+        messages.map(async (message: any) => {
+          const sender = await getUserById(message.fromUserId);
+          if (!sender) return message;
+          const { password: _p, password_hash: _ph, ...senderWithoutPassword } = sender as any;
+          return {
+            ...message,
+            sender: senderWithoutPassword,
+          };
+        })
+      );
+      
+      return NextResponse.json({
+        messages: messagesWithSenders,
+        otherUser: otherUserWithoutPassword,
+        adminView: true,
       });
     }
 

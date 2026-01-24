@@ -51,29 +51,55 @@ export async function PUT(
       updated_at: new Date().toISOString(),
     };
 
-    if (action === "confirm") {
+    if (action === "confirm" || action === "accept") {
       if (!isObog) {
         return NextResponse.json(
-          { error: "Only OB/OG can confirm bookings" },
+          { error: "Only OB/OG can accept bookings" },
           { status: 403 }
         );
       }
+      if (booking.status !== "pending") {
+        return NextResponse.json(
+          { error: "Booking is not in pending status" },
+          { status: 400 }
+        );
+      }
       updates.status = "confirmed";
+      updates.meeting_status = "confirmed";
+
+      // Notify student using saveNotification (handles email)
+      const { saveNotification } = await import("@/lib/notifications");
+      await saveNotification({
+        userId: booking.student_id,
+        type: "system",
+        title: "Booking Accepted",
+        content: `Your booking for ${booking.booking_date_time} has been accepted`,
+        link: `/messages/${booking.thread_id}`,
+      });
+    } else if (action === "complete") {
+      if (!isObog) {
+        return NextResponse.json(
+          { error: "Only OB/OG can mark meetings as completed" },
+          { status: 403 }
+        );
+      }
       
-      // Update meeting status if exists
-      if (booking.meeting_id) {
-        await supabase
-          .from("meetings")
-          .update({ status: "confirmed" })
-          .eq("id", booking.meeting_id);
+      // Update booking post_status directly
+      updates.obog_post_status = "completed";
+      updates.obog_post_status_at = new Date().toISOString();
+      
+      // If student also completed or hasn't responded, mark meeting as completed
+      if (booking.student_post_status === "completed" || !booking.student_post_status) {
+        updates.meeting_status = "completed";
       }
 
-      // Notify student
-      await supabase.from("notifications").insert({
-        user_id: booking.student_id,
+      // Notify student using saveNotification (handles email)
+      const { saveNotification } = await import("@/lib/notifications");
+      await saveNotification({
+        userId: booking.student_id,
         type: "system",
-        title: "Booking Confirmed",
-        content: `Your booking for ${booking.booking_date_time} has been confirmed`,
+        title: "Meeting Completed",
+        content: `The meeting on ${booking.booking_date_time} has been marked as completed`,
         link: `/messages/${booking.thread_id}`,
       });
     } else if (action === "cancel") {
@@ -90,13 +116,36 @@ export async function PUT(
           .eq("id", booking.meeting_id);
       }
 
-      // Notify the other party
+      // Notify the other party using saveNotification (handles email)
       const notifyUserId = isStudent ? booking.obog_id : booking.student_id;
-      await supabase.from("notifications").insert({
-        user_id: notifyUserId,
+      const { saveNotification } = await import("@/lib/notifications");
+      await saveNotification({
+        userId: notifyUserId,
         type: "system",
         title: "Booking Cancelled",
         content: `The booking for ${booking.booking_date_time} has been cancelled`,
+        link: `/messages/${booking.thread_id}`,
+      });
+    } else if (action === "mark_no_show") {
+      if (!isObog) {
+        return NextResponse.json(
+          { error: "Only OB/OG can mark no-show" },
+          { status: 403 }
+        );
+      }
+      
+      // Update booking post_status directly
+      updates.obog_post_status = "no-show";
+      updates.obog_post_status_at = new Date().toISOString();
+      updates.meeting_status = "no-show";
+
+      // Notify student using saveNotification (handles email)
+      const { saveNotification } = await import("@/lib/notifications");
+      await saveNotification({
+        userId: booking.student_id,
+        type: "system",
+        title: "Meeting Marked as No-Show",
+        content: `The meeting on ${booking.booking_date_time} has been marked as no-show`,
         link: `/messages/${booking.thread_id}`,
       });
     }

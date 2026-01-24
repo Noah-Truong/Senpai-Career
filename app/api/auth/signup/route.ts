@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
 
     if (!existingUser) {
       // Trigger didn't create user (shouldn't happen, but fallback)
-      console.log("⚠️ Trigger didn't create user, manually inserting...");
+      // Trigger didn't create user, manually inserting (fallback)
       const timestamp = new Date().toISOString();
       const { error: userError } = await adminClient.from("users").insert({
         id: userId,
@@ -202,9 +202,9 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-      console.log("✅ User created manually (trigger fallback):", userId, email);
+      // User created manually (trigger fallback)
     } else {
-      console.log("✅ User created by trigger:", userId, email, existingUser);
+      // User created by trigger
     }
 
     // Check if trigger created the profile, then update with any additional data if needed
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
 
       if (!existingProfile) {
         // Trigger didn't create profile (fallback - should rarely happen)
-        console.log("⚠️ Trigger didn't create student profile, manually inserting...");
+        // Trigger didn't create student profile, manually inserting (fallback)
         const profileInsertData = {
           id: userId,
           nickname: profileData.nickname || "",
@@ -245,11 +245,10 @@ export async function POST(request: NextRequest) {
         if (profileError) {
           console.error("❌ STUDENT PROFILE INSERT ERROR:", profileError);
         } else {
-          console.log("✅ Student profile created manually (trigger fallback):", userId);
+          // Student profile created manually (trigger fallback)
         }
       } else {
         // Profile exists (created by trigger), update with any missing data
-        console.log("✅ Student profile created by trigger:", userId);
         // Update profile to ensure all data is present (trigger might have defaults)
         const { error: updateError } = await adminClient
           .from("student_profiles")
@@ -269,7 +268,7 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error("❌ Student profile update error:", updateError);
         } else {
-          console.log("✅ Student profile updated with signup data");
+          // Student profile updated with signup data
         }
       }
     } else if (role === "obog") {
@@ -318,11 +317,10 @@ export async function POST(request: NextRequest) {
         if (profileError) {
           console.error("❌ OBOG profile insert error:", profileError);
         } else {
-          console.log("✅ OBOG profile created manually (trigger fallback):", userId);
+          // OBOG profile created manually (trigger fallback)
         }
       } else {
         // Profile exists, update with translated data
-        console.log("✅ OBOG profile created by trigger:", userId);
         const { error: updateError } = await adminClient
           .from("obog_profiles")
           .update({
@@ -333,7 +331,7 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error("❌ OBOG profile update error:", updateError);
         } else {
-          console.log("✅ OBOG profile updated with translated data");
+          // OBOG profile updated with translated data
         }
       }
     } else if (role === "company") {
@@ -411,7 +409,7 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error("❌ Company profile update error:", updateError);
         } else {
-          console.log("✅ Company profile updated with translated data");
+          // Company profile updated with translated data
         }
       }
     }
@@ -444,11 +442,7 @@ export async function POST(request: NextRequest) {
       console.error("User exists but profile missing. User ID:", userId);
     }
 
-    console.log("✅ Signup completed successfully:");
-    console.log("   Users table:", verifyUser);
-    if (verifyProfile) {
-      console.log("   Student profiles table:", verifyProfile);
-    }
+    // Signup completed successfully
 
     return NextResponse.json(
       {
