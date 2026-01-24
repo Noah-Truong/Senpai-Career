@@ -275,7 +275,7 @@ export const getOBOGById = async (id: string): Promise<UserData | undefined> => 
 export const ensureUserExists = async (supabaseAuthUser: any): Promise<UserData | null> => {
   const supabase = await createClient();
   
-  // Check if user exists
+  // Check if user exists by ID
   const { data: existingUser, error: checkError } = await supabase
     .from("users")
     .select("*")
@@ -288,11 +288,31 @@ export const ensureUserExists = async (supabaseAuthUser: any): Promise<UserData 
   }
 
   // User doesn't exist, create from auth metadata
-  const role = supabaseAuthUser.user_metadata?.role || "student";
-  const name = supabaseAuthUser.user_metadata?.name || supabaseAuthUser.email?.split("@")[0] || "User";
+  // Get email first to check for existing user by email
   const email = supabaseAuthUser.email || "";
+  
+  // Also check by email in case there's a data inconsistency (different ID)
+  if (email) {
+    const { data: existingUserByEmail } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .single();
 
-  const { error: insertError } = await supabase.from("users").insert({
+    if (existingUserByEmail) {
+      // User exists with different ID - return existing user
+      // This handles cases where auth user ID doesn't match users table ID
+      console.warn(`User with email ${email} exists with different ID. Using existing user record.`);
+      return mergeUserWithProfile(supabase, existingUserByEmail);
+    }
+  }
+
+  // Try with regular client first (will work if RLS policy allows)
+  const role = supabaseAuthUser.user_metadata?.role || "student";
+  const name = supabaseAuthUser.user_metadata?.name || email?.split("@")[0] || "User";
+
+  let clientToUse = supabase;
+  let { error: insertError } = await supabase.from("users").insert({
     id: supabaseAuthUser.id,
     email,
     password_hash: "",
@@ -303,14 +323,55 @@ export const ensureUserExists = async (supabaseAuthUser: any): Promise<UserData 
     is_banned: role === "student" ? false : null,
   });
 
-  if (insertError) {
+  // If RLS blocks the insert, use admin client as fallback
+  if (insertError && insertError.code === '42501') {
+    const { createAdminClient } = await import("@/lib/supabase/server");
+    clientToUse = createAdminClient();
+    
+    const { error: adminError } = await clientToUse.from("users").insert({
+      id: supabaseAuthUser.id,
+      email,
+      password_hash: "",
+      name,
+      role,
+      credits: 0,
+      strikes: role === "student" ? 0 : null,
+      is_banned: role === "student" ? false : null,
+    });
+
+    if (adminError && adminError.code !== '23505') {
+      // If it's not a duplicate key error, log and return
+      console.error("Error creating user record with admin client:", adminError);
+      return null;
+    }
+    insertError = adminError;
+  }
+
+  // Handle duplicate email error - should not happen since we check by email first
+  // But handle it gracefully just in case
+  if (insertError && insertError.code === '23505') {
+    // Try to find existing user by email one more time
+    const { data: existingUserByEmail } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    if (existingUserByEmail) {
+      console.warn(`User with email ${email} exists with different ID. Using existing user record.`);
+      return mergeUserWithProfile(supabase, existingUserByEmail);
+    } else {
+      console.error("Duplicate email error but user not found by email");
+      return null;
+    }
+  } else if (insertError) {
     console.error("Error creating user record:", insertError);
     return null;
   }
 
-  // Create basic profile based on role
+  // Create basic profile based on role (use same client that worked for users insert)
   if (role === "student") {
-    await supabase.from("student_profiles").insert({
+    await clientToUse.from("student_profiles").insert({
       id: supabaseAuthUser.id,
       nickname: supabaseAuthUser.user_metadata?.nickname || "",
       university: supabaseAuthUser.user_metadata?.university || "",
@@ -336,7 +397,7 @@ export const ensureUserExists = async (supabaseAuthUser: any): Promise<UserData 
       profile_completed: false,
     });
   } else if (role === "obog") {
-    await supabase.from("obog_profiles").insert({
+    await clientToUse.from("obog_profiles").insert({
       id: supabaseAuthUser.id,
       nickname: supabaseAuthUser.user_metadata?.nickname || "",
       type: supabaseAuthUser.user_metadata?.type || "working-professional",
@@ -354,7 +415,7 @@ export const ensureUserExists = async (supabaseAuthUser: any): Promise<UserData 
       profile_photo: supabaseAuthUser.user_metadata?.profilePhoto || null,
     });
   } else if (role === "company") {
-    await supabase.from("company_profiles").insert({
+    await clientToUse.from("company_profiles").insert({
       id: supabaseAuthUser.id,
       company_name: supabaseAuthUser.user_metadata?.companyName || "",
       contact_name: supabaseAuthUser.user_metadata?.contactName || name,
@@ -370,7 +431,7 @@ export const ensureUserExists = async (supabaseAuthUser: any): Promise<UserData 
     });
   }
 
-  // Fetch the newly created user
+  // Fetch the newly created user (use regular client for read - SELECT policies allow it)
   const { data: newUser, error: fetchError } = await supabase
     .from("users")
     .select("*")
@@ -587,26 +648,39 @@ export const deleteUser = async (userId: string): Promise<void> => {
     // Continue with deletion even if thread cleanup fails
   }
 
-  // 4. Delete from users table (CASCADE will handle most related data)
-  // Tables with ON DELETE CASCADE that will be automatically cleaned:
-  // - student_profiles, obog_profiles, company_profiles
-  // - internships (company_id)
-  // - messages (sender_id) - DB table
-  // - notifications (user_id)
-  // - reports (reporter_id, reported_user_id)
-  // - applications (user_id)
-  // - reviews (reviewer_id, reviewee_id)
-  // - bookings (student_id, obog_id)
-  // - meetings (student_id, obog_id)
-  // - meeting_operation_logs (user_id)
-  // - user_settings (user_id)
-  // - notification_settings (user_id)
-  // - email_notification_queue (user_id)
-
-  const { error } = await supabase.from("users").delete().eq("id", userId);
-
-  if (error) {
-    console.error("Error deleting user:", error);
-    throw new Error("Failed to delete user account");
+  // 4. Delete from Supabase Auth (using admin client)
+  // This will trigger the handle_user_deletion trigger which deletes from users table
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/server");
+    const adminSupabase = createAdminClient();
+    
+    // Delete from auth.users - this will trigger handle_user_deletion (BEFORE DELETE)
+    // which automatically deletes from public.users
+    const { error: authError } = await adminSupabase.auth.admin.deleteUser(userId);
+    
+    if (authError) {
+      console.error("Error deleting user from auth:", authError);
+      // If auth deletion fails, delete from users table directly as fallback
+      // Use admin client to bypass RLS
+      const { error: userError } = await adminSupabase.from("users").delete().eq("id", userId);
+      if (userError) {
+        console.error("Error deleting user from users table:", userError);
+        throw new Error("Failed to delete user account");
+      }
+    }
+    // If auth deletion succeeds, the trigger already deleted from users table
+  } catch (deleteError: any) {
+    console.error("Error deleting user:", deleteError);
+    // Final fallback: try to delete from users table using admin client
+    try {
+      const { createAdminClient } = await import("@/lib/supabase/server");
+      const adminSupabase = createAdminClient();
+      const { error: userError } = await adminSupabase.from("users").delete().eq("id", userId);
+      if (userError) {
+        throw new Error("Failed to delete user account");
+      }
+    } catch (finalError: any) {
+      throw new Error("Failed to delete user account");
+    }
   }
 };

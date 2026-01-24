@@ -283,8 +283,11 @@ export default function ProfilePage() {
         throw new Error(data.error || "Failed to delete account");
       }
 
-      // Sign out and redirect to home page
-      await handleSignOut();
+      // Sign out from Supabase Auth and redirect to login
+      await supabase.auth.signOut();
+      
+      // Use window.location for a hard redirect to ensure clean state
+      window.location.href = "/login";
     } catch (err: any) {
       setError(err.message || "Failed to delete account");
       setDeleting(false);
@@ -348,24 +351,22 @@ export default function ProfilePage() {
           >
             {t("profile.tab.profile") || "Profile"}
           </button>
-          {(isStudent || isOBOG) && (
-            <button
-              onClick={() => {
-                setActiveTab("settings");
-                setIsEditing(false);
-              }}
-              className={`px-4 py-2 font-medium transition-colors ${
-                activeTab === "settings"
-                  ? "border-b-2 text-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-              style={{
-                borderBottomColor: activeTab === "settings" ? '#2563EB' : 'transparent',
-              }}
-            >
-              {t("profile.tab.settings") || "Settings"}
-            </button>
-          )}
+          <button
+            onClick={() => {
+              setActiveTab("settings");
+              setIsEditing(false);
+            }}
+            className={`px-4 py-2 font-medium transition-colors ${
+              activeTab === "settings"
+                ? "border-b-2 text-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+            style={{
+              borderBottomColor: activeTab === "settings" ? '#2563EB' : 'transparent',
+            }}
+          >
+            {t("profile.tab.settings") || "Settings"}
+          </button>
         </div>
 
         <div className="flex items-center justify-between mb-6">
@@ -395,7 +396,7 @@ export default function ProfilePage() {
         )}
 
         {/* Settings Tab */}
-        {activeTab === "settings" && (isStudent || isOBOG) && (
+        {activeTab === "settings" && (
           <UserSettings />
         )}
 

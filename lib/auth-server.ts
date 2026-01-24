@@ -70,7 +70,7 @@ export async function auth() {
     }
 
     // Fetch the full user profile from our users table
-    const { data: userData, error: userError } = await supabase
+    let { data: userData, error: userError } = await supabase
       .from("users")
       .select("*")
       .eq("id", supabaseUser.id)
@@ -78,26 +78,52 @@ export async function auth() {
 
     if (userError || !userData) {
       // User exists in auth but not in users table yet
-      // This shouldn't happen if signup worked correctly, but handle gracefully
+      // This can happen if the trigger didn't fire or user was created before trigger setup
       if (process.env.NODE_ENV === "development") {
         console.log("Auth: User authenticated in Supabase but not found in users table");
         console.log("User ID:", supabaseUser.id);
         console.log("Email:", supabaseUser.email);
         console.log("Error:", userError?.message || "No error, just missing record");
+        console.log("Attempting to create user record...");
       }
       
-      // IMPORTANT: Return a session even if user doesn't exist in users table
-      // This allows the API routes to create the user record using ensureUserExists
-      // The user IS authenticated in Supabase, so we should return a valid session
-      return {
-        user: {
-          id: supabaseUser.id,
-          email: supabaseUser.email || "",
-          name: supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
-          role: supabaseUser.user_metadata?.role || "student",
-          profilePhoto: undefined,
-        },
-      };
+      // Try to create the user record automatically
+      try {
+        const { ensureUserExists } = await import("@/lib/users");
+        const createdUser = await ensureUserExists(supabaseUser);
+        
+        if (createdUser) {
+          if (process.env.NODE_ENV === "development") {
+            console.log("Auth: Successfully created user record");
+          }
+          // Fetch the newly created user
+          const { data: newUserData } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", supabaseUser.id)
+            .single();
+          
+          if (newUserData) {
+            userData = newUserData;
+          }
+        }
+      } catch (createError) {
+        console.error("Auth: Error creating user record:", createError);
+        // Continue with fallback session
+      }
+      
+      // If still no userData, return fallback session
+      if (!userData) {
+        return {
+          user: {
+            id: supabaseUser.id,
+            email: supabaseUser.email || "",
+            name: supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
+            role: supabaseUser.user_metadata?.role || "student",
+            profilePhoto: undefined,
+          },
+        };
+      }
     }
 
     // Get profile photo based on role

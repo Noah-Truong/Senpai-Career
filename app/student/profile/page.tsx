@@ -230,6 +230,7 @@ export default function StudentProfilePage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("bucket", "compliance-documents"); // Use compliance-documents bucket
 
       const response = await fetch("/api/upload", {
         method: "POST",

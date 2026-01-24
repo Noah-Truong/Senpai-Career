@@ -14,17 +14,20 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Verify user exists
-    const user = await getUserById(session.user.id);
+    const userId = session.user.id;
+
+    // Verify user exists in users table
+    const user = await getUserById(userId);
     if (!user) {
+      // User might already be deleted, return success anyway
       return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
+        { message: "Account already deleted" },
+        { status: 200 }
       );
     }
 
-    // Delete the user account
-    await deleteUser(session.user.id);
+    // Delete the user account (deletes from auth.users and public.users)
+    await deleteUser(userId);
 
     return NextResponse.json(
       { message: "Account deleted successfully" },

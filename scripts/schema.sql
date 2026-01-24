@@ -466,6 +466,8 @@ ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can read their own data" ON users;
 CREATE POLICY "Users can read their own data" ON users FOR SELECT USING ((SELECT auth.uid())::text = id);
+DROP POLICY IF EXISTS "Users can create their own record" ON users;
+CREATE POLICY "Users can create their own record" ON users FOR INSERT WITH CHECK ((SELECT auth.uid())::text = id);
 DROP POLICY IF EXISTS "Users can update their own data" ON users;
 CREATE POLICY "Users can update their own data" ON users FOR UPDATE USING ((SELECT auth.uid())::text = id);
 DROP POLICY IF EXISTS "Anyone can read basic user info" ON users;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { createClient } from "@/lib/supabase/server";
+import { ensureUserExists } from "@/lib/users";
 
 // GET - Fetch user settings
 export async function GET(request: NextRequest) {
@@ -15,6 +16,12 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient();
+
+    // Ensure user exists in users table (in case trigger didn't fire)
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+    if (supabaseUser) {
+      await ensureUserExists(supabaseUser);
+    }
 
     // Get or create user settings
     const { data: settings, error } = await supabase
@@ -80,6 +87,12 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+
+    // Ensure user exists in users table (in case trigger didn't fire)
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+    if (supabaseUser) {
+      await ensureUserExists(supabaseUser);
+    }
 
     // Check if settings already exist
     const { data: existing } = await supabase
@@ -153,6 +166,12 @@ export async function PUT(request: NextRequest) {
     } = body;
 
     const supabase = await createClient();
+
+    // Ensure user exists in users table (in case trigger didn't fire)
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+    if (supabaseUser) {
+      await ensureUserExists(supabaseUser);
+    }
 
     // Check if settings exist
     const { data: existing } = await supabase

@@ -52,9 +52,16 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split(".").pop();
     const filename = `${timestamp}_${randomStr}.${fileExtension}`;
     
-    // Determine bucket based on file type
-    const isImage = imageTypes.includes(file.type);
-    const bucket = isImage ? "profile-pictures" : "resumes";
+    // Determine bucket based on file type and optional bucket parameter
+    const requestedBucket = formData.get("bucket") as string | null;
+    let bucket: string;
+    
+    if (requestedBucket && ["profile-pictures", "resumes", "compliance-documents"].includes(requestedBucket)) {
+      bucket = requestedBucket;
+    } else {
+      const isImage = imageTypes.includes(file.type);
+      bucket = isImage ? "profile-pictures" : "resumes";
+    }
 
     // Use user ID as folder for better organization and security
     const filePath = `${session.user.id}/${filename}`;
