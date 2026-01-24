@@ -84,12 +84,12 @@ export default function StudentSignupPage() {
       return;
     }
 
-    // TODO: Uncomment for production - free email detection
-    // if (isBlockedFreeDomain(formData.email)) {
-    //   setError(getBlockedDomainError());
-    //   setLoading(false);
-    //   return;
-    // }
+     
+     if (isBlockedFreeDomain(formData.email)) {
+       setError(getBlockedDomainError());
+       setLoading(false);
+       return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError(t("signup.errors.passwordMismatch"));
