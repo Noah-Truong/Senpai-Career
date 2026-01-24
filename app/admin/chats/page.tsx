@@ -57,11 +57,11 @@ export default function AdminChatsPage() {
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#111827" }}>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: "#111827" }}>
           {t("admin.chats.title")}
         </h1>
-        <p style={{ color: "#6B7280" }}>
+        <p className="text-sm sm:text-base" style={{ color: "#6B7280" }}>
           {t("admin.chats.subtitle")}
         </p>
       </div>
@@ -88,18 +88,18 @@ export default function AdminChatsPage() {
               <Link
                 key={thread.id}
                 href={`/messages/${thread.id}`}
-                className="block p-4 hover:bg-gray-50 transition-colors"
+                className="block p-3 sm:p-4 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium" style={{ color: "#111827" }}>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm sm:text-base truncate" style={{ color: "#111827" }}>
                       {names.length >= 2
                         ? `${names[0]} ⇄ ${names[1]}`
                         : names[0] || "—"}
                     </p>
                     {last && (
                       <p
-                        className="text-sm mt-1 line-clamp-1"
+                        className="text-xs sm:text-sm mt-1 line-clamp-2 sm:line-clamp-1 break-words"
                         style={{ color: "#6B7280" }}
                       >
                         {typeof last.content === "object"
@@ -108,7 +108,7 @@ export default function AdminChatsPage() {
                       </p>
                     )}
                   </div>
-                  <span className="text-xs" style={{ color: "#9CA3AF" }}>
+                  <span className="text-xs shrink-0" style={{ color: "#9CA3AF" }}>
                     {last?.createdAt
                       ? new Date(last.createdAt).toLocaleString()
                       : ""}

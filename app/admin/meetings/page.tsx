@@ -161,11 +161,11 @@ export default function AdminMeetingsPage() {
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: '#111827' }}>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: '#111827' }}>
           {t("admin.meetings.title") || "Flagged Meeting Reviews"}
         </h1>
-        <p style={{ color: '#6B7280' }}>
+        <p className="text-sm sm:text-base" style={{ color: '#6B7280' }}>
           {t("admin.meetings.subtitle") || "Review meetings flagged for violations or discrepancies"}
         </p>
       </div>
@@ -181,22 +181,22 @@ export default function AdminMeetingsPage() {
           {meetings.map((meeting) => (
             <div
               key={meeting.id}
-              className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer"
               onClick={() => setSelectedMeeting(meeting)}
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-medium" style={{ color: '#111827' }}>
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm sm:text-base truncate" style={{ color: '#111827' }}>
                     {meeting.student_name} ↔ {meeting.obog_name}
                   </p>
-                  <p className="text-sm" style={{ color: '#6B7280' }}>
+                  <p className="text-xs sm:text-sm break-words" style={{ color: '#6B7280' }}>
                     {meeting.review_reason}
                   </p>
                   <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
                     {new Date(meeting.created_at).toLocaleString()}
                   </p>
                 </div>
-                <span className="px-3 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                <span className="px-2 sm:px-3 py-1 rounded text-xs font-medium bg-red-100 text-red-800 shrink-0">
                   {t("admin.meetings.flagged") || "Flagged"}
                 </span>
               </div>
@@ -207,20 +207,21 @@ export default function AdminMeetingsPage() {
 
       {/* Detail Modal */}
       {selectedMeeting && (
-        <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h2 className="text-xl font-bold" style={{ color: '#111827' }}>
+        <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-lg p-4 sm:p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto pb-[env(safe-area-inset-bottom)]">
+            <div className="flex justify-between items-start mb-4 gap-4">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-xl font-bold" style={{ color: '#111827' }}>
                   {t("admin.meetings.meetingDetails") || "Meeting Details"}
                 </h2>
-                <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
+                <p className="text-xs sm:text-sm mt-1 truncate" style={{ color: '#6B7280' }}>
                   {selectedMeeting.student_name} ↔ {selectedMeeting.obog_name}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedMeeting(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center text-xl sm:text-2xl"
+                aria-label="Close"
               >
                 ✕
               </button>
@@ -318,20 +319,20 @@ export default function AdminMeetingsPage() {
                 />
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4">
                 <button
                   onClick={() => {
                     const notes = (document.getElementById("adminNotes") as HTMLTextAreaElement)?.value || "";
                     handleMarkReviewed(selectedMeeting.id, notes);
                   }}
                   disabled={reviewing}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
                 >
                   {reviewing ? t("common.loading") : t("admin.meetings.markReviewed") || "Mark as Reviewed"}
                 </button>
                 <button
                   onClick={() => setSelectedMeeting(null)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
                 >
                   {t("button.cancel") || "Cancel"}
                 </button>

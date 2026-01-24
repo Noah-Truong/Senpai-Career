@@ -262,45 +262,45 @@ export default function StudentActionsPage() {
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: '#111827' }}>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: '#111827' }}>
           {t("admin.studentActions.title") || "Student Action Management"}
         </h1>
-        <p style={{ color: '#6B7280' }}>
+        <p className="text-sm sm:text-base" style={{ color: '#6B7280' }}>
           {t("admin.studentActions.subtitle") || "Track student activity: contacts, meetings, applications, and hiring outcomes"}
         </p>
       </div>
 
       {/* Search */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <input
           type="text"
           placeholder={t("admin.studentActions.search") || "Search students by name, email, or university..."}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-96 px-4 py-2 border rounded"
+          className="w-full sm:w-96 min-h-[44px] px-4 py-2 border rounded text-base"
           style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
         />
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         {/* Student List */}
         <div className="md:col-span-1">
           <div 
             className="bg-white border rounded"
             style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
           >
-            <div className="p-4 border-b" style={{ borderColor: '#E5E7EB' }}>
-              <h2 className="font-semibold" style={{ color: '#111827' }}>
+            <div className="p-3 sm:p-4 border-b" style={{ borderColor: '#E5E7EB' }}>
+              <h2 className="text-sm sm:text-base font-semibold" style={{ color: '#111827' }}>
                 {t("admin.studentActions.studentList") || "Students"} ({filteredStudents.length})
               </h2>
             </div>
-            <div className="max-h-[500px] overflow-y-auto">
+            <div className="max-h-[400px] sm:max-h-[500px] overflow-y-auto">
               {filteredStudents.map((student) => (
                 <button
                   key={student.id}
                   onClick={() => setSelectedStudent(student)}
-                  className={`w-full text-left p-4 border-b transition-colors ${
+                  className={`w-full text-left p-3 sm:p-4 border-b transition-colors min-h-[44px] ${
                     selectedStudent?.id === student.id
                       ? ""
                       : "hover:bg-gray-50"
@@ -310,12 +310,12 @@ export default function StudentActionsPage() {
                     borderColor: '#E5E7EB'
                   }}
                 >
-                  <p className="font-medium" style={{ color: '#111827' }}>{student.name}</p>
-                  <p className="text-sm" style={{ color: '#6B7280' }}>{student.email}</p>
+                  <p className="font-medium text-sm sm:text-base truncate" style={{ color: '#111827' }}>{student.name}</p>
+                  <p className="text-xs sm:text-sm truncate" style={{ color: '#6B7280' }}>{student.email}</p>
                   {student.university && (
-                    <p className="text-xs" style={{ color: '#9CA3AF' }}>{student.university}</p>
+                    <p className="text-xs truncate" style={{ color: '#9CA3AF' }}>{student.university}</p>
                   )}
-                  <p className="text-xs mt-1 text-navy">
+                  <p className="text-xs mt-1" style={{ color: '#1e3a8a' }}>
                     {student.actions.length} {t("admin.studentActions.actions") || "actions"}
                     {student.reports && student.reports.length > 0 && (
                       <span className="ml-2">
@@ -341,13 +341,13 @@ export default function StudentActionsPage() {
               className="bg-white border rounded"
               style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
             >
-              <div className="p-4 border-b" style={{ borderColor: '#E5E7EB' }}>
-                <h2 className="text-lg font-semibold" style={{ color: '#111827' }}>
+              <div className="p-3 sm:p-4 border-b" style={{ borderColor: '#E5E7EB' }}>
+                <h2 className="text-base sm:text-lg font-semibold truncate" style={{ color: '#111827' }}>
                   {selectedStudent.name}
                 </h2>
-                <p style={{ color: '#6B7280' }}>{selectedStudent.email}</p>
+                <p className="text-xs sm:text-sm truncate" style={{ color: '#6B7280' }}>{selectedStudent.email}</p>
                 {selectedStudent.university && (
-                  <p className="text-sm" style={{ color: '#9CA3AF' }}>{selectedStudent.university}</p>
+                  <p className="text-xs sm:text-sm truncate" style={{ color: '#9CA3AF' }}>{selectedStudent.university}</p>
                 )}
                 
                 {selectedStudent.lastOBContact && (
@@ -367,10 +367,10 @@ export default function StudentActionsPage() {
 
               {/* Tabs */}
               <div className="border-b" style={{ borderColor: '#E5E7EB' }}>
-                <div className="flex gap-4 px-4">
+                <div className="flex gap-2 sm:gap-4 px-3 sm:px-4 overflow-x-auto">
                   <button
                     onClick={() => setActiveTab("timeline")}
-                    className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                    className={`px-3 sm:px-4 py-2 font-medium text-xs sm:text-sm border-b-2 transition-colors min-h-[44px] sm:min-h-0 shrink-0 ${
                       activeTab === "timeline"
                         ? "border-blue-600 text-blue-600"
                         : "border-transparent text-gray-600 hover:text-gray-900"
@@ -385,7 +385,7 @@ export default function StudentActionsPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab("reports")}
-                    className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                    className={`px-3 sm:px-4 py-2 font-medium text-xs sm:text-sm border-b-2 transition-colors min-h-[44px] sm:min-h-0 shrink-0 ${
                       activeTab === "reports"
                         ? "border-blue-600 text-blue-600"
                         : "border-transparent text-gray-600 hover:text-gray-900"
@@ -401,7 +401,7 @@ export default function StudentActionsPage() {
                 </div>
               </div>
 
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 {activeTab === "timeline" ? (
                   <>
                     <h3 className="font-semibold mb-4" style={{ color: '#111827' }}>
@@ -412,7 +412,7 @@ export default function StudentActionsPage() {
                       <div className="relative">
                         {/* Timeline line */}
                         <div 
-                          className="absolute left-6 top-0 bottom-0 w-0.5"
+                          className="absolute left-5 sm:left-6 top-0 bottom-0 w-0.5"
                           style={{ backgroundColor: '#E5E7EB' }}
                         />
                         
@@ -420,11 +420,11 @@ export default function StudentActionsPage() {
                           {selectedStudent.actions.map((action, index) => (
                             <div 
                               key={action.id}
-                              className="relative flex items-start gap-4"
+                              className="relative flex items-start gap-3 sm:gap-4"
                             >
                               {/* Timeline dot */}
                               <div 
-                                className="relative z-10 flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center border-2 bg-white"
+                                className="relative z-10 flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 bg-white"
                                 style={{ 
                                   borderColor: action.type === "contact" ? "#2563EB" :
                                               action.type === "meeting" ? "#059669" :
@@ -441,33 +441,33 @@ export default function StudentActionsPage() {
                               
                               {/* Content card */}
                               <div 
-                                className="flex-1 p-4 rounded-lg border shadow-sm"
+                                className="flex-1 p-3 sm:p-4 rounded-lg border shadow-sm"
                                 style={{ 
                                   backgroundColor: '#FFFFFF',
                                   borderColor: '#E5E7EB',
                                   borderRadius: '8px'
                                 }}
                               >
-                                <div className="flex items-center justify-between mb-2">
-                                  <p className="font-semibold text-sm" style={{ color: '#111827' }}>
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-2">
+                                  <p className="font-semibold text-xs sm:text-sm" style={{ color: '#111827' }}>
                                     {action.type.charAt(0).toUpperCase() + action.type.slice(1)}
                                   </p>
-                                  <p className="text-xs" style={{ color: '#9CA3AF' }}>
+                                  <p className="text-xs shrink-0" style={{ color: '#9CA3AF' }}>
                                     {formatDate(action.timestamp)}
                                   </p>
                                 </div>
-                                <p className="text-sm mb-2" style={{ color: '#374151' }}>
+                                <p className="text-xs sm:text-sm mb-2 break-words" style={{ color: '#374151' }}>
                                   {action.details}
                                 </p>
                                 {action.targetName && (
-                                  <div className="flex items-center gap-2 mt-2">
+                                  <div className="flex flex-wrap items-center gap-2 mt-2">
                                     <span className="text-xs px-2 py-1 rounded" style={{ 
                                       backgroundColor: action.targetType === "obog" ? "#D1FAE5" : "#EDE9FE",
                                       color: action.targetType === "obog" ? "#065F46" : "#6B21A8"
                                     }}>
                                       {action.targetType === "obog" ? t("label.obog") : t("label.company")}
                                     </span>
-                                    <p className="text-xs" style={{ color: '#6B7280' }}>
+                                    <p className="text-xs truncate" style={{ color: '#6B7280' }}>
                                       {action.targetName}
                                     </p>
                                   </div>
@@ -486,15 +486,15 @@ export default function StudentActionsPage() {
                 ) : (
                   <>
                     {/* Report Management */}
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold" style={{ color: '#111827' }}>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                      <h3 className="text-sm sm:text-base font-semibold" style={{ color: '#111827' }}>
                         {t("admin.studentActions.reports") || "Reports"}
                       </h3>
                       {selectedStudent.reports && selectedStudent.reports.length > 0 && (
                         <select
                           value={reportStatusFilter}
                           onChange={(e) => setReportStatusFilter(e.target.value as any)}
-                          className="px-3 py-1 text-sm border rounded"
+                          className="w-full sm:w-auto min-h-[44px] px-3 py-1 text-sm border rounded"
                           style={{ borderColor: '#D1D5DB', borderRadius: '6px' }}
                         >
                           <option value="all">{t("admin.reports.filter.all") || "All"}</option>
@@ -511,16 +511,16 @@ export default function StudentActionsPage() {
                         {filteredReports.map((report) => (
                           <div
                             key={report.id}
-                            className="p-4 border rounded-lg"
+                            className="p-3 sm:p-4 border rounded-lg"
                             style={{ 
                               borderColor: '#E5E7EB',
                               borderRadius: '8px',
                               backgroundColor: '#FFFFFF'
                             }}
                           >
-                            <div className="flex items-start justify-between mb-3">
+                            <div className="flex flex-col gap-3 mb-3">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
                                   <span className={`px-2 py-1 rounded text-xs font-medium ${getReportStatusColor(report.status)}`}>
                                     {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                                   </span>
@@ -528,15 +528,15 @@ export default function StudentActionsPage() {
                                     {formatDate(report.createdAt.toString())}
                                   </span>
                                 </div>
-                                <p className="font-medium text-sm mb-1" style={{ color: '#111827' }}>
+                                <p className="font-medium text-xs sm:text-sm mb-1 break-words" style={{ color: '#111827' }}>
                                   {t("admin.reports.reason") || "Reason"}: {report.reason}
                                 </p>
                                 {report.reported && (
-                                  <p className="text-sm mb-2" style={{ color: '#6B7280' }}>
+                                  <p className="text-xs sm:text-sm mb-2 break-words" style={{ color: '#6B7280' }}>
                                     {t("admin.reports.reportedUser") || "Reported User"}: {report.reported.name} ({report.reported.role})
                                   </p>
                                 )}
-                                <p className="text-sm" style={{ color: '#374151' }}>
+                                <p className="text-xs sm:text-sm break-words" style={{ color: '#374151' }}>
                                   {report.description}
                                 </p>
                                 {report.adminNotes && (
@@ -553,27 +553,27 @@ export default function StudentActionsPage() {
                             </div>
                             
                             {/* Action buttons */}
-                            <div className="flex gap-2 mt-3 flex-wrap">
+                            <div className="flex flex-wrap gap-2 mt-3">
                               {report.status === "pending" && (
                                 <>
                                   <button
                                     onClick={() => handleUpdateReportStatus(report.id, "reviewed")}
                                     disabled={updatingReportStatus === report.id}
-                                    className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                                    className="min-h-[44px] sm:min-h-0 px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
                                   >
                                     {t("admin.reports.markReviewed") || "Mark Reviewed"}
                                   </button>
                                   <button
                                     onClick={() => handleUpdateReportStatus(report.id, "resolved")}
                                     disabled={updatingReportStatus === report.id}
-                                    className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                                    className="min-h-[44px] sm:min-h-0 px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
                                   >
                                     {t("admin.reports.markResolved") || "Mark Resolved"}
                                   </button>
                                   <button
                                     onClick={() => handleUpdateReportStatus(report.id, "dismissed")}
                                     disabled={updatingReportStatus === report.id}
-                                    className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50"
+                                    className="min-h-[44px] sm:min-h-0 px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 transition-colors"
                                   >
                                     {t("admin.reports.dismiss") || "Dismiss"}
                                   </button>
@@ -584,14 +584,14 @@ export default function StudentActionsPage() {
                                   <button
                                     onClick={() => handleUpdateReportStatus(report.id, "resolved")}
                                     disabled={updatingReportStatus === report.id}
-                                    className="px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                                    className="min-h-[44px] sm:min-h-0 px-3 py-1.5 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
                                   >
                                     {t("admin.reports.markResolved") || "Mark Resolved"}
                                   </button>
                                   <button
                                     onClick={() => handleUpdateReportStatus(report.id, "dismissed")}
                                     disabled={updatingReportStatus === report.id}
-                                    className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50"
+                                    className="min-h-[44px] sm:min-h-0 px-3 py-1.5 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 transition-colors"
                                   >
                                     {t("admin.reports.dismiss") || "Dismiss"}
                                   </button>

@@ -140,11 +140,11 @@ export default function AdminUsersPage() {
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: '#111827' }}>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: '#111827' }}>
           {t("admin.users.title")}
         </h1>
-        <p style={{ color: '#6B7280' }}>{t("admin.users.subtitle")}</p>
+        <p className="text-sm sm:text-base" style={{ color: '#6B7280' }}>{t("admin.users.subtitle")}</p>
       </div>
 
       {error && (
@@ -175,105 +175,110 @@ export default function AdminUsersPage() {
             Students ({students.length})
           </h2>
         </div>
-        <div className="table-responsive overflow-x-auto">
-          <table className="min-w-full divide-y" style={{ borderColor: '#E5E7EB' }}>
-            <thead style={{ backgroundColor: '#D7FFEF' }}>
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>User</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Strikes</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y" style={{ borderColor: '#E5E7EB' }}>
-              {students.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <Avatar
-                        src={user.profilePhoto}
-                        alt={user.name}
-                        size="sm"
-                        fallbackText={user.name}
-                        className="mr-5"
-                      />
-                      <div>
-                        <div className="text-sm font-medium" style={{ color: '#111827' }}>{user.name}</div>
-                        {user.nickname && (
-                          <div className="text-sm" style={{ color: '#6B7280' }}>@{user.nickname}</div>
+        <div className="table-responsive overflow-x-auto -mx-4 sm:mx-0">
+          <div className="inline-block min-w-full align-middle sm:px-0">
+            <div className="overflow-hidden sm:rounded-lg">
+              <table className="min-w-full divide-y" style={{ borderColor: '#E5E7EB' }}>
+                <thead style={{ backgroundColor: '#D7FFEF' }}>
+                  <tr>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>User</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase hidden sm:table-cell" style={{ color: '#6B7280' }}>Email</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Strikes</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Status</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y" style={{ borderColor: '#E5E7EB' }}>
+                  {students.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50">
+                      <td className="px-3 sm:px-6 py-4">
+                        <div className="flex items-center min-w-0">
+                          <Avatar
+                            src={user.profilePhoto}
+                            alt={user.name}
+                            size="sm"
+                            fallbackText={user.name}
+                            className="mr-2 sm:mr-5 shrink-0"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs sm:text-sm font-medium truncate" style={{ color: '#111827' }}>{user.name}</div>
+                            <div className="text-xs sm:text-sm truncate sm:hidden" style={{ color: '#6B7280' }}>{user.email}</div>
+                            {user.nickname && (
+                              <div className="text-xs sm:text-sm truncate" style={{ color: '#6B7280' }}>@{user.nickname}</div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm hidden sm:table-cell" style={{ color: '#6B7280' }}>
+                        {user.email}
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded ${
+                          (user.strikes || 0) === 0 ? "bg-green-100 text-green-800" :
+                          (user.strikes || 0) === 1 ? "bg-yellow-100 text-yellow-800" :
+                          "bg-red-100 text-red-800"
+                        }`}>
+                          {(user.strikes || 0)} {t("admin.users.strikes")}{((user.strikes || 0) as number) !== 1 ? "s" : ""}
+                        </span>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        {user.isBanned ? (
+                          <span className="px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-800">
+                            {t("admin.users.banned")}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">
+                            {t("admin.users.active")}
+                          </span>
                         )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: '#6B7280' }}>
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded ${
-                      (user.strikes || 0) === 0 ? "bg-green-100 text-green-800" :
-                      (user.strikes || 0) === 1 ? "bg-yellow-100 text-yellow-800" :
-                      "bg-red-100 text-red-800"
-                    }`}>
-                      {(user.strikes || 0)} {t("admin.users.strikes")}{((user.strikes || 0) as number) !== 1 ? "s" : ""}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {user.isBanned ? (
-                      <span className="px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-800">
-                        {t("admin.users.banned")}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">
-                        {t("admin.users.active")}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex gap-3 flex-wrap">
-                      {(user.strikes || 0) < 2 && (
-                        <button
-                          onClick={() => openStrikeModal(user, "add")}
-                          className="hover:underline"
-                          style={{ color: '#D97706' }}
-                        >
-                          {t("admin.users.addStrike")}
-                        </button>
-                      )}
-                      {(user.strikes || 0) > 0 && (
-                        <button
-                          onClick={() => openStrikeModal(user, "remove")}
-                          className="hover:underline"
-                          style={{ color: '#059669' }}
-                        >
-                          {t("admin.users.removeStrike")}
-                        </button>
-                      )}
-                      {!user.isBanned ? (
-                        <button
-                          onClick={() => handleBanAction(user.id, "ban")}
-                          disabled={banningUser === user.id}
-                          className="hover:underline disabled:opacity-50"
-                          style={{ color: '#DC2626' }}
-                        >
-                          {banningUser === user.id ? t("admin.users.banning") : t("admin.users.ban")}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleBanAction(user.id, "unban")}
-                          disabled={banningUser === user.id}
-                          className="hover:underline disabled:opacity-50"
-                          style={{ color: '#059669' }}
-                        >
-                          {banningUser === user.id ? t("admin.users.unbanning") : t("admin.users.unban")}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                          {(user.strikes || 0) < 2 && (
+                            <button
+                              onClick={() => openStrikeModal(user, "add")}
+                              className="text-left sm:text-center hover:underline min-h-[44px] sm:min-h-0 px-2 sm:px-0"
+                              style={{ color: '#D97706' }}
+                            >
+                              {t("admin.users.addStrike")}
+                            </button>
+                          )}
+                          {(user.strikes || 0) > 0 && (
+                            <button
+                              onClick={() => openStrikeModal(user, "remove")}
+                              className="text-left sm:text-center hover:underline min-h-[44px] sm:min-h-0 px-2 sm:px-0"
+                              style={{ color: '#059669' }}
+                            >
+                              {t("admin.users.removeStrike")}
+                            </button>
+                          )}
+                          {!user.isBanned ? (
+                            <button
+                              onClick={() => handleBanAction(user.id, "ban")}
+                              disabled={banningUser === user.id}
+                              className="text-left sm:text-center hover:underline disabled:opacity-50 min-h-[44px] sm:min-h-0 px-2 sm:px-0"
+                              style={{ color: '#DC2626' }}
+                            >
+                              {banningUser === user.id ? t("admin.users.banning") : t("admin.users.ban")}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleBanAction(user.id, "unban")}
+                              disabled={banningUser === user.id}
+                              className="text-left sm:text-center hover:underline disabled:opacity-50 min-h-[44px] sm:min-h-0 px-2 sm:px-0"
+                              style={{ color: '#059669' }}
+                            >
+                              {banningUser === user.id ? t("admin.users.unbanning") : t("admin.users.unban")}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -287,55 +292,81 @@ export default function AdminUsersPage() {
             {t("admin.users.allUsers")} ({users.length})
           </h2>
         </div>
-        <div className="table-responsive overflow-x-auto">
-          <table className="min-w-full divide-y" style={{ borderColor: '#E5E7EB' }}>
-            <thead style={{ backgroundColor: '#D7FFEF' }}>
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.name")}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.email")}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.role")}</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.created")}</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y" style={{ borderColor: '#E5E7EB' }}>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" style={{ color: '#111827' }}>
-                    {user.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: '#6B7280' }}>
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded ${
-                      user.role === "student" ? "bg-blue-100 text-blue-800" :
-                      user.role === "obog" ? "bg-green-100 text-green-800" :
-                      user.role === "company" ? "bg-purple-100 text-purple-800" :
-                      "bg-gray-100 text-gray-800"
-                    }`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: '#6B7280' }}>
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="table-responsive overflow-x-auto -mx-4 sm:mx-0">
+          <div className="inline-block min-w-full align-middle sm:px-0">
+            <div className="overflow-hidden sm:rounded-lg">
+              <table className="min-w-full divide-y" style={{ borderColor: '#E5E7EB' }}>
+                <thead style={{ backgroundColor: '#D7FFEF' }}>
+                  <tr>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.name")}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase hidden sm:table-cell" style={{ color: '#6B7280' }}>{t("admin.dashboard.email")}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase" style={{ color: '#6B7280' }}>{t("admin.dashboard.role")}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium uppercase hidden md:table-cell" style={{ color: '#6B7280' }}>{t("admin.dashboard.created")}</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y" style={{ borderColor: '#E5E7EB' }}>
+                  {users.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50">
+                      <td className="px-3 sm:px-6 py-4">
+                        <div className="min-w-0">
+                          <div className="text-xs sm:text-sm font-medium truncate" style={{ color: '#111827' }}>
+                            {user.name}
+                          </div>
+                          <div className="text-xs truncate sm:hidden mt-1" style={{ color: '#6B7280' }}>
+                            {user.email}
+                          </div>
+                          <div className="text-xs truncate md:hidden mt-1" style={{ color: '#6B7280' }}>
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm hidden sm:table-cell" style={{ color: '#6B7280' }}>
+                        {user.email}
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded ${
+                          user.role === "student" ? "bg-blue-100 text-blue-800" :
+                          user.role === "obog" ? "bg-green-100 text-green-800" :
+                          user.role === "company" ? "bg-purple-100 text-purple-800" :
+                          "bg-gray-100 text-gray-800"
+                        }`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm hidden md:table-cell" style={{ color: '#6B7280' }}>
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Strike Modal */}
       {showStrikeModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
           <div 
-            className="bg-white rounded p-6 max-w-md w-full mx-4"
+            className="bg-white rounded-t-2xl sm:rounded p-4 sm:p-6 max-w-md w-full pb-[env(safe-area-inset-bottom)]"
             style={{ borderRadius: '6px' }}
           >
-            <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>
-              {strikeAction === "add" ? t("admin.users.strikeModal.addTitle") : t("admin.users.strikeModal.removeTitle")} - {selectedUser.name}
-            </h3>
+            <div className="flex justify-between items-start mb-4 gap-4">
+              <h3 className="text-base sm:text-lg font-semibold flex-1" style={{ color: '#111827' }}>
+                {strikeAction === "add" ? t("admin.users.strikeModal.addTitle") : t("admin.users.strikeModal.removeTitle")} - {selectedUser.name}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowStrikeModal(false);
+                  setStrikeReason("");
+                }}
+                className="text-gray-400 hover:text-gray-600 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center text-xl sm:text-2xl"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                 {t("admin.users.strikeModal.reason")}
@@ -344,12 +375,12 @@ export default function AdminUsersPage() {
                 value={strikeReason}
                 onChange={(e) => setStrikeReason(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border rounded"
+                className="w-full min-h-[44px] px-3 py-2 border rounded text-base"
                 style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 placeholder={t("admin.users.strikeModal.reasonPlaceholder")}
               />
             </div>
-            <div className="mb-4 text-sm" style={{ color: '#6B7280' }}>
+            <div className="mb-4 text-xs sm:text-sm" style={{ color: '#6B7280' }}>
               {t("admin.users.strikeModal.currentStrikes")}: <strong style={{ color: '#111827' }}>{selectedUser.strikes || 0}</strong>
               {strikeAction === "add" && (
                 <span className="block mt-1">
@@ -362,10 +393,10 @@ export default function AdminUsersPage() {
                 </span>
               )}
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={handleStrikeAction}
-                className="flex-1 btn-primary"
+                className="w-full sm:flex-1 min-h-[44px] btn-primary"
               >
                 {strikeAction === "add" ? t("admin.users.strikeModal.addTitle") : t("admin.users.strikeModal.removeTitle")}
               </button>
@@ -374,7 +405,7 @@ export default function AdminUsersPage() {
                   setShowStrikeModal(false);
                   setStrikeReason("");
                 }}
-                className="flex-1 btn-secondary"
+                className="w-full sm:flex-1 min-h-[44px] btn-secondary"
               >
                 {t("button.cancel")}
               </button>

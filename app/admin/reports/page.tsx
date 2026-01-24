@@ -107,49 +107,49 @@ export default function AdminReportsPage() {
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: '#111827' }}>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold mb-1" style={{ color: '#111827' }}>
           {t("admin.reports.title")}
         </h1>
-        <p style={{ color: '#6B7280' }}>{t("admin.reports.subtitle")}</p>
+        <p className="text-sm sm:text-base" style={{ color: '#6B7280' }}>{t("admin.reports.subtitle")}</p>
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-6">
         <div 
-          className="bg-white p-4 border rounded"
+          className="bg-white p-3 sm:p-4 border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.totalReports")}</p>
-          <p className="text-2xl font-bold" style={{ color: '#111827' }}>{reports.length}</p>
+          <p className="text-xs sm:text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.totalReports")}</p>
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: '#111827' }}>{reports.length}</p>
         </div>
         <div 
-          className="bg-white p-4 border rounded border-l-4"
+          className="bg-white p-3 sm:p-4 border rounded border-l-4"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', borderLeftColor: '#F59E0B' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.pending")}</p>
-          <p className="text-2xl font-bold" style={{ color: '#D97706' }}>{pendingCount}</p>
+          <p className="text-xs sm:text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.pending")}</p>
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: '#D97706' }}>{pendingCount}</p>
         </div>
         <div 
-          className="bg-white p-4 border rounded border-l-4"
+          className="bg-white p-3 sm:p-4 border rounded border-l-4"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', borderLeftColor: '#2563EB' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.reviewed")}</p>
-          <p className="text-2xl font-bold" style={{ color: '#2563EB' }}>{reviewedCount}</p>
+          <p className="text-xs sm:text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.reviewed")}</p>
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: '#2563EB' }}>{reviewedCount}</p>
         </div>
         <div 
-          className="bg-white p-4 border rounded border-l-4"
+          className="bg-white p-3 sm:p-4 border rounded border-l-4"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', borderLeftColor: '#059669' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.resolved")}</p>
-          <p className="text-2xl font-bold" style={{ color: '#059669' }}>{resolvedCount}</p>
+          <p className="text-xs sm:text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.resolved")}</p>
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: '#059669' }}>{resolvedCount}</p>
         </div>
         <div 
-          className="bg-white p-4 border rounded border-l-4"
+          className="bg-white p-3 sm:p-4 border rounded border-l-4"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px', borderLeftColor: '#6B7280' }}
         >
-          <p className="text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.dismissed")}</p>
-          <p className="text-2xl font-bold" style={{ color: '#6B7280' }}>{dismissedCount}</p>
+          <p className="text-xs sm:text-sm mb-1" style={{ color: '#6B7280' }}>{t("admin.reports.dismissed")}</p>
+          <p className="text-xl sm:text-2xl font-bold" style={{ color: '#6B7280' }}>{dismissedCount}</p>
         </div>
       </div>
 
@@ -161,7 +161,7 @@ export default function AdminReportsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as any)}
-          className="px-4 py-2 border rounded"
+          className="w-full sm:w-auto min-h-[44px] px-4 py-2 border rounded text-base"
           style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
         >
           <option value="all">{t("admin.reports.filter.all")}</option>
@@ -187,53 +187,51 @@ export default function AdminReportsPage() {
             {filteredReports.map((report) => (
               <div
                 key={report.id}
-                className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                className="p-3 sm:p-4 hover:bg-gray-50 cursor-pointer transition-colors"
                 onClick={() => setSelectedReport(report)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        report.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                        report.status === "reviewed" ? "bg-blue-100 text-blue-800" :
-                        report.status === "resolved" ? "bg-green-100 text-green-800" :
-                        "bg-gray-100 text-gray-800"
-                      }`}>
-                        {report.status}
-                      </span>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        report.reportType === "user" ? "bg-red-100 text-red-800" :
-                        report.reportType === "safety" ? "bg-orange-100 text-orange-800" :
-                        report.reportType === "platform" ? "bg-blue-100 text-blue-800" :
-                        "bg-gray-100 text-gray-800"
-                      }`}>
-                        {report.reportType || "other"}
-                      </span>
-                      <span className="text-xs" style={{ color: '#6B7280' }}>
-                        {new Date(report.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="mb-2 text-sm">
-                      <p style={{ color: '#374151' }}>
-                        <strong>{t("admin.reports.reporter")}:</strong> {report.reporter?.name || t("admin.reports.unknown")} ({report.reporter?.email || t("admin.reports.nA")})
-                      </p>
-                      {report.reportedUserId !== "PLATFORM" ? (
-                        <p style={{ color: '#374151' }}>
-                          <strong>{t("admin.reports.reportedUser")}:</strong> {report.reported?.name || t("admin.reports.unknown")} ({report.reported?.email || t("admin.reports.nA")})
-                        </p>
-                      ) : (
-                        <p style={{ color: '#374151' }}>
-                          <strong>{t("admin.reports.target")}:</strong> {t("admin.reports.platformIssue")}
-                        </p>
-                      )}
-                    </div>
-                    <p className="text-sm font-medium mb-1" style={{ color: '#111827' }}>
-                      {t("admin.reports.reason")}: {report.reason}
-                    </p>
-                    <p className="text-sm line-clamp-2" style={{ color: '#6B7280' }}>
-                      {report.description}
-                    </p>
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      report.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                      report.status === "reviewed" ? "bg-blue-100 text-blue-800" :
+                      report.status === "resolved" ? "bg-green-100 text-green-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {report.status}
+                    </span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      report.reportType === "user" ? "bg-red-100 text-red-800" :
+                      report.reportType === "safety" ? "bg-orange-100 text-orange-800" :
+                      report.reportType === "platform" ? "bg-blue-100 text-blue-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {report.reportType || "other"}
+                    </span>
+                    <span className="text-xs" style={{ color: '#6B7280' }}>
+                      {new Date(report.createdAt).toLocaleString()}
+                    </span>
                   </div>
+                  <div className="mb-2 text-xs sm:text-sm space-y-1">
+                    <p className="break-words" style={{ color: '#374151' }}>
+                      <strong>{t("admin.reports.reporter")}:</strong> {report.reporter?.name || t("admin.reports.unknown")} ({report.reporter?.email || t("admin.reports.nA")})
+                    </p>
+                    {report.reportedUserId !== "PLATFORM" ? (
+                      <p className="break-words" style={{ color: '#374151' }}>
+                        <strong>{t("admin.reports.reportedUser")}:</strong> {report.reported?.name || t("admin.reports.unknown")} ({report.reported?.email || t("admin.reports.nA")})
+                      </p>
+                    ) : (
+                      <p className="break-words" style={{ color: '#374151' }}>
+                        <strong>{t("admin.reports.target")}:</strong> {t("admin.reports.platformIssue")}
+                      </p>
+                    )}
+                  </div>
+                  <p className="text-xs sm:text-sm font-medium mb-1 break-words" style={{ color: '#111827' }}>
+                    {t("admin.reports.reason")}: {report.reason}
+                  </p>
+                  <p className="text-xs sm:text-sm line-clamp-2 break-words" style={{ color: '#6B7280' }}>
+                    {report.description}
+                  </p>
                 </div>
               </div>
             ))}
@@ -243,14 +241,23 @@ export default function AdminReportsPage() {
 
       {/* Report Detail Modal */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
           <div 
-            className="bg-white rounded p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-t-2xl sm:rounded p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto pb-[env(safe-area-inset-bottom)]"
             style={{ borderRadius: '6px' }}
           >
-            <h2 className="text-xl font-bold mb-4" style={{ color: '#111827' }}>
-              {t("admin.reports.reportDetails")}
-            </h2>
+            <div className="flex justify-between items-start mb-4 gap-4">
+              <h2 className="text-lg sm:text-xl font-bold" style={{ color: '#111827' }}>
+                {t("admin.reports.reportDetails")}
+              </h2>
+              <button
+                onClick={() => setSelectedReport(null)}
+                className="text-gray-400 hover:text-gray-600 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center text-xl sm:text-2xl"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
             
             <div className="space-y-4 mb-6">
               <div>
@@ -343,13 +350,13 @@ export default function AdminReportsPage() {
               />
             </div>
 
-            <div className="flex gap-3 justify-end">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
               <button
                 onClick={() => {
                   setSelectedReport(null);
                   setAdminNotes("");
                 }}
-                className="px-4 py-2 border rounded font-medium transition-colors hover:bg-gray-50"
+                className="w-full sm:w-auto min-h-[44px] px-4 py-2 border rounded font-medium transition-colors hover:bg-gray-50"
                 style={{ borderColor: '#D1D5DB', color: '#374151', borderRadius: '6px' }}
                 disabled={updatingStatus}
               >
@@ -358,7 +365,7 @@ export default function AdminReportsPage() {
               {selectedReport.status !== "pending" && (
                 <button
                   onClick={() => handleUpdateStatus(selectedReport.id, "pending")}
-                  className="px-4 py-2 text-white rounded font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 text-white rounded font-medium transition-colors hover:opacity-90 disabled:opacity-50"
                   style={{ backgroundColor: '#F59E0B', borderRadius: '6px' }}
                   disabled={updatingStatus}
                 >
@@ -368,7 +375,7 @@ export default function AdminReportsPage() {
               {selectedReport.status !== "reviewed" && (
                 <button
                   onClick={() => handleUpdateStatus(selectedReport.id, "reviewed")}
-                  className="px-4 py-2 text-white rounded font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 text-white rounded font-medium transition-colors hover:opacity-90 disabled:opacity-50"
                   style={{ backgroundColor: '#2563EB', borderRadius: '6px' }}
                   disabled={updatingStatus}
                 >
@@ -378,7 +385,7 @@ export default function AdminReportsPage() {
               {selectedReport.status !== "resolved" && (
                 <button
                   onClick={() => handleUpdateStatus(selectedReport.id, "resolved")}
-                  className="px-4 py-2 text-white rounded font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 text-white rounded font-medium transition-colors hover:opacity-90 disabled:opacity-50"
                   style={{ backgroundColor: '#059669', borderRadius: '6px' }}
                   disabled={updatingStatus}
                 >
@@ -388,7 +395,7 @@ export default function AdminReportsPage() {
               {selectedReport.status !== "dismissed" && (
                 <button
                   onClick={() => handleUpdateStatus(selectedReport.id, "dismissed")}
-                  className="px-4 py-2 rounded font-medium transition-colors hover:opacity-90 disabled:opacity-50"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded font-medium transition-colors hover:opacity-90 disabled:opacity-50"
                   style={{ backgroundColor: '#6B7280', color: '#fff', borderRadius: '6px' }}
                   disabled={updatingStatus}
                 >
