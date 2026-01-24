@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,25 +44,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
+    const supabase = await createClient();
 
     // Generate unique filename
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 11);
     const fileExtension = file.name.split(".").pop();
-    const filename = `${session.user.id}_${timestamp}_${randomStr}.${fileExtension}`;
-    const filepath = path.join(uploadsDir, filename);
+    const filename = `${timestamp}_${randomStr}.${fileExtension}`;
+    
+    // Determine bucket based on file type
+    const isImage = imageTypes.includes(file.type);
+    const bucket = isImage ? "profile-pictures" : "resumes";
 
-    // Save file
+    // Use user ID as folder for better organization and security
+    const filePath = `${session.user.id}/${filename}`;
+
+    // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
 
-    // Return public URL
-    const url = `/uploads/${filename}`;
-    return NextResponse.json({ url });
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, buffer, {
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Supabase storage upload error:", error);
+      return NextResponse.json(
+        { error: "Failed to upload file to storage" },
+        { status: 500 }
+      );
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+
+    if (!urlData?.publicUrl) {
+      return NextResponse.json(
+        { error: "Failed to get file URL" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ url: urlData.publicUrl });
   } catch (error: any) {
     console.error("File upload error:", error);
     return NextResponse.json(

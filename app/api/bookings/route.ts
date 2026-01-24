@@ -1,22 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { createClient } from "@/lib/supabase/server";
-import fs from "fs";
-import path from "path";
-
-const THREADS_FILE = path.join(process.cwd(), "data", "threads.json");
-
-const readThreads = () => {
-  try {
-    if (!fs.existsSync(THREADS_FILE)) {
-      return [];
-    }
-    const data = fs.readFileSync(THREADS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
-};
+import { getOrCreateThread } from "@/lib/messages";
 
 // POST - Create a new booking
 export async function POST(request: NextRequest) {
@@ -147,23 +132,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find or create a thread between student and OB/OG
-    const threads = readThreads();
-    const participants = [session.user.id, obogId].sort();
-    let thread = threads.find((t: any) => 
-      t.participants.length === 2 &&
-      t.participants.sort().join(",") === participants.join(",")
-    );
-
-    if (!thread) {
-      thread = {
-        id: `thread_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        participants,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      threads.push(thread);
-      fs.writeFileSync(THREADS_FILE, JSON.stringify(threads, null, 2));
-    }
+    const thread = await getOrCreateThread(session.user.id, obogId);
 
 
     // Create the booking with meeting data directly

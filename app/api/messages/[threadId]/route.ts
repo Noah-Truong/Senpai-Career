@@ -1,44 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
-import fs from "fs";
-import path from "path";
 import { getUserById } from "@/lib/users";
-
-const MESSAGES_FILE = path.join(process.cwd(), "data", "messages.json");
-const THREADS_FILE = path.join(process.cwd(), "data", "threads.json");
-
-const ensureDataDir = () => {
-  const dataDir = path.dirname(MESSAGES_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  if (!fs.existsSync(MESSAGES_FILE)) {
-    fs.writeFileSync(MESSAGES_FILE, JSON.stringify([], null, 2));
-  }
-  if (!fs.existsSync(THREADS_FILE)) {
-    fs.writeFileSync(THREADS_FILE, JSON.stringify([], null, 2));
-  }
-};
-
-const readMessages = () => {
-  try {
-    ensureDataDir();
-    const data = fs.readFileSync(MESSAGES_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
-};
-
-const readThreads = () => {
-  try {
-    ensureDataDir();
-    const data = fs.readFileSync(THREADS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
-};
+import { getThreadById, getThreadMessages, markThreadAsRead } from "@/lib/messages";
 
 export async function GET(
   request: NextRequest,
@@ -57,8 +20,7 @@ export async function GET(
 
     const userId = session.user.id;
     const isAdmin = session.user.role === "admin";
-    const threads = readThreads();
-    const thread = threads.find((t: any) => t.id === threadId);
+    const thread = await getThreadById(threadId);
 
     if (!thread) {
       return NextResponse.json(
@@ -75,11 +37,10 @@ export async function GET(
       );
     }
 
-    let messages = readMessages()
-      .filter((m: any) => m.threadId === threadId)
-      .sort((a: any, b: any) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
+    // Mark thread as read for this user
+    await markThreadAsRead(threadId, userId);
+
+    let messages = await getThreadMessages(threadId);
 
     const otherUserId = thread.participants.find((id: string) => id !== userId);
     const otherUser = otherUserId ? await getUserById(otherUserId) : null;

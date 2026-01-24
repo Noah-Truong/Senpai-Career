@@ -2,22 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { createClient } from "@/lib/supabase/server";
 import { getUserById } from "@/lib/users";
-import fs from "fs";
-import path from "path";
-
-const THREADS_FILE = path.join(process.cwd(), "data", "threads.json");
-
-const readThreads = () => {
-  try {
-    if (!fs.existsSync(THREADS_FILE)) {
-      return [];
-    }
-    const data = fs.readFileSync(THREADS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
-};
+import { getThreadById } from "@/lib/messages";
 
 // GET - Fetch meeting for a thread
 export async function GET(
@@ -96,9 +81,8 @@ export async function POST(
 
     const supabase = await createClient();
 
-    // Get thread from file-based system
-    const threads = readThreads();
-    const thread = threads.find((t: any) => t.id === threadId);
+    // Get thread from Supabase
+    const thread = await getThreadById(threadId);
 
     if (!thread) {
       return NextResponse.json(

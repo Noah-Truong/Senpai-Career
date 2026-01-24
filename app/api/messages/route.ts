@@ -3,65 +3,12 @@ import { auth } from "@/lib/auth-server";
 import { getUserById, updateUser, ensureUserExists } from "@/lib/users";
 import { createMultilingualContent } from "@/lib/translate";
 import { createClient } from "@/lib/supabase/server";
-import fs from "fs";
-import path from "path";
-
-const MESSAGES_FILE = path.join(process.cwd(), "data", "messages.json");
-const THREADS_FILE = path.join(process.cwd(), "data", "threads.json");
-
-const ensureDataDir = () => {
-  const dataDir = path.dirname(MESSAGES_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  if (!fs.existsSync(MESSAGES_FILE)) {
-    fs.writeFileSync(MESSAGES_FILE, JSON.stringify([], null, 2));
-  }
-  if (!fs.existsSync(THREADS_FILE)) {
-    fs.writeFileSync(THREADS_FILE, JSON.stringify([], null, 2));
-  }
-};
-
-const readThreads = () => {
-  ensureDataDir();
-  try {
-    const data = fs.readFileSync(THREADS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
-};
-
-const saveThread = (thread: any) => {
-  ensureDataDir();
-  const threads = readThreads();
-  const existingIndex = threads.findIndex((t: any) => t.id === thread.id);
-  
-  if (existingIndex >= 0) {
-    threads[existingIndex] = thread;
-  } else {
-    threads.push(thread);
-  }
-  
-  fs.writeFileSync(THREADS_FILE, JSON.stringify(threads, null, 2));
-};
-
-const readMessages = () => {
-  ensureDataDir();
-  try {
-    const data = fs.readFileSync(MESSAGES_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
-};
-
-const saveMessage = (message: any) => {
-  ensureDataDir();
-  const messages = readMessages();
-  messages.push(message);
-  fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messages, null, 2));
-};
+import {
+  getOrCreateThread,
+  getThreadById,
+  getUserThreads,
+  createMessage as createMessageInDb,
+} from "@/lib/messages";
 
 export async function POST(request: NextRequest) {
   try {
@@ -125,8 +72,7 @@ export async function POST(request: NextRequest) {
 
     if (threadId) {
       // Existing thread - reply to existing conversation
-      const threads = readThreads();
-      thread = threads.find((t: any) => t.id === threadId);
+      thread = await getThreadById(threadId);
       
       if (!thread) {
         return NextResponse.json(
@@ -170,21 +116,7 @@ export async function POST(request: NextRequest) {
 
       actualToUserId = toUserId;
       // Find or create thread
-      const threads = readThreads();
-      const participants = [fromUserId, actualToUserId].sort();
-      thread = threads.find((t: any) => 
-        t.participants.length === 2 &&
-        t.participants.sort().join(",") === participants.join(",")
-      );
-
-      if (!thread) {
-        thread = {
-          id: `thread_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          participants,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-      }
+      thread = await getOrCreateThread(fromUserId, actualToUserId);
     }
 
     // Deduct credits BEFORE creating message to ensure atomicity
@@ -214,23 +146,8 @@ export async function POST(request: NextRequest) {
       messageContent = content;
     }
 
-    // Create message
-    const message = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      threadId: thread.id,
-      fromUserId,
-      toUserId: actualToUserId,
-      content: messageContent,
-      createdAt: new Date().toISOString(),
-      read: false,
-    };
-
-    // Update thread
-    thread.updatedAt = new Date().toISOString();
-    thread.lastMessage = message;
-
-    saveMessage(message);
-    saveThread(thread);
+    // Create message in database
+    const message = await createMessageInDb(thread.id, fromUserId, messageContent);
 
     // Send notification to recipient
     try {
@@ -286,21 +203,51 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id;
     const isAdmin = session.user.role === "admin";
-    const threads = readThreads();
-    const messages = readMessages();
+    const supabase = await createClient();
 
     // Admin: all threads (read-only chat visibility, features.md 4.5). Else: own threads only.
-    const userThreads = isAdmin
-      ? threads
-      : threads.filter((t: any) => t.participants.includes(userId));
+    let userThreads;
+    if (isAdmin) {
+      const { data: allThreads } = await supabase
+        .from("threads")
+        .select("*")
+        .order("last_message_at", { ascending: false });
+      
+      // Transform to MessageThread format
+      userThreads = await Promise.all(
+        (allThreads || []).map(async (thread: any) => {
+          const { data: lastMsg } = await supabase
+            .from("messages")
+            .select("*")
+            .eq("thread_id", thread.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+          
+          return {
+            id: thread.id,
+            participants: thread.participant_ids || [],
+            lastMessage: lastMsg ? {
+              id: lastMsg.id,
+              threadId: lastMsg.thread_id,
+              fromUserId: lastMsg.sender_id,
+              toUserId: "",
+              content: typeof lastMsg.content === "string" && lastMsg.content.trim().startsWith("{")
+                ? JSON.parse(lastMsg.content)
+                : lastMsg.content,
+              createdAt: new Date(lastMsg.created_at),
+              read: (lastMsg.read_by || []).length > 0,
+            } : undefined,
+            createdAt: new Date(thread.created_at),
+            updatedAt: new Date(thread.last_message_at || thread.created_at),
+          };
+        })
+      );
+    } else {
+      userThreads = await getUserThreads(userId);
+    }
 
     const threadsWithMessages = await Promise.all(userThreads.map(async (thread: any) => {
-      const threadMessages = messages
-        .filter((m: any) => m.threadId === thread.id)
-        .sort((a: any, b: any) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-
       const otherUserId = thread.participants.find((id: string) => id !== userId);
       const otherUser = otherUserId ? await getUserById(otherUserId) : null;
       const { password, password_hash, ...otherUserWithoutPassword } = (otherUser || {}) as any;
@@ -315,7 +262,6 @@ export async function GET(request: NextRequest) {
         });
         return {
           ...thread,
-          lastMessage: threadMessages[0] || null,
           otherUser: otherUserWithoutPassword,
           adminView: true,
           participants,
@@ -324,7 +270,6 @@ export async function GET(request: NextRequest) {
 
       return {
         ...thread,
-        lastMessage: threadMessages[0] || null,
         otherUser: otherUserWithoutPassword,
       };
     }));

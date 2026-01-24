@@ -538,43 +538,9 @@ export const deleteUser = async (userId: string): Promise<void> => {
     alumniName = obogProfile?.nickname || user.name;
   }
 
-  // 1. Delete file-based data (threads and messages)
-  try {
-    const fs = await import("fs");
-    const path = await import("path");
-    
-    const THREADS_FILE = path.join(process.cwd(), "data", "threads.json");
-    const MESSAGES_FILE = path.join(process.cwd(), "data", "messages.json");
-
-    // Clean up threads that include this user
-    if (fs.existsSync(THREADS_FILE)) {
-      try {
-        const threadsData = fs.readFileSync(THREADS_FILE, "utf-8");
-        const threads = JSON.parse(threadsData);
-        const filteredThreads = threads.filter((t: any) => !t.participants?.includes(userId));
-        fs.writeFileSync(THREADS_FILE, JSON.stringify(filteredThreads, null, 2));
-      } catch (threadError) {
-        console.error("Error cleaning up threads:", threadError);
-      }
-    }
-
-    // Clean up messages from/to this user
-    if (fs.existsSync(MESSAGES_FILE)) {
-      try {
-        const messagesData = fs.readFileSync(MESSAGES_FILE, "utf-8");
-        const messages = JSON.parse(messagesData);
-        const filteredMessages = messages.filter(
-          (m: any) => m.fromUserId !== userId && m.toUserId !== userId
-        );
-        fs.writeFileSync(MESSAGES_FILE, JSON.stringify(filteredMessages, null, 2));
-      } catch (messageError) {
-        console.error("Error cleaning up messages:", messageError);
-      }
-    }
-  } catch (fileError) {
-    console.error("Error cleaning up file-based data:", fileError);
-    // Don't fail deletion if file cleanup fails
-  }
+  // 1. Threads and messages are now in Supabase and will be cleaned up by CASCADE
+  // (threads table has ON DELETE CASCADE for messages, and threads are deleted
+  // when all participants are removed via user deletion)
 
   // 2. Delete availability records (uses alumni_name, not FK)
   // Try both nickname and name in case of mismatch
