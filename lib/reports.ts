@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { Report } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 
@@ -8,7 +9,7 @@ function transformReport(row: any): Report {
     id: row.id,
     reporterUserId: row.reporter_id,
     reportedUserId: row.reported_user_id,
-    reportType: row.report_type,
+    reportType: undefined, // report_type column doesn't exist in schema
     reason: row.reason,
     description: row.details || row.description,
     status: row.status,
@@ -17,19 +18,31 @@ function transformReport(row: any): Report {
   };
 }
 
-export const readReports = async (): Promise<Report[]> => {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("reports")
-    .select("*")
-    .order("created_at", { ascending: false });
+export const readReports = async (useAdminClient: boolean = false): Promise<Report[]> => {
+  try {
+    const supabase = useAdminClient ? createAdminClient() : await createClient();
+    const { data, error } = await supabase
+      .from("reports")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error || !data) {
-    console.error("Error reading reports:", error);
+    if (error) {
+      console.error("Error reading reports:", error);
+      console.error("Using admin client:", useAdminClient);
+      return [];
+    }
+
+    if (!data) {
+      console.warn("No data returned from reports query");
+      return [];
+    }
+
+    console.log(`Successfully fetched ${data.length} reports (admin: ${useAdminClient})`);
+    return data.map(transformReport);
+  } catch (err: any) {
+    console.error("Exception in readReports:", err);
     return [];
   }
-
-  return data.map(transformReport);
 };
 
 export const saveReport = async (reportData: Omit<Report, "id" | "createdAt">): Promise<Report> => {
@@ -42,11 +55,10 @@ export const saveReport = async (reportData: Omit<Report, "id" | "createdAt">): 
       id: reportId,
       reporter_id: reportData.reporterUserId,
       reported_user_id: reportData.reportedUserId,
-      report_type: reportData.reportType,
       reason: reportData.reason,
       details: reportData.description,
       status: reportData.status || "pending",
-      admin_notes: reportData.adminNotes,
+      admin_notes: reportData.adminNotes || null,
     })
     .select()
     .single();
@@ -74,8 +86,8 @@ export const getReportById = async (id: string): Promise<Report | undefined> => 
   return transformReport(data);
 };
 
-export const updateReport = async (id: string, updates: Partial<Report>): Promise<Report | undefined> => {
-  const supabase = await createClient();
+export const updateReport = async (id: string, updates: Partial<Report>, useAdminClient: boolean = false): Promise<Report | undefined> => {
+  const supabase = useAdminClient ? createAdminClient() : await createClient();
 
   const updateData: any = {};
   if (updates.reason !== undefined) updateData.reason = updates.reason;

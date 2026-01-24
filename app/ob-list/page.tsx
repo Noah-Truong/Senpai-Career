@@ -131,6 +131,10 @@ export default function OBVisitPage() {
     }
   }, []);
 
+  useEffect(() => {
+    loadObogUsers();
+  }, [loadObogUsers]);
+
   // Progress bar animation - fills up over 5 seconds
   useEffect(() => {
     if (showRules && !showComplianceButton) {
@@ -277,7 +281,7 @@ export default function OBVisitPage() {
               {t("obvisit.cta.subtitle")}
             </motion.p>
             <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className="flex flex-col sm:flex-row gap-5 sm:gap-4 justify-center"
               variants={staggerContainer}
               initial="initial"
               animate="animate"

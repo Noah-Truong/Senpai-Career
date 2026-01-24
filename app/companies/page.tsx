@@ -231,7 +231,7 @@ export default function CompaniesPage() {
                     alt={company.companyName}
                     size="lg"
                     fallbackText={company.companyName}
-                    className="mr-4"
+                    className="mr-6"
                   />
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold mb-2" style={{ color: '#111827' }}>{company.companyName}</h3>

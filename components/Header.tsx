@@ -119,12 +119,73 @@ export default function Header({ minimal = false }: HeaderProps) {
 
   const isLoggedIn = !!session?.user;
   const userRole = session?.user?.role as "student" | "obog" | "company" | "admin" | undefined;
+  const userId = session?.user?.id;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     // Use window.location for a hard redirect to ensure clean state
     window.location.href = "/login";
   };
+
+  // Generate navigation items matching Sidebar structure
+  const getMobileNavItems = useCallback(() => {
+    if (!isLoggedIn || !userRole || !userId) return [];
+
+    const commonItems = [
+      {
+        href: `/user/${userId}`,
+        label: t("nav.myPage"),
+      },
+    ];
+
+    if (userRole === "student") {
+      return [
+        ...commonItems,
+        { href: "/ob-list", label: t("nav.alumniVisits") || "Alumni Visits" },
+        { href: "/internships", label: t("nav.internships") || "Internships" },
+        { href: "/recruiting", label: t("nav.newGrad") || "New Grad" },
+        { href: "/companies", label: t("nav.companies") || "Companies" },
+        { href: "/student/saved", label: t("nav.saved") || "Saved" },
+        { href: "/student/history", label: t("nav.browsingHistory") || "Browsing History" },
+      ];
+    }
+
+    if (userRole === "obog") {
+      return [
+        ...commonItems,
+        { href: "/ob-list", label: t("nav.alumniVisits") || "Alumni Visits" },
+        { href: "/internships", label: t("nav.internships") || "Internships" },
+        { href: "/recruiting", label: t("nav.newGrad") || "New Grad" },
+        { href: "/companies", label: t("nav.companies") || "Companies" },
+        { href: "/profile?open=availability", label: t("nav.configureAvailability") || "Configure Availability" },
+        { href: "/obog/bookings", label: t("nav.bookedMeetings") || "Booked Meetings" },
+      ];
+    }
+
+    if (userRole === "company") {
+      return [
+        ...commonItems,
+        { href: "/ob-list", label: t("nav.alumniVisits") || "Alumni Visits" },
+        { href: "/internships", label: t("nav.internships") || "Internships" },
+        { href: "/recruiting", label: t("nav.newGrad") || "New Grad" },
+        { href: "/company/internships", label: t("nav.jobListings") || "Job Listings" },
+        { href: "/company/profile", label: t("nav.companyProfile") || "Company Profile" },
+      ];
+    }
+
+    if (userRole === "admin") {
+      return [
+        { href: "/dashboard/admin", label: t("nav.adminDashboard") },
+        { href: "/admin/reports", label: t("nav.admin/reports") },
+        { href: "/admin/student-actions", label: t("nav.admin/studentActions") || "Student Actions" },
+        { href: "/admin/chats", label: t("nav.admin.chatHistory") || "Chat History" },
+        { href: "/admin/compliance", label: t("admin.nav.compliance") || "Compliance Review" },
+        { href: "/admin/meetings", label: t("admin.nav.meetings") || "Meeting Reviews" },
+      ];
+    }
+
+    return [];
+  }, [isLoggedIn, userRole, userId, t]);
 
   // Memoized helper functions to prevent unnecessary recalculations
   const isActiveLink = useCallback((href: string) => {
@@ -210,13 +271,13 @@ export default function Header({ minimal = false }: HeaderProps) {
 
   // Fetch notifications and user credits when logged in; refresh credits on send/purchase
   useEffect(() => {
-    if (isLoggedIn && session?.user?.id) {
+    if (isLoggedIn && userId) {
       loadNotifications();
       loadUserCredits();
       const interval = setInterval(loadNotifications, 60000);
       return () => clearInterval(interval);
     }
-  }, [isLoggedIn, session?.user?.id, loadNotifications, loadUserCredits]);
+  }, [isLoggedIn, userId, loadNotifications, loadUserCredits]);
 
   // Set up credits refresh listener (always active, checks login inside)
   useEffect(() => {
@@ -564,48 +625,98 @@ export default function Header({ minimal = false }: HeaderProps) {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t py-2" style={{ borderColor: '#E5E7EB' }}>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {!isLoggedIn ? (
                 <>
                   <Link href="/" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.home") || "Home"}</Link>
-                  <Link href="/about" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.about")}</Link>
-                  <Link href="/how-to-use" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.howToUse")}</Link>
-                  <Link href="/internships" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.internships")}</Link>
-                  <Link href="/for-companies" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.forCompanies")}</Link>
-                  <div className="border-t mt-2 pt-2" style={{ borderColor: '#E5E7EB' }}>
+                  <Link href="/about" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.about") || "Service Overview"}</Link>
+                  
+                  {/* For Students section */}
+                  <div className="px-4 py-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B7280' }}>
+                      {t("nav.forStudents") || "For Students"}
+                    </p>
+                  </div>
+                  {studentMenuItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded pl-8"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  
+                  {/* For Companies section */}
+                  <div className="px-4 py-2 mt-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#6B7280' }}>
+                      {t("nav.forCompaniesNav") || "For Companies"}
+                    </p>
+                  </div>
+                  {companyMenuItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded pl-8"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  
+                  <Link href="/how-to-use" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.howToUse") || "How to Use"}</Link>
+                  
+                  <div className="border-t mt-2 pt-2 space-y-1.5" style={{ borderColor: '#E5E7EB' }}>
                     <Link href="/login" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.logIn")}</Link>
-                    <Link href="/register" className="block px-4 py-3 min-h-[44px] flex items-center justify-center text-white rounded mt-2" style={{ backgroundColor: '#2563EB' }} onClick={() => setMobileMenuOpen(false)}>{t("nav.register")}</Link>
+                    <Link href="/register" className="block px-4 py-3 min-h-[44px] flex items-center justify-center text-white rounded" style={{ backgroundColor: '#2563EB' }} onClick={() => setMobileMenuOpen(false)}>{t("nav.register")}</Link>
                   </div>
                 </>
               ) : (
                 <>
-                  <Link href="/" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.home") || "Home"}</Link>
-                  <Link href={`/user/${(session?.user as any)?.id}`} className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.myPage")}</Link>
-                  <Link href="/profile" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.profile")}</Link>
-                  <Link href="/messages" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.messages")}</Link>
-                  {userRole === "student" && (
-                    <>
-                      <Link href="/ob-list" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.alumniVisits") || "Alumni Visits"}</Link>
-                      <Link href="/internships" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.internships")}</Link>
-                      <Link href="/recruiting" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.newGrad") || "New Grad"}</Link>
-                      <Link href="/companies" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.companies") || "Companies"}</Link>
-                    </>
+                  {/* Main navigation items matching Sidebar */}
+                  {getMobileNavItems().map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  
+                  {/* Messages - matches Sidebar structure */}
+                  <Link
+                    href="/messages"
+                    className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t("nav.messages")}
+                  </Link>
+
+                  {/* Profile - matches Sidebar structure */}
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t("nav.profile")}
+                  </Link>
+
+                  {/* Report (for non-admin) - matches Sidebar bottom section */}
+                  {userRole !== "admin" && (
+                    <Link
+                      href="/report"
+                      className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {t("nav.report")}
+                    </Link>
                   )}
-                  {userRole === "obog" && (
-                    <>
-                      <Link href="/about" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.about")}</Link>
-                      <Link href="/report" className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded">{t("nav.report")}</Link>
-                    </>
-                  )}
-                  {userRole === "company" && (
-                    <>
-                      <Link href="/company/profile" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.companyProfile") || "Company Profile"}</Link>
-                      <Link href="/company/internships" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.jobListings") || "Job Listings"}</Link>
-                      <Link href="/companies" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.companies") || "Companies"}</Link>
-                      <Link href="/company/students" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.studentList")}</Link>
-                    </>
-                  )}
-                  <div className="border-t mt-2 pt-2" style={{ borderColor: '#E5E7EB' }}>
+
+                  {/* Sign Out - matches Sidebar bottom section */}
+                  <div className="border-t mt-2 pt-2 space-y-1.5" style={{ borderColor: '#E5E7EB' }}>
                     <button
                       onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
                       className="block w-full text-left px-4 py-3 min-h-[44px] flex items-center text-red-600 hover:bg-red-50 rounded"

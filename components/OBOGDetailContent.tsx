@@ -42,7 +42,7 @@ export default function OBOGDetailContent({ obog }: OBOGDetailContentProps) {
           alt={obog.nickname || obog.name}
           size="xl"
           fallbackText={obog.nickname || obog.name}
-          className="mr-6"
+          className="mr-8"
         />
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">

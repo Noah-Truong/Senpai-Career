@@ -198,7 +198,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
                   alt={obog.nickname || obog.name}
                   size="lg"
                   fallbackText={obog.nickname || obog.name}
-                  className="mr-4"
+                  className="mr-6"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">

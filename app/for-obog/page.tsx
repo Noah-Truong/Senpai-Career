@@ -231,7 +231,7 @@ export default function ForOBOGPage() {
             <p className="text-xl mb-8 opacity-90">
               {t("obog.cta.subtitle")}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-5 sm:gap-4 justify-center">
               <Link
                 href="/signup/obog"
                 className="btn-secondary px-8 py-3"

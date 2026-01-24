@@ -196,7 +196,7 @@ export default function AdminUsersPage() {
                         alt={user.name}
                         size="sm"
                         fallbackText={user.name}
-                        className="mr-3"
+                        className="mr-5"
                       />
                       <div>
                         <div className="text-sm font-medium" style={{ color: '#111827' }}>{user.name}</div>

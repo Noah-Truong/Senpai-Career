@@ -409,7 +409,7 @@ export default function ProfilePage() {
                 alt={user.nickname || user.name || "Profile"} 
                 size="xl"
                 fallbackText={user.nickname || user.name}
-                className="mr-6"
+                className="mr-8"
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -636,7 +636,7 @@ export default function ProfilePage() {
           {/* Profile Picture */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("profile.profilePicture")}</h3>
-            <div className="flex items-center gap-6 mb-4">
+            <div className="flex items-center gap-8 mb-4">
               <Avatar 
                 src={formData.profilePhoto} 
                 alt={formData.name || "Profile"} 

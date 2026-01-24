@@ -64,7 +64,7 @@ export default function Home() {
             </motion.p>
             {!isLoggedIn && (
               <motion.div 
-                className="flex flex-col sm:flex-row gap-4 justify-center"
+                className="flex flex-col sm:flex-row gap-5 sm:gap-4 justify-center"
                 variants={staggerItem}
               >
                 <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
@@ -263,7 +263,7 @@ export default function Home() {
           </motion.h2>
           <div className="max-w-5xl mx-auto">
             <motion.div 
-              className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-2"
+              className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2"
               variants={staggerContainer}
               initial="initial"
               whileInView="animate"
@@ -271,7 +271,7 @@ export default function Home() {
             >
               {/* Step 1 */}
               <motion.div 
-                className="flex-1 text-center p-4"
+                className="flex-1 text-center p-4 w-full md:w-auto"
                 variants={staggerItem}
                 whileHover={{ 
                   rotateY: 5,
@@ -295,21 +295,21 @@ export default function Home() {
                 <p className="text-sm" style={{ color: '#6B7280' }}>{t("home.journey.obogDesc")}</p>
               </motion.div>
 
-              {/* Arrow */}
+              {/* Arrow - Horizontal on desktop, Vertical on mobile */}
               <motion.div 
-                className="hidden md:block self-center"
+                className="flex items-center justify-center self-center"
                 variants={staggerItem}
                 whileHover={{ scale: 1.2, x: 3 }}
                 transition={{ duration: 0.2 }}
               >
-                <svg className="w-6 h-6" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 md:rotate-0 rotate-90" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.div>
 
               {/* Step 2 */}
               <motion.div 
-                className="flex-1 text-center p-4"
+                className="flex-1 text-center p-4 w-full md:w-auto"
                 variants={staggerItem}
                 whileHover={{ 
                   rotateY: -5,
@@ -333,21 +333,21 @@ export default function Home() {
                 <p className="text-sm" style={{ color: '#6B7280' }}>{t("home.journey.internshipDesc")}</p>
               </motion.div>
 
-              {/* Arrow */}
+              {/* Arrow - Horizontal on desktop, Vertical on mobile */}
               <motion.div 
-                className="hidden md:block self-center"
+                className="flex items-center justify-center self-center"
                 variants={staggerItem}
                 whileHover={{ scale: 1.2, x: 3 }}
                 transition={{ duration: 0.2 }}
               >
-                <svg className="w-6 h-6" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 md:rotate-0 rotate-90" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.div>
 
               {/* Step 3 */}
               <motion.div 
-                className="flex-1 text-center p-4"
+                className="flex-1 text-center p-4 w-full md:w-auto"
                 variants={staggerItem}
                 whileHover={{ 
                   rotateY: 5,
@@ -371,21 +371,21 @@ export default function Home() {
                 <p className="text-sm" style={{ color: '#6B7280' }}>{t("home.journey.recruitingDesc")}</p>
               </motion.div>
 
-              {/* Arrow */}
+              {/* Arrow - Horizontal on desktop, Vertical on mobile */}
               <motion.div 
-                className="hidden md:block self-center"
+                className="flex items-center justify-center self-center"
                 variants={staggerItem}
                 whileHover={{ scale: 1.2, x: 3 }}
                 transition={{ duration: 0.2 }}
               >
-                <svg className="w-6 h-6" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 md:rotate-0 rotate-90" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.div>
 
               {/* Step 4 */}
               <motion.div 
-                className="flex-1 text-center p-4"
+                className="flex-1 text-center p-4 w-full md:w-auto"
                 variants={staggerItem}
                 whileHover={{ 
                   rotateY: -5,
@@ -428,7 +428,7 @@ export default function Home() {
                 {t("home.journey.path")}
               </motion.p>
               <motion.div 
-                className="flex flex-col sm:flex-row gap-4 justify-center"
+                className="flex flex-col sm:flex-row gap-5 sm:gap-4 justify-center"
                 variants={staggerContainer}
                 initial="initial"
                 whileInView="animate"
@@ -482,7 +482,7 @@ export default function Home() {
               </motion.a>
             </motion.p>
             <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className="flex flex-col sm:flex-row gap-5 sm:gap-5 justify-center"
               variants={staggerContainer}
               initial="initial"
               whileInView="animate"

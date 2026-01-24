@@ -26,6 +26,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const isMobile = useMediaQuery("(max-width: 1023px)");
 
   const isLoggedIn = !!session;
+  // Use stable reference for user ID
+  const userId = session?.user?.id;
 
   useEffect(() => {
     if (!isMobile) setMobileMenuOpen(false);
@@ -56,10 +58,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
   }, []);
 
   useEffect(() => {
-    if (isLoggedIn && session?.user?.id) {
+    if (isLoggedIn && userId) {
       loadUserCredits();
     }
-  }, [isLoggedIn, session?.user?.id, loadUserCredits]);
+  }, [isLoggedIn, userId, loadUserCredits]);
 
   // Set up event listener for credits refresh (always active, checks login inside)
   useEffect(() => {

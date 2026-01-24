@@ -140,7 +140,7 @@ export default function PublicProfilePage() {
               <img 
                 src={user.logo} 
                 alt={user.companyName || "Company"} 
-                className="w-24 h-24 object-contain rounded mr-6"
+                className="w-24 h-24 object-contain rounded mr-8"
               />
             ) : (
               <Avatar 
@@ -148,7 +148,7 @@ export default function PublicProfilePage() {
                 alt={user.nickname || user.name || "Profile"} 
                 size="xl"
                 fallbackText={user.nickname || user.name || user.companyName}
-                className="mr-6"
+                className="mr-8"
               />
             )}
             <div className="flex-1">
@@ -160,7 +160,7 @@ export default function PublicProfilePage() {
                   "bg-gray-100 text-gray-800"
                 }`}>
                   {user.role === "student" ? t("myPage.student") :
-                   user.role === "obog" ? "OB/OG" :
+                   user.role === "obog" ? t("label.obog") :
                    user.role === "company" ? t("myPage.company") : user.role}
                 </span>
                 {isOBOG && user.type && (

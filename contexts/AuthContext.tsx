@@ -215,13 +215,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
-  };
+  }, [supabase]);
+
+  const signInMemo = useCallback(async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        return { error: error.message };
+      }
+      return { error: null };
+    } catch (err: any) {
+      return { error: err.message || "An error occurred during sign in" };
+    }
+  }, [supabase]);
+
+  const signUpMemo = useCallback(async (email: string, password: string, userData: any) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: userData.name,
+            role: userData.role,
+          },
+        },
+      });
+      if (error) {
+        return { error: error.message };
+      }
+      return { error: null, userId: data.user?.id };
+    } catch (err: any) {
+      return { error: err.message || "An error occurred during sign up" };
+    }
+  }, [supabase]);
+
+  // Memoize context value to prevent unnecessary rerenders
+  const contextValue = useMemo(
+    () => ({
+      user,
+      isLoading,
+      signIn: signInMemo,
+      signUp: signUpMemo,
+      signOut,
+      refreshUser,
+    }),
+    [user, isLoading, signInMemo, signUpMemo, signOut, refreshUser]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signIn, signUp, signOut, refreshUser }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
@@ -239,9 +288,13 @@ export function useAuth() {
 export function useSession() {
   const { user, isLoading } = useAuth();
 
-  return {
-    data: user ? { user } : null,
-    status: isLoading ? "loading" : user ? "authenticated" : "unauthenticated",
-    update: async () => {},
-  };
+  // Memoize return value to prevent constant rerenders
+  return useMemo(
+    () => ({
+      data: user ? { user } : null,
+      status: isLoading ? "loading" : user ? "authenticated" : "unauthenticated",
+      update: async () => {},
+    }),
+    [user, isLoading]
+  );
 }

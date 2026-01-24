@@ -83,7 +83,7 @@ export default function SidebarLayout({ children, role }: SidebarLayoutProps) {
               size="md"
               fallbackText={userName}
             />
-            <div className="ml-3 flex-1 min-w-0">
+            <div className="ml-5 flex-1 min-w-0">
               <p className="text-sm font-semibold truncate" style={{ color: '#111827' }}>
                 {userName}
               </p>
@@ -183,7 +183,7 @@ export default function SidebarLayout({ children, role }: SidebarLayoutProps) {
                     size="md"
                     fallbackText={userName}
                   />
-                  <div className="ml-3">
+                  <div className="ml-5">
                     <p className="text-sm font-semibold" style={{ color: '#111827' }}>
                       {userName}
                     </p>

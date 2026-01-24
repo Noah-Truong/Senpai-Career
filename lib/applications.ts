@@ -5,13 +5,27 @@ export interface ApplicationData extends Omit<Application, "createdAt"> {
   createdAt: string;
 }
 
+// Helper to parse answers from cover_letter (stored as JSON)
+function parseAnswers(coverLetter: string | null): { question: string; answer: string | any }[] {
+  if (!coverLetter || typeof coverLetter !== "string") return [];
+  const trimmed = coverLetter.trim();
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 // Helper to transform database row to ApplicationData
 function transformApplication(row: any): ApplicationData {
   return {
     id: row.id,
     listingId: row.internship_id,
     applicantId: row.user_id,
-    answers: row.answers || [],
+    answers: parseAnswers(row.cover_letter),
     resumeUrl: row.resume_url,
     status: row.status,
     createdAt: row.created_at,
@@ -45,8 +59,10 @@ export const saveApplication = async (
       id: applicationId,
       internship_id: applicationData.listingId,
       user_id: applicationData.applicantId,
-      answers: applicationData.answers,
-      resume_url: applicationData.resumeUrl,
+      cover_letter: applicationData.answers?.length
+        ? JSON.stringify(applicationData.answers)
+        : null,
+      resume_url: applicationData.resumeUrl ?? null,
       status: applicationData.status || "pending",
     })
     .select()
@@ -114,7 +130,11 @@ export const updateApplication = async (
   const supabase = await createClient();
 
   const updateData: any = {};
-  if (updates.answers !== undefined) updateData.answers = updates.answers;
+  if (updates.answers !== undefined) {
+    updateData.cover_letter = updates.answers?.length
+      ? JSON.stringify(updates.answers)
+      : null;
+  }
   if (updates.resumeUrl !== undefined) updateData.resume_url = updates.resumeUrl;
   if (updates.status !== undefined) updateData.status = updates.status;
 

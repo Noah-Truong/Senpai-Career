@@ -2,7 +2,7 @@
 
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
@@ -27,24 +27,9 @@ export default function CompanyInternshipsPage() {
   const [internships, setInternships] = useState<InternshipListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const companyId = session?.user?.id;
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-      return;
-    }
-
-    if (status === "authenticated" && session?.user?.role !== "company") {
-      router.push("/dashboard");
-      return;
-    }
-
-    if (status === "authenticated") {
-      loadInternships();
-    }
-  }, [status, session, router]);
-
-  const loadInternships = async () => {
+  const loadInternships = useCallback(async () => {
     try {
       // Companies should see all their listings including stopped ones
       const response = await fetch("/api/internships");
@@ -63,34 +48,50 @@ export default function CompanyInternshipsPage() {
               // Filter to show only this company's internships
               // Companies see all their listings (including stopped)
               const companyInternships = (data.internships || []).filter(
-                (i: InternshipListing) => i.companyId === session?.user?.id
+                (i: InternshipListing) => i.companyId === companyId
               );
               setInternships(companyInternships);
-            } else {
-              console.warn("Internships API returned non-JSON response");
-              setError("Failed to load internships");
-            }
-          } catch (jsonError) {
-            console.error("Failed to parse internships JSON:", jsonError);
-            setError("Failed to load internships");
-          }
         } else {
-          console.warn("Internships API returned non-JSON content type");
-          setError("Failed to load internships");
+          console.warn("Internships API returned non-JSON response");
+          setError(t("common.error"));
         }
+      } catch (jsonError) {
+        console.error("Failed to parse internships JSON:", jsonError);
+        setError(t("common.error"));
+      }
+    } else {
+      console.warn("Internships API returned non-JSON content type");
+      setError(t("common.error"));
+    }
       } else {
-        throw new Error("Failed to load internships");
+        throw new Error(t("common.error"));
       }
     } catch (err: any) {
       console.error("Error loading internships:", err);
-      setError(err.message || "Failed to load internships");
+      setError(err.message || t("common.error"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyId, t]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this listing?")) {
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+
+    if (status === "authenticated" && session?.user?.role !== "company") {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (status === "authenticated") {
+      loadInternships();
+    }
+  }, [status, session, router, loadInternships]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    if (!confirm(t("company.internships.deleteConfirm"))) {
       return;
     }
 
@@ -100,17 +101,17 @@ export default function CompanyInternshipsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete listing");
+        throw new Error(t("company.internship.error.deleteFailed"));
       }
 
       // Reload internships
       loadInternships();
     } catch (err: any) {
-      alert(err.message || "Failed to delete listing");
+      alert(err.message || t("common.error"));
     }
-  };
+  }, [loadInternships, t]);
 
-  const handleStatusChange = async (id: string, newStatus: "public" | "stopped") => {
+  const handleStatusChange = useCallback(async (id: string, newStatus: "public" | "stopped") => {
     try {
       const response = await fetch(`/api/internships/${id}`, {
         method: "PUT",
@@ -119,21 +120,21 @@ export default function CompanyInternshipsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update status");
+        throw new Error(t("company.internship.error.statusUpdateFailed"));
       }
 
       // Reload internships
       loadInternships();
     } catch (err: any) {
-      alert(err.message || "Failed to update status");
+      alert(err.message || t("common.error"));
     }
-  };
+  }, [loadInternships, t]);
 
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>Loading...</p>
+          <p>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -145,14 +146,14 @@ export default function CompanyInternshipsPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2" style={{ color: '#000000' }}>
-              My Internship Listings
+              {t("company.internships.title")}
             </h1>
             <p className="text-gray-600">
-              Manage your internship and new graduate position listings.
+              {t("company.internships.subtitle")}
             </p>
           </div>
           <Link href="/company/internships/new" className="btn-primary">
-            Post New Listing
+            {t("company.internships.postNew")}
           </Link>
         </div>
 
@@ -164,12 +165,12 @@ export default function CompanyInternshipsPage() {
 
         {internships.length === 0 ? (
           <div className="card-gradient p-8 text-center">
-            <p className="text-gray-700 text-lg mb-4">You haven't posted any listings yet.</p>
+            <p className="text-gray-700 text-lg mb-4">{t("company.internships.empty.title")}</p>
             <p className="text-gray-600 mb-6">
-              Create your first internship or new graduate position listing to start attracting students.
+              {t("company.internships.empty.subtitle")}
             </p>
             <Link href="/company/internships/new" className="btn-primary inline-block">
-              Post Your First Listing
+              {t("company.internships.empty.action")}
             </Link>
           </div>
         ) : (
@@ -187,7 +188,7 @@ export default function CompanyInternshipsPage() {
                       </h3>
                       {(internship as any).status === "stopped" && (
                         <span className="px-2 py-1 text-xs font-semibold rounded bg-gray-200 text-gray-700">
-                          Stopped
+                          {t("company.internships.status.stopped")}
                         </span>
                       )}
                     </div>
@@ -196,7 +197,7 @@ export default function CompanyInternshipsPage() {
                         className="inline-block px-2 py-1 text-xs font-semibold rounded"
                         style={{ backgroundColor: '#D7FFEF', color: '#0F2A44' }}
                       >
-                        {internship.type === "internship" ? "Internship" : "New Graduate"}
+                        {internship.type === "internship" ? t("company.internships.type.internship") : t("company.internships.type.newGrad")}
                       </span>
                     </div>
                   </div>
@@ -236,19 +237,19 @@ export default function CompanyInternshipsPage() {
                     href={`/company/internships/${internship.id}/applications`}
                     className="btn-primary flex-1 text-center"
                   >
-                    View Applications
+                    {t("company.internships.viewApplications")}
                   </Link>
                   <Link
                     href={`/company/internships/${internship.id}/edit`}
                     className="btn-secondary flex-1 text-center"
                   >
-                    Edit
+                    {t("company.internships.edit")}
                   </Link>
                   <button
                     onClick={() => handleDelete(internship.id)}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                   >
-                    Delete
+                    {t("company.internships.delete")}
                   </button>
                 </div>
               </div>

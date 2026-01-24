@@ -66,7 +66,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get("status");
 
-    let reports = await readReports();
+    // Use admin client for admin users to bypass RLS
+    const isAdmin = session.user.role === "admin";
+    let reports = await readReports(isAdmin);
 
     // If admin, return all reports (optionally filtered by status)
     if (session.user.role === "admin") {
@@ -126,7 +128,8 @@ export async function PUT(request: NextRequest) {
       updates.adminNotes = adminNotes;
     }
 
-    const updatedReport = updateReport(id, updates);
+    // Use admin client to bypass RLS for admin updates
+    const updatedReport = await updateReport(id, updates, true);
 
     if (!updatedReport) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });

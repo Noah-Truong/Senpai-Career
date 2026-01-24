@@ -34,10 +34,12 @@ export default function CompanyProfilePage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/company/profile");
+      const response = await fetch("/api/company/profile", { credentials: "include" });
       
       if (!response.ok) {
         if (response.status === 404) {
+          await response.text().catch(() => {});
+          setError(t("company.profile.noProfileFound"));
           return;
         }
         
@@ -45,7 +47,7 @@ export default function CompanyProfilePage() {
         const contentType = response.headers.get("content-type");
         const isJson = contentType && contentType.includes("application/json");
         
-        let errorMessage = "Failed to load company data";
+        let errorMessage = t("common.error");
         
         if (isJson) {
           try {
@@ -63,9 +65,9 @@ export default function CompanyProfilePage() {
         
         // Handle specific error cases
         if (response.status === 401) {
-          errorMessage = "Unauthorized. Please log in again.";
+          errorMessage = t("auth.error.unauthorized") || "Unauthorized. Please log in again.";
         } else if (response.status === 403) {
-          errorMessage = "Access denied. Only company accounts can view this page.";
+          errorMessage = t("auth.error.forbidden") || "Access denied. Only company accounts can view this page.";
         }
         
         setError(errorMessage);
@@ -83,25 +85,28 @@ export default function CompanyProfilePage() {
           
           if (trimmedText.startsWith("{") || trimmedText.startsWith("[")) {
             const data = JSON.parse(text);
-            if (data.company) {
+            const company = data.company;
+            if (company) {
               setFormData({
-                companyName: data.company.companyName || "",
-                overview: data.company.overview || "",
-                workLocation: data.company.workLocation || "",
-                hourlyWage: data.company.hourlyWage?.toString() || "",
-                weeklyHours: data.company.weeklyHours?.toString() || "",
-                weeklyDays: data.company.weeklyDays?.toString() || "",
-                minRequiredHours: data.company.minRequiredHours?.toString() || "",
-                internshipDetails: data.company.internshipDetails || "",
-                newGradDetails: data.company.newGradDetails || "",
-                idealCandidate: data.company.idealCandidate || "",
-                sellingPoints: data.company.sellingPoints || "",
-                oneLineMessage: data.company.oneLineMessage || "",
+                companyName: company.companyName || "",
+                overview: company.overview || "",
+                workLocation: company.workLocation || "",
+                hourlyWage: company.hourlyWage?.toString() ?? "",
+                weeklyHours: company.weeklyHours?.toString() ?? "",
+                weeklyDays: company.weeklyDays?.toString() ?? "",
+                minRequiredHours: company.minRequiredHours?.toString() ?? "",
+                internshipDetails: company.internshipDetails || "",
+                newGradDetails: company.newGradDetails || "",
+                idealCandidate: company.idealCandidate || "",
+                sellingPoints: company.sellingPoints || "",
+                oneLineMessage: company.oneLineMessage || "",
               });
+            } else {
+              setError("Profile data missing. Please try again or create your profile below.");
             }
           } else {
             console.warn("Company profile API returned non-JSON response");
-            setError("Failed to load company data. Please refresh the page.");
+            setError(t("common.error"));
           }
         } catch (jsonError) {
           console.error("Failed to parse company profile JSON:", jsonError);
@@ -119,27 +124,31 @@ export default function CompanyProfilePage() {
     }
   }, []);
 
+  const userId = session?.user?.id;
+  const userRole = session?.user?.role;
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
       return;
     }
 
-    if (status === "authenticated" && session?.user?.role !== "company") {
+    if (status === "authenticated" && userRole !== "company") {
       router.push("/dashboard");
       return;
     }
 
-    if (status === "authenticated" && session?.user?.id && session?.user?.role === "company") {
+    if (status === "authenticated" && userId && userRole === "company") {
       loadCompanyData();
     }
-  }, [status, session, router, loadCompanyData]);
+  }, [status, userId, userRole, router, loadCompanyData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
@@ -174,7 +183,7 @@ export default function CompanyProfilePage() {
         const contentType = response.headers.get("content-type");
         const isJson = contentType && contentType.includes("application/json");
         
-        let errorMessage = "Failed to save company page";
+        let errorMessage = t("common.error");
         
         if (isJson) {
           try {
@@ -196,11 +205,11 @@ export default function CompanyProfilePage() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || "Failed to save company page");
+      setError(err.message || t("common.error"));
     } finally {
       setSaving(false);
     }
-  };
+  }, [formData]);
 
   if (status === "loading" || loading) {
     return (
@@ -322,7 +331,7 @@ export default function CompanyProfilePage() {
                   name="workLocation"
                   value={formData.workLocation}
                   onChange={handleChange}
-                  placeholder="Tokyo, Remote, etc."
+                  placeholder={t("form.locationPlaceholder") || "Tokyo, Remote, etc."}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
                   style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                 />

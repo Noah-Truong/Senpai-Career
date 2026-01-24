@@ -642,7 +642,7 @@ export default function AvailabilityCalendar({
                   
                   return (
                     <>
-                      <div className="flex items-center gap-3 mb-3">
+                      <div className="flex items-center gap-5 mb-3">
                         <Avatar
                           src={booking.student.profilePhoto}
                           alt={booking.student.name}

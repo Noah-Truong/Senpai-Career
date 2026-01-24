@@ -7,7 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
-import { isBlockedFreeDomain, getBlockedDomainError } from "@/lib/blocked-email-domains";
+// import { isBlockedFreeDomain, getBlockedDomainError } from "@/lib/blocked-email-domains";
 
 export default function OBOGSignupPage() {
   const { t } = useLanguage();
@@ -72,12 +72,12 @@ export default function OBOGSignupPage() {
       return;
     }
 
-  
-    if (isBlockedFreeDomain(formData.email)) {
-       setError(getBlockedDomainError());
-       setLoading(false);
-       return;
-     }
+    // Free email exclusion commented out
+    // if (isBlockedFreeDomain(formData.email)) {
+    //   setError(getBlockedDomainError());
+    //   setLoading(false);
+    //   return;
+    // }
 
     if (formData.password !== formData.confirmPassword) {
       setError(t("signup.errors.passwordMismatch"));

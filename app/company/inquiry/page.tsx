@@ -2,10 +2,12 @@
 
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
 
 export default function CompanyInquiryPage() {
+  const { t } = useLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -16,11 +18,12 @@ export default function CompanyInquiryPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
@@ -33,18 +36,18 @@ export default function CompanyInquiryPage() {
       setFormData({ subject: "", message: "" });
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || "Failed to send inquiry");
+      setError(err.message || t("common.error"));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>Loading...</p>
+          <p>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -54,9 +57,9 @@ export default function CompanyInquiryPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6" style={{ color: '#000000' }}>Contact / Inquiry</h1>
+        <h1 className="text-3xl font-bold mb-6" style={{ color: '#000000' }}>{t("company.inquiry.title")}</h1>
         <p className="text-gray-600 mb-8">
-          Have questions about using Senpai Career as a company? Send us an inquiry and we'll get back to you.
+          {t("company.inquiry.subtitle")}
         </p>
 
         {error && (
@@ -67,7 +70,7 @@ export default function CompanyInquiryPage() {
 
         {success && (
           <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-            Inquiry sent successfully! We'll get back to you soon.
+            {t("company.inquiry.success")}
           </div>
         )}
 
@@ -75,7 +78,7 @@ export default function CompanyInquiryPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                Subject *
+                {t("company.inquiry.subject")} *
               </label>
               <input
                 type="text"
@@ -84,7 +87,7 @@ export default function CompanyInquiryPage() {
                 required
                 value={formData.subject}
                 onChange={handleChange}
-                placeholder="Question about credits, student search, etc."
+                placeholder={t("company.inquiry.subjectPlaceholder")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 style={{ color: '#000000' }}
               />
@@ -92,7 +95,7 @@ export default function CompanyInquiryPage() {
 
             <div>
               <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                Message *
+                {t("company.inquiry.message")} *
               </label>
               <textarea
                 id="message"
@@ -101,7 +104,7 @@ export default function CompanyInquiryPage() {
                 rows={8}
                 value={formData.message}
                 onChange={handleChange}
-                placeholder="Please describe your inquiry in detail..."
+                placeholder={t("company.inquiry.messagePlaceholder")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 style={{ color: '#000000' }}
               />
@@ -113,20 +116,20 @@ export default function CompanyInquiryPage() {
                 disabled={loading}
                 className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Sending..." : "Send Inquiry"}
+                {loading ? t("company.inquiry.sending") : t("company.inquiry.send")}
               </button>
               <button
                 type="button"
                 onClick={() => router.back()}
                 className="btn-secondary"
               >
-                Cancel
+                {t("button.cancel")}
               </button>
             </div>
           </form>
 
           <div className="mt-8 pt-8 border-t border-gray-200">
-            <p className="text-sm text-gray-600 mb-2">Or contact us directly:</p>
+            <p className="text-sm text-gray-600 mb-2">{t("company.inquiry.contactDirect")}</p>
             <a
               href="mailto:info@senpaicareer.com"
               className="link-gradient font-semibold"

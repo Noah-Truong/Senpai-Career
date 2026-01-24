@@ -278,7 +278,7 @@ export default function OBOGBookingsPage() {
                 >
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     {/* Student Info */}
-                    <div className="flex items-start gap-4 flex-1">
+                    <div className="flex items-start gap-6 flex-1">
                       <Avatar
                         src={booking.student.profilePhoto}
                         alt={booking.student.name}

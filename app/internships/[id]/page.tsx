@@ -2,14 +2,16 @@
 
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslated } from "@/lib/translation-helpers";
 import CompanyLogo from "@/components/CompanyLogo";
 import Link from "next/link";
 import SaveButton from "@/components/SaveButton";
 
 export default function InternshipDetailPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { translate } = useTranslated();
   const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
@@ -24,25 +26,37 @@ export default function InternshipDetailPage() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [hasApplied, setHasApplied] = useState(false);
 
-  useEffect(() => {
-    if (listingId) {
-      loadListing();
-      checkApplicationStatus();
+  // Memoize translated content for faster rendering
+  const workDetails = useMemo(() => {
+    if (!listing) return "";
+    if (listing.workDetailsKey) {
+      return t(listing.workDetailsKey);
     }
-  }, [listingId]);
-
-  // Record browsing history (students only)
-  useEffect(() => {
-    if (listing && session?.user?.role === "student" && listingId) {
-      fetch("/api/browsing-history", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemType: "recruitment", itemId: listingId }),
-      }).catch(console.error);
+    // Check if workDetails is a multilingual object
+    if (typeof listing.workDetails === "object" && listing.workDetails !== null) {
+      return translate(listing.workDetails);
     }
-  }, [listing, listingId, session]);
+    return listing.workDetails || "";
+  }, [listing, t, translate]);
 
-  const loadListing = async () => {
+  const whyThisCompany = useMemo(() => {
+    if (!listing) return "";
+    if (listing.whyThisCompanyKey) {
+      return t(listing.whyThisCompanyKey);
+    }
+    if (typeof listing.whyThisCompany === "object" && listing.whyThisCompany !== null) {
+      return translate(listing.whyThisCompany);
+    }
+    return listing.whyThisCompany || "";
+  }, [listing, t, translate]);
+
+  const title = useMemo(() => {
+    if (!listing) return "";
+    return listing.titleKey ? t(listing.titleKey) : listing.title || "";
+  }, [listing, t]);
+
+  const loadListing = useCallback(async () => {
+    if (!listingId) return;
     try {
       const response = await fetch(`/api/internships/${listingId}`);
       if (!response.ok) {
@@ -55,10 +69,10 @@ export default function InternshipDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [listingId]);
 
-  const checkApplicationStatus = async () => {
-    if (!session?.user) return;
+  const checkApplicationStatus = useCallback(async () => {
+    if (!session?.user || !listingId) return;
     
     try {
       const response = await fetch("/api/applications");
@@ -70,15 +84,33 @@ export default function InternshipDetailPage() {
     } catch (error) {
       console.error("Error checking application status:", error);
     }
-  };
+  }, [session?.user, listingId]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (listingId) {
+      loadListing();
+      checkApplicationStatus();
+    }
+  }, [listingId, loadListing, checkApplicationStatus]);
+
+  // Record browsing history (students only)
+  useEffect(() => {
+    if (listing && session?.user?.role === "student" && listingId) {
+      fetch("/api/browsing-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemType: "recruitment", itemId: listingId }),
+      }).catch(console.error);
+    }
+  }, [listing, listingId, session?.user?.role]);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setResumeFile(e.target.files[0]);
     }
-  };
+  }, []);
 
-  const handleSubmitApplication = async () => {
+  const handleSubmitApplication = useCallback(async () => {
     if (!session?.user) {
       router.push("/login");
       return;
@@ -131,13 +163,29 @@ export default function InternshipDetailPage() {
     } finally {
       setApplying(false);
     }
-  };
+  }, [session?.user, router, resumeFile, listing, applicationAnswers, listingId, t]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p>{t("common.loading")}</p>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="card-gradient p-6 mb-6">
+              <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            </div>
+            <div className="card-gradient p-6 mb-6">
+              <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -175,7 +223,7 @@ export default function InternshipDetailPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <h1 className="text-3xl font-bold mb-2">
-                    {listing.titleKey ? t(listing.titleKey) : listing.title}
+                    {title}
                   </h1>
                   <p className="text-lg text-gray-600">{listing.companyName}</p>
                   <p className="text-xl font-semibold text-gray-900 mt-2">
@@ -195,7 +243,7 @@ export default function InternshipDetailPage() {
         <div className="card-gradient p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">{t("listing.workDetails") || "Work Details"}</h2>
           <p className="text-gray-700 whitespace-pre-line">
-            {listing.workDetailsKey ? t(listing.workDetailsKey) : listing.workDetails}
+            {workDetails}
           </p>
         </div>
 
@@ -212,11 +260,11 @@ export default function InternshipDetailPage() {
           </div>
         )}
 
-        {listing.whyThisCompany && (
+        {whyThisCompany && (
           <div className="card-gradient p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">{t("listing.whyThisCompany") || "Why This Company"}</h2>
             <p className="text-gray-700">
-              {listing.whyThisCompanyKey ? t(listing.whyThisCompanyKey) : listing.whyThisCompany}
+              {whyThisCompany}
             </p>
           </div>
         )}

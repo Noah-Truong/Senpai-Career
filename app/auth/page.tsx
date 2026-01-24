@@ -83,7 +83,7 @@ export default function AuthPage() {
                 {t("auth.register.subtitle") || "Choose your account type to get started"}
               </p>
               
-              <div className="space-y-4">
+              <div className="space-y-5 sm:space-y-4">
                 <Link
                   href="/signup/student"
                   className="block w-full p-4 border-2 border-gray-200 rounded-lg hover:border-pink-400 hover:bg-pink-50 transition-all group"

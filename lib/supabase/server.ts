@@ -39,6 +39,17 @@ export function createAdminClient() {
     throw new Error('Missing Supabase URL or Service Role Key')
   }
 
+  // Verify it's actually a service role key (not anon key)
+  try {
+    const payload = JSON.parse(Buffer.from(serviceRoleKey.split('.')[1], 'base64').toString())
+    if (payload.role !== 'service_role') {
+      console.error('⚠️ WARNING: SUPABASE_SERVICE_ROLE_KEY appears to be an anon key, not service_role!')
+      console.error('   Get the correct service_role key from Supabase Dashboard → Settings → API')
+    }
+  } catch (e) {
+    // Ignore parsing errors
+  }
+
   return createSupabaseClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,

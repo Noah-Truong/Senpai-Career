@@ -315,8 +315,13 @@ export default function StudentActionsPage() {
                   {student.university && (
                     <p className="text-xs" style={{ color: '#9CA3AF' }}>{student.university}</p>
                   )}
-                  <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
+                  <p className="text-xs mt-1 text-navy">
                     {student.actions.length} {t("admin.studentActions.actions") || "actions"}
+                    {student.reports && student.reports.length > 0 && (
+                      <span className="ml-2">
+                        • {student.reports.length} {t("admin.studentActions.reportsCount") || "reports"}
+                      </span>
+                    )}
                   </p>
                 </button>
               ))}
@@ -460,7 +465,7 @@ export default function StudentActionsPage() {
                                       backgroundColor: action.targetType === "obog" ? "#D1FAE5" : "#EDE9FE",
                                       color: action.targetType === "obog" ? "#065F46" : "#6B21A8"
                                     }}>
-                                      {action.targetType === "obog" ? "OB/OG" : "Company"}
+                                      {action.targetType === "obog" ? t("label.obog") : t("label.company")}
                                     </span>
                                     <p className="text-xs" style={{ color: '#6B7280' }}>
                                       {action.targetName}

@@ -158,10 +158,10 @@ export default function MessagesPage() {
                 <div className="flex items-center">
                   <Avatar
                     src={thread.otherUser?.profilePhoto}
-                    alt={thread.otherUser?.name || "User"}
+                    alt={thread.otherUser?.name || t("label.unknownUser")}
                     size="md"
                     fallbackText={thread.otherUser?.name}
-                    className="mr-4"
+                    className="mr-6"
                   />
                   <div className="flex-1">
                     <h3 className="font-semibold" style={{ color: '#111827' }}>{thread.otherUser?.name || t("label.unknownUser")}</h3>

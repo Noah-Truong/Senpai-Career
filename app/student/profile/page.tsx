@@ -461,7 +461,7 @@ export default function StudentProfilePage() {
             {/* Profile Picture */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("profile.profilePicture")}</h3>
-              <div className="flex items-center gap-6 mb-4">
+              <div className="flex items-center gap-8 mb-4">
                 <Avatar 
                   src={formData.profilePhoto} 
                   alt={formData.name || "Profile"} 

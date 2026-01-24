@@ -82,7 +82,7 @@ export default function NewMessagePage() {
       const isJson = contentType && contentType.includes("application/json");
       
       if (!response.ok) {
-        let errorMessage = "Failed to send message";
+        let errorMessage = t("messages.error.sendFailed");
         
         if (isJson) {
           try {
@@ -118,7 +118,7 @@ export default function NewMessagePage() {
             throw new Error("Invalid response format");
           }
         } catch (parseError) {
-          throw new Error("Failed to parse response");
+          throw new Error(t("messages.error.parseFailed"));
         }
       } else {
         throw new Error("Invalid response format");
@@ -132,7 +132,7 @@ export default function NewMessagePage() {
       // Redirect to the message thread
       router.push(`/messages/${data.threadId}`);
     } catch (err: any) {
-      setError(err.message || "Failed to send message. Please try again.");
+      setError(err.message || t("messages.error.sendFailedRetry"));
     } finally {
       setLoading(false);
     }

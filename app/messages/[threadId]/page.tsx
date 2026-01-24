@@ -69,22 +69,22 @@ export default function MessageThreadPage() {
               if (data.otherUser) setOtherUser(data.otherUser);
             } else {
               console.warn("Messages API returned non-JSON response");
-              setError("Failed to load messages");
+              setError(t("messages.error.loadFailed"));
             }
           } catch (jsonError) {
             console.error("Failed to parse messages JSON:", jsonError);
-            setError("Failed to load messages");
+            setError(t("messages.error.loadFailed"));
           }
         } else {
           console.warn("Messages API returned non-JSON content type");
-          setError("Failed to load messages");
+          setError(t("messages.error.loadFailed"));
         }
       } else {
-        setError("Failed to load messages");
+        setError(t("messages.error.loadFailed"));
       }
     } catch (err) {
       console.error("Error loading messages:", err);
-      setError("Failed to load messages");
+      setError(t("messages.error.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -158,7 +158,7 @@ export default function MessageThreadPage() {
         const contentType = response.headers.get("content-type");
         const isJson = contentType && contentType.includes("application/json");
         
-        let errorMessage = "Failed to send message";
+        let errorMessage = t("messages.error.sendFailed");
         
         if (isJson) {
           try {
@@ -184,7 +184,7 @@ export default function MessageThreadPage() {
         dispatchCreditsRefresh();
       }, 500);
     } catch (err: any) {
-      setError(err.message || "Failed to send message");
+      setError(err.message || t("messages.error.sendFailedRetry"));
     } finally {
       setSending(false);
     }
@@ -280,10 +280,10 @@ export default function MessageThreadPage() {
             </button>
             <Avatar
               src={otherUser?.profilePhoto}
-              alt={otherUser?.name || "User"}
+              alt={otherUser?.name || t("label.unknownUser")}
               size="md"
               fallbackText={otherUser?.name}
-              className="mr-4"
+              className="mr-6"
             />
             <div className="flex-1">
               <h1 className="text-lg font-semibold" style={{ color: '#111827' }}>
@@ -343,7 +343,7 @@ export default function MessageThreadPage() {
               {messages.map((message) => {
                 const isOwn = message.fromUserId === session?.user?.id;
                 const isAdminView = session?.user?.role === "admin";
-                const senderName = message.sender?.name || message.sender?.email || "Unknown";
+                const senderName = message.sender?.name || message.sender?.email || t("label.unknownUser");
                 
                 return (
                   <div

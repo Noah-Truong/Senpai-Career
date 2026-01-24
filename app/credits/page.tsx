@@ -143,10 +143,10 @@ export default function CreditsPage() {
             {userCredits !== null ? userCredits.toLocaleString() : 0}
           </p>
           <p className="text-sm mb-2" style={{ color: '#6B7280' }}>
-            Credits are deducted when sending messages:
+            {t("credits.deducted")}
           </p>
           <p className="text-sm font-semibold" style={{ color: '#DC2626' }}>
-            -10 credits per message (all account types)
+            {t("credits.deductedAmount")}
           </p>
         </div>
 
@@ -185,7 +185,7 @@ export default function CreditsPage() {
           className="p-6 mb-8 bg-white border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
         >
-          <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>Purchase Credits</h2>
+          <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{t("credits.purchaseTitle")}</h2>
           
           {error && (
             <div 
@@ -199,7 +199,7 @@ export default function CreditsPage() {
           <div className="space-y-4">
             <div>
               <label htmlFor="credits" className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
-                Number of Credits
+                {t("credits.numberOfCredits")}
               </label>
               <input
                 type="number"
@@ -214,12 +214,12 @@ export default function CreditsPage() {
                     setError("");
                   }
                 }}
-                placeholder="Enter amount (minimum 20)"
+                placeholder={t("credits.enterAmount")}
                 className="w-full px-4 py-3 border rounded focus:outline-none focus:ring-2 text-lg"
                 style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
               />
               <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
-                Minimum: 20 credits
+                {t("credits.minimum")}
               </p>
             </div>
 
@@ -256,7 +256,7 @@ export default function CreditsPage() {
                 style={{ accentColor: '#2563EB' }}
               />
               <label htmlFor="recurring" className="ml-3 text-sm font-medium" style={{ color: '#374151' }}>
-                Enable recurring monthly payments
+                {t("credits.recurring")}
               </label>
             </div>
             {isRecurring && (
@@ -265,7 +265,7 @@ export default function CreditsPage() {
                 style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}
               >
                 <p className="text-sm" style={{ color: '#92400E' }}>
-                  You will be charged monthly for the selected amount of credits. You can cancel anytime.
+                  {t("credits.recurringDesc")}
                 </p>
               </div>
             )}
