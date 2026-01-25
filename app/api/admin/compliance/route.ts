@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 
 // PUT - Update compliance status (admin only)
 export async function PUT(request: NextRequest) {
@@ -39,9 +39,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    // Use admin client to bypass RLS and ensure update works
+    const supabase = createAdminClient();
 
-    // Update compliance status
+    // Update compliance status in student_profiles table
     const { error: updateError } = await supabase
       .from("student_profiles")
       .update({
