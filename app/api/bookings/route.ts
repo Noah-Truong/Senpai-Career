@@ -134,11 +134,17 @@ export async function POST(request: NextRequest) {
     // Find or create a thread between student and OB/OG
     const thread = await getOrCreateThread(session.user.id, obogId);
 
+    // Generate booking ID (matching schema default format: 'booking_' || gen_random_uuid()::text)
+    // Use timestamp + random string to ensure uniqueness
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 15);
+    const bookingId = `booking_${timestamp}_${randomStr}`;
 
     // Create the booking with meeting data directly
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
       .insert({
+        id: bookingId,
         student_id: session.user.id,
         obog_id: obogId,
         thread_id: thread.id,

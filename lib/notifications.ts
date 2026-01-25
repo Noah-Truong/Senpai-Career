@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { Notification } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import { sendEmailNotification } from "./email-notifications";
@@ -40,7 +40,9 @@ export const saveNotification = async (
   notificationData: Omit<NotificationData, "id" | "createdAt" | "read">,
   sendEmail: boolean = true
 ): Promise<NotificationData> => {
-  const supabase = await createClient();
+  // Use admin client for system notifications or when creating notifications for other users
+  // This bypasses RLS which is needed since there's no INSERT policy for notifications
+  const supabase = createAdminClient();
   const notificationId = uuidv4();
 
   const { data, error } = await supabase
