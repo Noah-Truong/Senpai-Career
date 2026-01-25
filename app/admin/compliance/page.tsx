@@ -304,22 +304,48 @@ export default function AdminCompliancePage() {
                   </p>
                   <div className="space-y-2">
                     {selectedSubmission.complianceDocuments.map((docUrl, index) => {
-                      const cleanUrl = docUrl.includes(":") ? docUrl.split(":")[1] : docUrl;
-                      const docName = docUrl.includes("permission") || docUrl.includes("activity")
-                        ? t("admin.compliance.permissionDocument")
-                        : docUrl.includes("japanese") || docUrl.includes("jlpt") || docUrl.includes("cert")
-                        ? t("admin.compliance.japaneseCert")
-                        : t("admin.compliance.document");
+                      // Parse document URL - format is "prefix:url" where url is the full Supabase Storage public URL
+                      let cleanUrl = docUrl;
+                      let docName = t("admin.compliance.document");
+                      
+                      // Check if URL has prefix (permission: or japanese_cert:)
+                      if (docUrl.startsWith("permission:")) {
+                        cleanUrl = docUrl.substring("permission:".length);
+                        docName = t("admin.compliance.permissionDocument");
+                      } else if (docUrl.startsWith("japanese_cert:")) {
+                        cleanUrl = docUrl.substring("japanese_cert:".length);
+                        docName = t("admin.compliance.japaneseCert");
+                      } else if (docUrl.includes("permission") || docUrl.includes("activity")) {
+                        // Fallback: check if URL contains keywords
+                        docName = t("admin.compliance.permissionDocument");
+                      } else if (docUrl.includes("japanese") || docUrl.includes("jlpt") || docUrl.includes("cert")) {
+                        docName = t("admin.compliance.japaneseCert");
+                      }
+                      
+                      // If the URL is not a full HTTP(S) URL, construct the Supabase Storage public URL
+                      // This handles cases where only the storage path was stored
+                      let finalUrl = cleanUrl;
+                      if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://")) {
+                        // It's a storage path like "userId/filename" - construct full public URL
+                        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+                        if (supabaseUrl) {
+                          // Construct the public URL for the compliance-documents bucket
+                          finalUrl = `${supabaseUrl}/storage/v1/object/public/compliance-documents/${cleanUrl}`;
+                        } else {
+                          console.error("NEXT_PUBLIC_SUPABASE_URL not configured");
+                        }
+                      }
+                      
                       return (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded" style={{ borderColor: '#E5E7EB' }}>
+                        <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 border rounded" style={{ borderColor: '#E5E7EB' }}>
                           <span className="text-sm" style={{ color: '#374151' }}>
                             {docName}
                           </span>
                           <a
-                            href={cleanUrl}
+                            href={finalUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 text-sm underline"
+                            className="text-blue-600 hover:text-blue-800 text-sm underline min-h-[44px] flex items-center"
                           >
                             {t("admin.compliance.viewDocument")}
                           </a>
