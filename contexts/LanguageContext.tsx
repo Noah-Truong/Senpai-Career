@@ -1561,6 +1561,7 @@ const translations: Record<Language, Record<string, string>> = {
     "review.rating.3": "Good",
     "review.rating.4": "Very Good",
     "review.rating.5": "Excellent",
+    "review.averageRating": "rating",
     
     // Common extras
     "common.note": "Note",
@@ -3108,6 +3109,7 @@ const translations: Record<Language, Record<string, string>> = {
     "review.rating.3": "良い",
     "review.rating.4": "とても良い",
     "review.rating.5": "素晴らしい",
+    "review.averageRating": "評価",
     
     // Common extras
     "common.note": "注意",

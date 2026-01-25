@@ -4,6 +4,7 @@ import SidebarLayout from "@/components/SidebarLayout";
 import { getOBOGById } from "@/lib/users";
 import { notFound } from "next/navigation";
 import OBOGDetailContent from "@/components/OBOGDetailContent";
+import { getAverageRating } from "@/lib/reviews";
 
 export default async function OBOGDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -20,10 +21,13 @@ export default async function OBOGDetailPage({ params }: { params: Promise<{ id:
     notFound();
   }
 
+  // Fetch average rating for this OB/OG
+  const averageRating = await getAverageRating(id);
+
   return (
  
       <div className="max-w-4xl mx-auto">
-        <OBOGDetailContent obog={obog as any} />
+        <OBOGDetailContent obog={obog as any} averageRating={averageRating} />
       </div>
  
   );
