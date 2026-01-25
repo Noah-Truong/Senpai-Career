@@ -1,0 +1,167 @@
+===========================================
+STRIPE PAYMENT CONFIGURATION GUIDE
+Senpai Career Platform
+===========================================
+
+This guide will walk you through setting up Stripe payment processing for the Senpai Career platform. Stripe is used to handle credit purchases for the messaging system.
+
+OVERVIEW
+--------
+The platform uses a credit-based system where:
+- Students and OB/OG users pay 30 JPY per credit
+- Companies pay 15 JPY per credit (discounted rate)
+- Each message sent costs 10 credits
+- Users can purchase credits via one-time or recurring monthly payments
+
+STEP 1: CREATE A STRIPE ACCOUNT
+--------------------------------
+1. Go to https://stripe.com
+2. Click "Start now" or "Sign in" if you already have an account
+3. Complete the account setup process
+4. Verify your email address
+
+STEP 2: GET YOUR API KEYS
+--------------------------
+1. Log into your Stripe Dashboard
+2. Click on "Developers" in the left sidebar
+3. Click on "API keys"
+4. You'll see two keys:
+
+   a) PUBLISHABLE KEY (starts with pk_test_ for test mode)
+      - This is safe to expose in frontend code
+      - Copy this key
+      
+   b) SECRET KEY (starts with sk_test_ for test mode)
+      - This must be kept secret
+      - Click "Reveal test key" to see it
+      - Copy this key
+
+5. For production, switch to "Live mode" toggle and get the live keys
+   (Live keys start with pk_live_ and sk_live_)
+
+STEP 3: CONFIGURE ENVIRONMENT VARIABLES
+----------------------------------------
+Add these to your .env.local file:
+
+For TEST MODE (Development):
+---------------------------
+STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
+For PRODUCTION:
+---------------
+STRIPE_SECRET_KEY=sk_live_your_secret_key_here
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your_publishable_key_here
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
+STEP 4: SET UP WEBHOOKS
+------------------------
+Webhooks allow Stripe to notify your application when payments are completed.
+
+FOR LOCAL DEVELOPMENT:
+---------------------
+1. Install Stripe CLI:
+   - macOS: brew install stripe/stripe-cli/stripe
+   - Windows: Download from https://github.com/stripe/stripe-cli/releases
+   - Linux: See https://stripe.com/docs/stripe-cli
+
+2. Login to Stripe CLI:
+   ```bash
+   stripe login
+   ```
+
+3. Forward webhooks to your local server:
+   ```bash
+   stripe listen --forward-to localhost:3000/api/payment/webhook
+   ```
+
+4. The CLI will display a webhook signing secret (starts with whsec_)
+   - Copy this and add it to STRIPE_WEBHOOK_SECRET in .env.local
+
+FOR PRODUCTION:
+--------------
+1. In Stripe Dashboard, go to Developers → Webhooks
+2. Click "Add endpoint"
+3. Enter your endpoint URL:
+   https://yourdomain.com/api/payment/webhook
+   
+4. Select the following events to listen for:
+   - checkout.session.completed
+   - invoice.payment_succeeded
+   - customer.subscription.deleted
+   
+5. Click "Add endpoint"
+6. Copy the "Signing secret" (starts with whsec_)
+7. Add it to STRIPE_WEBHOOK_SECRET in your production environment
+
+STEP 5: TEST THE INTEGRATION
+-----------------------------
+1. Start your development server:
+   ```bash
+   npm run dev
+   ```
+
+2. If using Stripe CLI for local testing, start the webhook listener:
+   ```bash
+   stripe listen --forward-to localhost:3000/api/payment/webhook
+   ```
+
+3. Log into the application as a test user
+4. Navigate to the Credits page (/credits)
+5. Try purchasing credits using Stripe test cards:
+   - Success: 4242 4242 4242 4242
+   - Decline: 4000 0000 0000 0002
+   - Use any future expiry date (e.g., 12/34)
+   - Use any 3-digit CVC (e.g., 123)
+   - Use any postal code
+
+4. Check the Stripe Dashboard → Payments to see the test transaction
+
+STEP 6: VERIFY WEBHOOK EVENTS
+------------------------------
+1. In Stripe Dashboard, go to Developers → Events
+2. You should see webhook events being received
+3. Check that events are being processed successfully
+4. Verify credits are being added to user accounts after payment
+
+STEP 7: SWITCH TO PRODUCTION MODE
+----------------------------------
+When ready to go live:
+
+1. Complete Stripe account verification:
+   - Add business information
+   - Add bank account for payouts
+   - Complete identity verification
+
+2. Switch to Live mode in Stripe Dashboard
+3. Get your live API keys (pk_live_ and sk_live_)
+4. Update environment variables with live keys
+5. Set up production webhook endpoint
+6. Test with a small real transaction first
+
+IMPORTANT NOTES
+---------------
+- Never commit your Stripe secret keys to version control
+- Keep your webhook secret secure
+- Test thoroughly in test mode before going live
+- Monitor webhook events in Stripe Dashboard
+- Set up email alerts for failed webhooks
+- Use Stripe's test cards for development
+- Stripe test mode and live mode use separate keys
+
+TROUBLESHOOTING
+---------------
+Issue: Webhooks not working locally
+Solution: Make sure Stripe CLI is running and forwarding to the correct port
+
+Issue: Payment succeeds but credits not added
+Solution: Check webhook endpoint is receiving events and processing correctly
+
+Issue: "Invalid API key" error
+Solution: Verify you're using the correct test/live keys for your current mode
+
+Issue: Webhook signature verification fails
+Solution: Ensure STRIPE_WEBHOOK_SECRET matches the secret from your webhook endpoint
+
+For more help, visit: https://stripe.com/docs

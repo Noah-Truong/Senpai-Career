@@ -1,0 +1,202 @@
+===========================================
+RECENT CHANGES & NEW FEATURES
+Senpai Career Platform
+===========================================
+
+This document outlines recent improvements and new features added to the Senpai Career platform, written in non-technical language focusing on user-facing features and improvements.
+
+DATABASE MIGRATION TO SUPABASE
+-------------------------------
+The platform has been fully migrated from local file storage to Supabase, a cloud-based database service. This provides:
+- Better reliability and data security
+- Faster performance
+- Automatic backups
+- Better scalability for growth
+
+All user data, messages, applications, and other information is now securely stored in the cloud.
+
+FILE STORAGE IMPROVEMENTS
+-------------------------
+All file uploads (profile pictures, resumes, compliance documents) are now stored securely in Supabase Storage instead of on local servers. This means:
+- Files are accessible from anywhere
+- Better security and access control
+- No risk of losing files if servers are updated
+- Faster file loading times
+
+COMPLIANCE DOCUMENT SYSTEM
+--------------------------
+A new compliance document submission system has been added for international students:
+- Students can upload required documents (permission for activities outside qualification, Japanese language certifications)
+- Documents are securely stored and only visible to administrators
+- Admins can review, approve, or reject submissions
+- Students receive status updates on their compliance submissions
+- This ensures all students meet legal requirements before accessing certain features
+
+ADMIN COMPLIANCE REVIEW
+-----------------------
+Administrators now have a dedicated page to review student compliance documents:
+- View all submitted documents in one place
+- See student information and submission dates
+- Approve or reject documents with one click
+- Track which students are compliant and which need attention
+- Filter submissions by status (pending, approved, rejected)
+
+MOBILE OPTIMIZATION
+-------------------
+All admin pages have been optimized for mobile devices:
+- Better layout on phones and tablets
+- Easier to use buttons and controls
+- Improved readability on smaller screens
+- Touch-friendly interface elements
+- Responsive design that adapts to screen size
+
+The platform now works seamlessly whether accessed from a computer, tablet, or smartphone.
+
+MESSAGING SYSTEM ENHANCEMENTS
+------------------------------
+The messaging system has been completely rebuilt:
+- All messages are now stored in the cloud database
+- Better message organization and threading
+- Improved reliability - no more lost messages
+- Faster message loading
+- Better search and navigation
+
+CREDIT SYSTEM IMPROVEMENTS
+---------------------------
+The credit purchase system has been enhanced:
+- More reliable payment processing
+- Better tracking of credit purchases
+- Improved webhook handling for payment confirmations
+- Support for both one-time and recurring monthly payments
+- Clearer credit balance display
+
+ADMIN FEATURES ENHANCEMENTS
+----------------------------
+Several improvements to admin functionality:
+
+Student Action Tracking:
+- Admins can now see a complete timeline of student activities
+- Track when students contact OB/OG mentors
+- Monitor meeting bookings
+- View application submissions
+- See hiring outcomes
+- This helps admins understand student engagement and success
+
+Report Management:
+- Better organization of user reports
+- Status tracking (pending, reviewed, resolved, dismissed)
+- Ability to add admin notes
+- Filter reports by status or type
+- Improved workflow for handling reports
+
+Compliance Document Viewing:
+- Fixed issue where admins couldn't view compliance documents
+- Documents now open correctly in new tabs
+- Better document organization and labeling
+- Clearer indication of document types
+
+User Management:
+- Improved user search and filtering
+- Better display of user information
+- More efficient strike and ban management
+- Enhanced user profile viewing
+
+MEETING SYSTEM
+--------------
+A comprehensive meeting booking system has been implemented:
+- Students can book consultation sessions with OB/OG mentors
+- OB/OG mentors can set their availability
+- Calendar-based booking interface
+- Meeting status tracking (confirmed, completed, cancelled, etc.)
+- Post-meeting reviews and evaluations
+- Admin review of flagged meetings
+
+SAVED ITEMS & BROWSING HISTORY
+-------------------------------
+New features for students:
+- Save favorite internships and OB/OG profiles
+- View browsing history to revisit interesting profiles
+- Quick access to previously viewed content
+- Better organization of saved opportunities
+
+NOTIFICATION SYSTEM
+-------------------
+Enhanced notification features:
+- More notification types (messages, applications, meetings, etc.)
+- Customizable notification preferences
+- Email notification queue system
+- Better notification organization
+- Mark as read functionality
+
+USER SETTINGS
+-------------
+Users now have a dedicated settings page where they can:
+- Manage notification preferences
+- Update account settings
+- Control privacy options
+- Customize their experience
+
+All user roles (students, OB/OG, companies) can access settings.
+
+ACCOUNT DELETION IMPROVEMENTS
+------------------------------
+When users delete their accounts:
+- All associated data is properly cleaned up
+- Files are removed from storage
+- Messages and threads are handled appropriately
+- Users are automatically logged out and redirected
+- Better data privacy compliance
+
+AUTHENTICATION IMPROVEMENTS
+---------------------------
+Enhanced security and reliability:
+- Better error handling for authentication issues
+- Improved user session management
+- Automatic user record creation if missing
+- Better handling of edge cases
+- More reliable login and logout
+
+PERFORMANCE IMPROVEMENTS
+------------------------
+Various performance optimizations:
+- Reduced unnecessary page reloads
+- Faster data loading
+- Better caching strategies
+- Optimized database queries
+- Improved overall responsiveness
+
+BUG FIXES
+---------
+Many bugs have been fixed including:
+- Fixed compliance document viewing for admins
+- Resolved issues with message storage
+- Fixed file upload problems
+- Corrected authentication edge cases
+- Fixed mobile display issues
+- Resolved notification delivery problems
+
+TRANSLATION IMPROVEMENTS
+------------------------
+- Added translations for new features
+- Improved existing translations
+- Better language switching
+- More comprehensive bilingual support
+
+SECURITY ENHANCEMENTS
+---------------------
+- Improved file access controls
+- Better data privacy measures
+- Enhanced authentication security
+- Improved admin access controls
+- Better error handling to prevent information leakage
+
+UPCOMING FEATURES
+-----------------
+The platform continues to evolve. Future improvements may include:
+- Enhanced search and filtering
+- More detailed analytics
+- Additional notification options
+- Improved mobile experience
+- More customization options
+
+For the most up-to-date information about features and changes, please refer to the platform's help documentation or contact support.
