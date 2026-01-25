@@ -104,17 +104,10 @@ export async function PUT(
       });
     } else if (action === "cancel") {
       updates.status = "cancelled";
+      updates.meeting_status = "cancelled";
       updates.cancelled_at = new Date().toISOString();
       updates.cancelled_by = session.user.id;
       updates.cancellation_reason = cancellationReason || null;
-
-      // Update meeting status if exists
-      if (booking.meeting_id) {
-        await supabase
-          .from("meetings")
-          .update({ status: "cancelled" })
-          .eq("id", booking.meeting_id);
-      }
 
       // Notify the other party using saveNotification (handles email)
       const notifyUserId = isStudent ? booking.obog_id : booking.student_id;

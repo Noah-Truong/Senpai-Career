@@ -62,12 +62,18 @@ export default function AdminMeetingsPage() {
     setLoading(true);
     try {
       
-      // Fetch meetings that require review
-      const { data: flaggedMeetings, error } = await supabase
-        .from("meetings")
+      // Fetch bookings that require review (meetings are now in bookings table)
+      // Note: requires_review field doesn't exist in bookings table yet
+      // For now, fetch all bookings and filter client-side if needed
+      const { data: allBookings, error } = await supabase
+        .from("bookings")
         .select("*")
-        .eq("requires_review", true)
         .order("created_at", { ascending: false });
+      
+      // Filter for bookings that might need review (e.g., cancelled, no-show conflicts)
+      // Since requires_review doesn't exist, we'll show all bookings for now
+      // TODO: Add requires_review field to bookings table if needed
+      const flaggedMeetings = allBookings || [];
 
       if (error) {
         console.error("Error loading flagged meetings:", error);

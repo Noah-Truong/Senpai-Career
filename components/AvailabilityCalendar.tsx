@@ -38,14 +38,12 @@ export default function AvailabilityCalendar({
   const [bookingLoading, setBookingLoading] = useState(false);
   const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null);
-  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
+  // Note: currentWeekStart is kept for potential future week navigation, but dates always start from today
+  const [currentWeekStart] = useState(() => {
     const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Monday
-    const monday = new Date(today);
-    monday.setDate(diff);
-    monday.setHours(0, 0, 0, 0);
-    return monday;
+    today.setHours(0, 0, 0, 0);
+    // Always start from today (not past weeks)
+    return today;
   });
 
   const supabase = createClient();
@@ -55,11 +53,18 @@ export default function AvailabilityCalendar({
   const isStudent = session?.user?.role === "student";
   const canBook = !isOwner && isStudent; // Students can book when viewing someone else's calendar
 
-  // Generate dates for the next 3 weeks (21 days)
+  // Generate dates for the next 3 weeks (21 days), starting from today (no past dates)
   const generateDates = () => {
     const dates: Date[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Always start from today, never show past dates
+    const startDate = new Date(today);
+    
+    // Generate 21 days starting from today
     for (let i = 0; i < 21; i++) {
-      const date = new Date(currentWeekStart);
+      const date = new Date(startDate);
       date.setDate(date.getDate() + i);
       dates.push(date);
     }

@@ -2,7 +2,7 @@
 
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
 import Avatar from "@/components/Avatar";
@@ -14,6 +14,7 @@ import TermsAgreementModal from "@/components/TermsAgreementModal";
 import EvaluationForm from "@/components/EvaluationForm";
 import AdditionalQuestionForm from "@/components/AdditionalQuestionForm";
 import { dispatchCreditsRefresh } from "@/components/AppLayout";
+import { createClient } from "@/lib/supabase/client";
 
 export default function MessageThreadPage() {
   const { t, language } = useLanguage();
@@ -36,6 +37,8 @@ export default function MessageThreadPage() {
   const [showEvaluationModal, setShowEvaluationModal] = useState(false);
   const [showAdditionalQuestionModal, setShowAdditionalQuestionModal] = useState(false);
   const [optimisticCredits, setOptimisticCredits] = useState<number | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const supabase = createClient();
 
   const loadMeeting = useCallback(async () => {
     try {
@@ -115,6 +118,17 @@ export default function MessageThreadPage() {
     loadMeeting();
   }, [loadMeeting]);
 
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages, scrollToBottom]);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -124,8 +138,31 @@ export default function MessageThreadPage() {
     if (status === "authenticated" && threadId) {
       loadMessages();
       loadMeeting();
+
+      // Subscribe to real-time message updates
+      const channel = supabase
+        .channel(`messages:${threadId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+            filter: `thread_id=eq.${threadId}`,
+          },
+          (payload) => {
+            // New message received - reload messages
+            loadMessages(true);
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscription on unmount
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
-  }, [status, threadId, router, loadMessages, loadMeeting]);
+  }, [status, threadId, router, loadMessages, loadMeeting, supabase]);
 
   useEffect(() => {
     if (!otherUser?.id || !session?.user?.id) return;
@@ -178,6 +215,7 @@ export default function MessageThreadPage() {
       }
 
       setNewMessage("");
+      // Reload messages immediately for instant feedback (realtime subscription handles others' messages)
       loadMessages(true);
       // Refresh credits display after successful message send (small delay to ensure API processed)
       setTimeout(() => {
@@ -256,8 +294,8 @@ export default function MessageThreadPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+          <p className="text-sm sm:text-base" style={{ color: '#6B7280' }}>{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -265,40 +303,42 @@ export default function MessageThreadPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
         <div 
-          className="p-6 mb-4 bg-white border rounded"
+          className="p-3 sm:p-6 mb-4 bg-white border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
         >
-          <div className="flex items-center mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
             <button
               onClick={() => router.push("/messages")}
-              className="mr-4 transition-colors"
+              className="self-start sm:self-center min-h-[44px] sm:min-h-0 text-sm sm:text-base transition-colors flex items-center"
               style={{ color: '#6B7280' }}
             >
               ← {t("nav.back") || "Back"}
             </button>
-            <Avatar
-              src={otherUser?.profilePhoto}
-              alt={otherUser?.name || t("label.unknownUser")}
-              size="md"
-              fallbackText={otherUser?.name}
-              className="mr-6"
-            />
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold" style={{ color: '#111827' }}>
-                {otherUser?.name || t("label.unknownUser")}
-              </h1>
-              {otherUser?.company && (
-                <p className="text-sm" style={{ color: '#6B7280' }}>{otherUser.company}</p>
-              )}
+            <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              <Avatar
+                src={otherUser?.profilePhoto}
+                alt={otherUser?.name || t("label.unknownUser")}
+                size="md"
+                fallbackText={otherUser?.name}
+                className="shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <h1 className="text-base sm:text-lg font-semibold truncate" style={{ color: '#111827' }}>
+                  {otherUser?.name || t("label.unknownUser")}
+                </h1>
+                {otherUser?.company && (
+                  <p className="text-xs sm:text-sm truncate" style={{ color: '#6B7280' }}>{otherUser.company}</p>
+                )}
+              </div>
             </div>
             {otherUser?.id && (
-              <div className="ml-auto flex gap-2">
+              <div className="flex flex-wrap gap-2 sm:ml-auto">
                 {session?.user?.role === "student" && otherUser?.role !== "admin" && (
                   <button
                     onClick={() => setShowReviewModal(true)}
-                    className="btn-secondary text-sm"
+                    className="btn-secondary text-xs sm:text-sm min-h-[44px] sm:min-h-0 px-3 sm:px-4 py-2"
                     disabled={hasReviewed}
                   >
                     {hasReviewed ? t("review.error.alreadyReviewed") : t("review.button")}
@@ -314,7 +354,7 @@ export default function MessageThreadPage() {
 
         {error && (
           <div 
-            className="mb-4 px-4 py-3 rounded border"
+            className="mb-4 px-3 sm:px-4 py-2 sm:py-3 rounded border text-sm sm:text-base"
             style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }}
           >
             {error}
@@ -323,13 +363,13 @@ export default function MessageThreadPage() {
 
         {/* Messages */}
         <div 
-          className="p-6 mb-4 bg-white border rounded"
-          style={{ borderColor: '#E5E7EB', borderRadius: '6px', minHeight: '400px', maxHeight: '600px', overflowY: 'auto' }}
+          className="p-3 sm:p-6 mb-4 bg-white border rounded"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px', minHeight: '300px', maxHeight: '500px', overflowY: 'auto' }}
         >
           {messages.length === 0 ? (
-            <p className="text-center py-8" style={{ color: '#6B7280' }}>{t("messages.empty")}</p>
+            <p className="text-center py-6 sm:py-8 text-sm sm:text-base" style={{ color: '#6B7280' }}>{t("messages.empty")}</p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Meeting Status Block - Rendered as system message */}
               {meeting && (
                 <MeetingStatusBlock
@@ -351,7 +391,7 @@ export default function MessageThreadPage() {
                     className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className="max-w-xs lg:max-w-md px-4 py-2 rounded"
+                      className="max-w-[75%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 rounded break-words"
                       style={{
                         backgroundColor: isOwn ? '#0F2A44' : '#D7FFEF',
                         color: isOwn ? '#FFFFFF' : '#111827',
@@ -369,7 +409,7 @@ export default function MessageThreadPage() {
                           {senderName} {message.sender?.role && `(${message.sender.role})`}
                         </p>
                       )}
-                      <p className="text-sm whitespace-pre-wrap">{translate(message.content)}</p>
+                      <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{translate(message.content)}</p>
                       <p 
                         className="text-xs mt-1"
                         style={{ color: isOwn ? 'rgba(255,255,255,0.7)' : '#6B7280' }}
@@ -380,6 +420,8 @@ export default function MessageThreadPage() {
                   </div>
                 );
               })}
+              {/* Scroll anchor for auto-scroll */}
+              <div ref={messagesEndRef} />
             </div>
           )}
         </div>
@@ -405,22 +447,22 @@ export default function MessageThreadPage() {
         {/* Message Input */}
         <form 
           onSubmit={handleSend} 
-          className="p-4 bg-white border rounded"
+          className="p-3 sm:p-4 bg-white border rounded"
           style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
         >
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder={t("messages.thread.placeholder")}
               rows={3}
-              className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2"
+              className="flex-1 min-h-[44px] px-3 py-2 border rounded focus:outline-none focus:ring-2 text-base"
               style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
             />
             <button
               type="submit"
               disabled={sending || !newMessage.trim()}
-              className="btn-primary self-end disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto min-h-[44px] btn-primary self-end disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-6 py-2 text-sm sm:text-base"
             >
               {sending ? t("common.loading") : t("messages.thread.send")}
             </button>
