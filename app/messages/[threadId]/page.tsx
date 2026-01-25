@@ -39,6 +39,8 @@ export default function MessageThreadPage() {
   const [optimisticCredits, setOptimisticCredits] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastMessageCountRef = useRef<number>(0);
 
   const loadMeeting = useCallback(async () => {
     try {
@@ -120,7 +122,10 @@ export default function MessageThreadPage() {
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Small delay to ensure DOM is updated
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   }, []);
 
   useEffect(() => {
@@ -136,12 +141,21 @@ export default function MessageThreadPage() {
     }
 
     if (status === "authenticated" && threadId) {
+      let isSubscribed = false;
+      let subscriptionStartTime = Date.now();
+      
+      // Initial load
       loadMessages();
       loadMeeting();
 
       // Subscribe to real-time message updates
+      // This will catch new messages from the other user in real-time
       const channel = supabase
-        .channel(`messages:${threadId}`)
+        .channel(`messages:${threadId}`, {
+          config: {
+            broadcast: { self: true }, // Receive our own messages too (for consistency)
+          },
+        })
         .on(
           "postgres_changes",
           {
@@ -151,14 +165,66 @@ export default function MessageThreadPage() {
             filter: `thread_id=eq.${threadId}`,
           },
           (payload) => {
-            // New message received - reload messages
+            console.log("✅ New message received via realtime:", payload.new);
+            isSubscribed = true; // Mark as subscribed when we receive an event
+            // New message received - reload messages to get the full message data
+            // Using background refetch to avoid showing loading state
             loadMessages(true);
           }
         )
-        .subscribe();
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "threads",
+            filter: `id=eq.${threadId}`,
+          },
+          (payload) => {
+            console.log("✅ Thread updated via realtime:", payload.new);
+            isSubscribed = true;
+            // Thread updated (e.g., last_message_at changed) - reload messages
+            loadMessages(true);
+          }
+        )
+        .subscribe((status, err) => {
+          if (status === "SUBSCRIBED") {
+            console.log("✅ Successfully subscribed to realtime updates for thread:", threadId);
+            isSubscribed = true;
+          } else if (status === "CHANNEL_ERROR") {
+            console.error("❌ Error subscribing to realtime updates for thread:", threadId, err);
+            isSubscribed = false;
+          } else if (status === "TIMED_OUT") {
+            console.warn("⏱️ Realtime subscription timed out for thread:", threadId);
+            isSubscribed = false;
+          } else if (status === "CLOSED") {
+            console.warn("🔌 Realtime subscription closed for thread:", threadId);
+            isSubscribed = false;
+          }
+        });
 
-      // Cleanup subscription on unmount
+      // Polling fallback: Check for new messages every 3 seconds
+      // This ensures messages still update even if Realtime subscription fails
+      // Only start polling after 5 seconds to give realtime a chance
+      const startPollingTimeout = setTimeout(() => {
+        pollingIntervalRef.current = setInterval(() => {
+          // Always poll as fallback (realtime might miss events)
+          // But log when we're using polling vs realtime
+          if (!isSubscribed) {
+            console.log("🔄 Polling for new messages (realtime fallback)");
+          }
+          loadMessages(true);
+        }, 3000); // Poll every 3 seconds
+      }, 5000); // Start polling after 5 seconds
+
+      // Cleanup subscription and polling on unmount
       return () => {
+        console.log("Cleaning up realtime subscription and polling for thread:", threadId);
+        clearTimeout(startPollingTimeout);
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
         supabase.removeChannel(channel);
       };
     }

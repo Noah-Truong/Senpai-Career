@@ -83,7 +83,14 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 1. Run the SQL scripts in the `scripts/` directory:
    - `schema.sql` - Creates all database tables, types, triggers, and RLS policies
    - `storage-setup.sql` - Sets up Supabase Storage buckets and policies
+   - `enable-realtime.sql` - Enables Realtime subscriptions for messages and threads (required for real-time messaging)
 2. Execute these in the Supabase SQL Editor in order
+
+**Enable Realtime for Messages:**
+1. Run `scripts/enable-realtime.sql` in the Supabase SQL Editor
+2. This adds the `messages` and `threads` tables to the Realtime publication
+3. This is required for real-time message updates to work
+4. Alternatively, you can enable it manually in Supabase Dashboard → Database → Replication → Add tables to publication
 
 #### Getting Resend API Key
 

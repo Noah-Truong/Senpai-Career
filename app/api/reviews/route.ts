@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const reviews = getReviewsByUserId(userId);
-    const averageRating = getAverageRating(userId);
+    const reviews = await getReviewsByUserId(userId);
+    const averageRating = await getAverageRating(userId);
 
     return NextResponse.json({ 
       reviews,
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if review already exists
-    const existingReview = getReviewByReviewerAndReviewed(session.user.id, reviewedUserId);
+    const existingReview = await getReviewByReviewerAndReviewed(session.user.id, reviewedUserId);
     if (existingReview) {
       return NextResponse.json(
         { error: "You have already reviewed this user" },
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const review = saveReview({
+    const review = await saveReview({
       reviewerUserId: session.user.id,
       reviewedUserId,
       rating,
