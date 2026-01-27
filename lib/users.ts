@@ -575,112 +575,26 @@ export const updateUser = async (
 };
 
 export const deleteUser = async (userId: string): Promise<void> => {
-  const supabase = await createClient();
+  // Use admin client to bypass RLS
+  const { createAdminClient } = await import("@/lib/supabase/server");
+  const adminSupabase = createAdminClient();
 
-  // Get user info before deletion (for cleanup)
-  const { data: user } = await supabase
-    .from("users")
-    .select("id, name, role")
-    .eq("id", userId)
-    .single();
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  // Get profile info for cleanup (nickname/name for availability cleanup)
-  let alumniName: string | null = null;
-  if (user.role === "obog") {
-    const { data: obogProfile } = await supabase
-      .from("obog_profiles")
-      .select("nickname")
-      .eq("id", userId)
-      .single();
-    alumniName = obogProfile?.nickname || user.name;
-  }
-
-  // 1. Threads and messages are now in Supabase and will be cleaned up by CASCADE
-  // (threads table has ON DELETE CASCADE for messages, and threads are deleted
-  // when all participants are removed via user deletion)
-
-  // 2. Delete availability records (uses alumni_name, not FK)
-  // Try both nickname and name in case of mismatch
-  if (alumniName) {
-    // Delete by nickname
-    await supabase
-      .from("availability")
+  // Delete from auth.users - this will trigger handle_user_deletion trigger
+  // which automatically deletes from public.users table
+  const { error: authError } = await adminSupabase.auth.admin.deleteUser(userId);
+  
+  if (authError) {
+    console.error("Error deleting user from auth:", authError);
+    // If auth deletion fails, delete from users table directly as fallback
+    const { error: userError } = await adminSupabase
+      .from("users")
       .delete()
-      .eq("alumni_name", alumniName);
+      .eq("id", userId);
     
-    // Also try deleting by name (in case nickname wasn't used)
-    if (alumniName !== user.name) {
-      await supabase
-        .from("availability")
-        .delete()
-        .eq("alumni_name", user.name);
-    }
-  }
-
-  // 3. Manually clean up data that might not have proper CASCADE
-  // (Most should be handled by CASCADE, but we'll be thorough)
-
-  // Delete from threads table (if any exist in DB - though they're file-based)
-  // Note: threads table uses participant_ids array, so we need to check if userId is in array
-  try {
-    const { data: threads } = await supabase
-      .from("threads")
-      .select("id, participant_ids");
-    
-    if (threads) {
-      const threadsToDelete = threads
-        .filter((t: any) => t.participant_ids?.includes(userId))
-        .map((t: any) => t.id);
-      
-      if (threadsToDelete.length > 0) {
-        await supabase
-          .from("threads")
-          .delete()
-          .in("id", threadsToDelete);
-      }
-    }
-  } catch (threadError) {
-    console.error("Error cleaning up threads from database:", threadError);
-    // Continue with deletion even if thread cleanup fails
-  }
-
-  // 4. Delete from Supabase Auth (using admin client)
-  // This will trigger the handle_user_deletion trigger which deletes from users table
-  try {
-    const { createAdminClient } = await import("@/lib/supabase/server");
-    const adminSupabase = createAdminClient();
-    
-    // Delete from auth.users - this will trigger handle_user_deletion (BEFORE DELETE)
-    // which automatically deletes from public.users
-    const { error: authError } = await adminSupabase.auth.admin.deleteUser(userId);
-    
-    if (authError) {
-      console.error("Error deleting user from auth:", authError);
-      // If auth deletion fails, delete from users table directly as fallback
-      // Use admin client to bypass RLS
-      const { error: userError } = await adminSupabase.from("users").delete().eq("id", userId);
-      if (userError) {
-        console.error("Error deleting user from users table:", userError);
-        throw new Error("Failed to delete user account");
-      }
-    }
-    // If auth deletion succeeds, the trigger already deleted from users table
-  } catch (deleteError: any) {
-    console.error("Error deleting user:", deleteError);
-    // Final fallback: try to delete from users table using admin client
-    try {
-      const { createAdminClient } = await import("@/lib/supabase/server");
-      const adminSupabase = createAdminClient();
-      const { error: userError } = await adminSupabase.from("users").delete().eq("id", userId);
-      if (userError) {
-        throw new Error("Failed to delete user account");
-      }
-    } catch (finalError: any) {
+    if (userError) {
+      console.error("Error deleting user from users table:", userError);
       throw new Error("Failed to delete user account");
     }
   }
+  // If auth deletion succeeds, the trigger already deleted from users table
 };

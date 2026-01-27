@@ -27,6 +27,9 @@ interface Company {
   idealCandidate?: string;
   sellingPoints?: string;
   oneLineMessage?: string;
+  industry?: string;
+  website?: string;
+  obCount?: number;
 }
 
 export default function CompaniesPage() {
@@ -234,7 +237,19 @@ export default function CompaniesPage() {
                     className="mr-6"
                   />
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-2" style={{ color: '#111827' }}>{company.companyName}</h3>
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <h3 className="text-lg font-semibold" style={{ color: '#111827' }}>{company.companyName}</h3>
+                      {company.obCount !== undefined && (
+                        <span className="px-2 py-1 text-xs font-semibold rounded bg-indigo-100 text-indigo-800">
+                          {company.obCount} {t("companies.obCount") || "Corporate OBs"}
+                        </span>
+                      )}
+                    </div>
+                    {company.industry && (
+                      <p className="text-xs mb-1" style={{ color: '#6B7280' }}>
+                        {t("companies.industry") || "Industry"}: {company.industry}
+                      </p>
+                    )}
                     {company.oneLineMessage && (
                       <p className="text-sm mb-2" style={{ color: '#6B7280' }}>{translate(company.oneLineMessage)}</p>
                     )}

@@ -20,6 +20,11 @@ export default function AdminUsersPage() {
   const [strikeReason, setStrikeReason] = useState("");
   const [strikeAction, setStrikeAction] = useState<"add" | "remove">("add");
   const [banningUser, setBanningUser] = useState<string | null>(null);
+  const [showCorporateOBModal, setShowCorporateOBModal] = useState(false);
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
+  const [assigningCorporateOB, setAssigningCorporateOB] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -33,8 +38,21 @@ export default function AdminUsersPage() {
         return;
       }
       loadUsers();
+      loadCompanies();
     }
   }, [status, router, session]);
+
+  const loadCompanies = async () => {
+    try {
+      const response = await fetch("/api/companies/list");
+      if (response.ok) {
+        const data = await response.json();
+        setCompanies(data.companies || []);
+      }
+    } catch (err) {
+      console.error("Error loading companies:", err);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -90,6 +108,53 @@ export default function AdminUsersPage() {
     setStrikeAction(action);
     setStrikeReason("");
     setShowStrikeModal(true);
+  };
+
+  const openCorporateOBModal = (user: any) => {
+    setSelectedUser(user);
+    setSelectedCompanyId("");
+    setIsVerified(false);
+    setShowCorporateOBModal(true);
+  };
+
+  const handleAssignCorporateOB = async () => {
+    if (!selectedUser || !selectedCompanyId) {
+      setError(t("corporateOb.error.noCompany") || "Please select a company");
+      return;
+    }
+
+    setAssigningCorporateOB(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch("/api/admin/corporate-ob", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          companyId: selectedCompanyId,
+          isVerified,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || t("corporateOb.error.assign"));
+      }
+
+      setSuccess(data.message || t("corporateOb.assigned"));
+      setShowCorporateOBModal(false);
+      loadUsers();
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      setError(err.message || t("corporateOb.error.assign"));
+    } finally {
+      setAssigningCorporateOB(false);
+    }
   };
 
   const handleBanAction = async (userId: string, action: "ban" | "unban") => {
@@ -324,14 +389,25 @@ export default function AdminUsersPage() {
                         {user.email}
                       </td>
                       <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded ${
-                          user.role === "student" ? "bg-blue-100 text-blue-800" :
-                          user.role === "obog" ? "bg-green-100 text-green-800" :
-                          user.role === "company" ? "bg-purple-100 text-purple-800" :
-                          "bg-gray-100 text-gray-800"
-                        }`}>
-                          {user.role}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 text-xs font-medium rounded ${
+                            user.role === "student" ? "bg-blue-100 text-blue-800" :
+                            user.role === "obog" ? "bg-green-100 text-green-800" :
+                            user.role === "company" ? "bg-purple-100 text-purple-800" :
+                            user.role === "corporate_ob" ? "bg-indigo-100 text-indigo-800" :
+                            "bg-gray-100 text-gray-800"
+                          }`}>
+                            {user.role === "corporate_ob" ? t("role.corporateOb") : user.role}
+                          </span>
+                          {(user.role === "obog" || user.role === "student") && (
+                            <button
+                              onClick={() => openCorporateOBModal(user)}
+                              className="text-xs text-indigo-600 hover:underline min-h-[44px] sm:min-h-0 px-2"
+                            >
+                              {t("corporateOb.assign")}
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm hidden md:table-cell" style={{ color: '#6B7280' }}>
                         {new Date(user.createdAt).toLocaleDateString()}
@@ -404,6 +480,83 @@ export default function AdminUsersPage() {
                 onClick={() => {
                   setShowStrikeModal(false);
                   setStrikeReason("");
+                }}
+                className="w-full sm:flex-1 min-h-[44px] btn-secondary"
+              >
+                {t("button.cancel")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Corporate OB Assignment Modal */}
+      {showCorporateOBModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div 
+            className="bg-white rounded-t-2xl sm:rounded p-4 sm:p-6 max-w-md w-full pb-[env(safe-area-inset-bottom)]"
+            style={{ borderRadius: '6px' }}
+          >
+            <div className="flex justify-between items-start mb-4 gap-4">
+              <h3 className="text-base sm:text-lg font-semibold flex-1" style={{ color: '#111827' }}>
+                {t("corporateOb.assign")} - {selectedUser.name}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCorporateOBModal(false);
+                  setSelectedCompanyId("");
+                  setIsVerified(false);
+                }}
+                className="text-gray-400 hover:text-gray-600 shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center text-xl sm:text-2xl"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                {t("corporateOb.selectCompany")}
+              </label>
+              <select
+                value={selectedCompanyId}
+                onChange={(e) => setSelectedCompanyId(e.target.value)}
+                className="w-full min-h-[44px] px-3 py-2 border rounded text-base"
+                style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
+              >
+                <option value="">{t("corporateOb.selectCompany")}</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={isVerified}
+                  onChange={(e) => setIsVerified(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm" style={{ color: '#374151' }}>
+                  {t("corporateOb.verify")}
+                </span>
+              </label>
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
+              <button
+                onClick={handleAssignCorporateOB}
+                disabled={!selectedCompanyId || assigningCorporateOB}
+                className="w-full sm:flex-1 min-h-[44px] btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {assigningCorporateOB ? t("common.loading") : t("corporateOb.assign")}
+              </button>
+              <button
+                onClick={() => {
+                  setShowCorporateOBModal(false);
+                  setSelectedCompanyId("");
+                  setIsVerified(false);
                 }}
                 className="w-full sm:flex-1 min-h-[44px] btn-secondary"
               >

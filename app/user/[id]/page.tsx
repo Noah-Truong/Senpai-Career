@@ -9,6 +9,7 @@ import { useSession } from "@/contexts/AuthContext";
 import { getTranslated } from "@/lib/translation-helpers";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import SaveButton from "@/components/SaveButton";
+import CorporateOBBadge from "@/components/CorporateOBBadge";
 
 export default function PublicProfilePage() {
   const { t, language } = useLanguage();
@@ -18,6 +19,7 @@ export default function PublicProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [averageRating, setAverageRating] = useState<number | null>(null);
+  const [corporateOBInfo, setCorporateOBInfo] = useState<any>(null);
 
   const currentUserId = (session?.user as any)?.id;
   const isOwnProfile = currentUserId === id;
@@ -60,6 +62,27 @@ export default function PublicProfilePage() {
                   }
                 } catch (err) {
                   console.error("Error fetching rating:", err);
+                }
+              }
+
+              // Fetch Corporate OB info if user is Corporate OB
+              if (data.user?.role === "corporate_ob" && data.user?.id) {
+                try {
+                  const corporateOBResponse = await fetch(`/api/corporate-ob/info?userId=${data.user.id}`);
+                  if (corporateOBResponse.ok) {
+                    const corporateOBContentType = corporateOBResponse.headers.get("content-type");
+                    const isJson = corporateOBContentType?.includes("application/json");
+                    if (isJson) {
+                      const corporateOBText = await corporateOBResponse.text();
+                      const corporateOBTrimmed = corporateOBText.trim();
+                      if (corporateOBTrimmed.startsWith("{") || corporateOBTrimmed.startsWith("[")) {
+                        const corporateOBData = JSON.parse(corporateOBText);
+                        setCorporateOBInfo(corporateOBData);
+                      }
+                    }
+                  }
+                } catch (err) {
+                  console.error("Error fetching Corporate OB info:", err);
                 }
               }
               
@@ -144,6 +167,7 @@ export default function PublicProfilePage() {
   const isStudent = user.role === "student";
   const isOBOG = user.role === "obog";
   const isCompany = user.role === "company";
+  const isCorporateOB = user.role === "corporate_ob";
 
   return (
     <div className="min-h-screen bg-white">
@@ -180,12 +204,22 @@ export default function PublicProfilePage() {
                   user.role === "student" ? "bg-blue-100 text-blue-800" :
                   user.role === "obog" ? "bg-green-100 text-green-800" :
                   user.role === "company" ? "bg-purple-100 text-purple-800" :
+                  user.role === "corporate_ob" ? "bg-indigo-100 text-indigo-800" :
                   "bg-gray-100 text-gray-800"
                 }`}>
                   {user.role === "student" ? t("myPage.student") :
                    user.role === "obog" ? t("label.obog") :
-                   user.role === "company" ? t("myPage.company") : user.role}
+                   user.role === "company" ? t("myPage.company") :
+                   user.role === "corporate_ob" ? t("role.corporateOb") : user.role}
                 </span>
+                {isCorporateOB && corporateOBInfo && (
+                  <CorporateOBBadge
+                    companyName={corporateOBInfo.company?.name}
+                    companyLogo={corporateOBInfo.company?.logoUrl}
+                    isVerified={corporateOBInfo.isVerified}
+                    size="md"
+                  />
+                )}
                 {isOBOG && user.type && (
                   <span className={`px-3 py-1 rounded text-sm font-semibold ${
                     user.type === "working-professional" 

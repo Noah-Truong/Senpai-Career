@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     // }
 
     // Validate role
-    const validRoles: UserRole[] = ["student", "obog", "company"];
+    const validRoles: UserRole[] = ["student", "obog", "company", "corporate_ob"];
     if (!validRoles.includes(role)) {
       return NextResponse.json(
         { error: "Invalid role" },
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       authMetadata.skills = Array.isArray(profileData.skills) ? profileData.skills : [];
       authMetadata.desiredIndustry = profileData.desiredIndustry || "";
       authMetadata.profilePhoto = profileData.profilePhoto || null;
-    } else if (role === "obog") {
+    } else if (role === "obog" || role === "corporate_ob") {
       authMetadata.nickname = profileData.nickname || "";
       authMetadata.type = profileData.type || "working-professional";
       authMetadata.university = profileData.university || "";
@@ -271,8 +271,8 @@ export async function POST(request: NextRequest) {
           // Student profile updated with signup data
         }
       }
-    } else if (role === "obog") {
-      // Translate OB/OG multilingual fields
+    } else if (role === "obog" || role === "corporate_ob") {
+      // Translate OB/OG multilingual fields (corporate_ob uses obog_profiles table)
       let oneLineMessage = profileData.oneLineMessage;
       let studentEraSummary = profileData.studentEraSummary;
 
@@ -320,18 +320,93 @@ export async function POST(request: NextRequest) {
           // OBOG profile created manually (trigger fallback)
         }
       } else {
-        // Profile exists, update with translated data
+        // Profile exists, update with all signup data (including translated fields)
         const { error: updateError } = await adminClient
           .from("obog_profiles")
           .update({
+            nickname: profileData.nickname || "",
+            type: profileData.type || "working-professional",
+            university: profileData.university || "",
+            company: profileData.company || "",
+            nationality: profileData.nationality || "",
+            languages: Array.isArray(profileData.languages) ? profileData.languages : [],
+            topics: Array.isArray(profileData.topics) ? profileData.topics : [],
             one_line_message: oneLineMessage || null,
             student_era_summary: studentEraSummary || null,
+            profile_photo: profileData.profilePhoto || null,
           })
           .eq("id", userId);
         if (updateError) {
           console.error("❌ OBOG profile update error:", updateError);
         } else {
-          // OBOG profile updated with translated data
+          // OBOG profile updated with all signup data
+        }
+      }
+
+      // If role is corporate_ob, create entry in corporate_obs table
+      if (role === "corporate_ob" && profileData.company) {
+        try {
+          // Check if company exists in companies table
+          const { data: existingCompany } = await adminClient
+            .from("companies")
+            .select("id")
+            .eq("name", profileData.company.trim())
+            .maybeSingle();
+
+          let companyId: string;
+
+          if (!existingCompany) {
+            // Create new company
+            const timestamp = Date.now();
+            const randomStr = Math.random().toString(36).substring(2, 15);
+            companyId = `company_${timestamp}_${randomStr}`;
+
+            const { error: companyError } = await adminClient
+              .from("companies")
+              .insert({
+                id: companyId,
+                name: profileData.company.trim(),
+                industry: null,
+                description: null,
+                website: null,
+                logo_url: null,
+                stripe_customer_id: null,
+              });
+
+            if (companyError) {
+              console.error("❌ Error creating company:", companyError);
+              // Continue without creating corporate_obs entry - admin can assign later
+              companyId = "";
+            }
+          } else {
+            companyId = existingCompany.id;
+          }
+
+          // Create corporate_obs entry
+          if (companyId) {
+            const timestamp = Date.now();
+            const randomStr = Math.random().toString(36).substring(2, 15);
+            const corporateOBId = `corp_ob_${timestamp}_${randomStr}`;
+
+            const { error: corpObError } = await adminClient
+              .from("corporate_obs")
+              .insert({
+                id: corporateOBId,
+                user_id: userId,
+                company_id: companyId,
+                is_verified: false, // Default to unverified, admin can verify later
+              });
+
+            if (corpObError) {
+              console.error("❌ Error creating corporate_obs entry:", corpObError);
+              // Continue - admin can assign later
+            } else {
+              console.log("✅ Corporate OB entry created:", corporateOBId);
+            }
+          }
+        } catch (corpObSignupError: any) {
+          console.error("❌ Error during corporate OB signup setup:", corpObSignupError);
+          // Continue - admin can assign later
         }
       }
     } else if (role === "company") {
@@ -427,6 +502,18 @@ export async function POST(request: NextRequest) {
           .select("id, nickname, university, year, nationality")
           .eq("id", userId)
           .single()
+      : role === "obog" || role === "corporate_ob"
+      ? await adminClient
+          .from("obog_profiles")
+          .select("id, nickname, university, company, nationality")
+          .eq("id", userId)
+          .single()
+      : role === "company"
+      ? await adminClient
+          .from("company_profiles")
+          .select("id, company_name, contact_name")
+          .eq("id", userId)
+          .single()
       : { data: null };
 
     if (!verifyUser) {
@@ -437,8 +524,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify role is set correctly
+    if (verifyUser.role !== role) {
+      console.error(`❌ CRITICAL: User role mismatch! Expected: ${role}, Got: ${verifyUser.role}`);
+      // Fix the role
+      await adminClient
+        .from("users")
+        .update({ role: role })
+        .eq("id", userId);
+    }
+
     if (role === "student" && !verifyProfile) {
       console.error("❌ CRITICAL: Student profile record verification failed!");
+      console.error("User exists but profile missing. User ID:", userId);
+    } else if ((role === "obog" || role === "corporate_ob") && !verifyProfile) {
+      console.error("❌ CRITICAL: OB/OG profile record verification failed!");
+      console.error("User exists but profile missing. User ID:", userId);
+    } else if (role === "company" && !verifyProfile) {
+      console.error("❌ CRITICAL: Company profile record verification failed!");
       console.error("User exists but profile missing. User ID:", userId);
     }
 

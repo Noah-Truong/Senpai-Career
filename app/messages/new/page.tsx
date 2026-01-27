@@ -43,6 +43,10 @@ export default function NewMessagePage() {
         .then(data => {
           if (data.user) {
             setTargetUser(data.user);
+            // Check if student is trying to message Corporate OB
+            if (userRole === "student" && data.user.role === "corporate_ob") {
+              setError(t("messages.corporateObRestriction.description"));
+            }
           } else {
             setError(t("messages.new.notFound"));
           }
@@ -96,6 +100,10 @@ export default function NewMessagePage() {
               // Special handling for alumni restriction
               if (errorData.code === "ALUMNI_CANNOT_INITIATE" || errorMessage.includes("Alumni cannot start")) {
                 errorMessage = t("messages.alumniRestriction.apiError") || "Alumni accounts cannot initiate new conversations. Please wait for students to message you first, then you can reply to their messages.";
+              }
+              // Special handling for student to Corporate OB restriction
+              if (errorData.code === "STUDENT_CANNOT_INITIATE_CORP_OB" || errorMessage.includes("Students cannot initiate")) {
+                errorMessage = t("messages.corporateObRestriction.apiError") || "Students cannot initiate conversations with Corporate OB. Please wait for them to message you first.";
               }
             }
           } catch (jsonError) {
@@ -242,9 +250,36 @@ export default function NewMessagePage() {
                 <p className="text-xs text-gray-500 mt-1">
                   {targetUser.role === "student" ? t("label.student") || "Student" :
                    targetUser.role === "obog" ? t("label.obog") || "OB/OG" :
+                   targetUser.role === "corporate_ob" ? t("role.corporateOb") || "Corporate OB" :
                    targetUser.role === "company" ? t("label.company") || "Company" : ""}
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Corporate OB Restriction Notice for Students */}
+          {targetUser && userRole === "student" && targetUser.role === "corporate_ob" && (
+            <div 
+              className="mb-4 sm:mb-6 p-3 sm:p-4 border-l-4 rounded"
+              style={{ 
+                backgroundColor: '#FEF3C7', 
+                borderLeftColor: '#F59E0B',
+                borderRadius: '6px'
+              }}
+            >
+              <div className="flex items-start gap-2 sm:gap-3">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" style={{ color: '#92400E' }} fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm sm:text-base font-semibold mb-1" style={{ color: '#92400E' }}>
+                    {t("messages.corporateObRestriction.title") || "Message Restriction"}
+                  </h3>
+                  <p className="text-xs sm:text-sm break-words" style={{ color: '#78350F' }}>
+                    {t("messages.corporateObRestriction.description") || "Students cannot start new conversations with Corporate OB. Please wait for them to message you first, then you can reply."}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -255,6 +290,12 @@ export default function NewMessagePage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Disable form if student trying to message Corporate OB */}
+            {targetUser && userRole === "student" && targetUser.role === "corporate_ob" && (
+              <div className="mb-4 p-3 bg-gray-100 rounded text-sm text-gray-600 text-center">
+                {t("messages.corporateObRestriction.description")}
+              </div>
+            )}
             <div>
               <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                 {t("messages.new.message")}
@@ -275,7 +316,7 @@ export default function NewMessagePage() {
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (targetUser && userRole === "student" && targetUser.role === "corporate_ob")}
                 className="w-full sm:w-auto min-h-[44px] btn-primary disabled:opacity-50 disabled:cursor-not-allowed px-4 sm:px-6 py-2 text-sm sm:text-base"
               >
                 {loading ? t("common.loading") : t("messages.new.submit")}

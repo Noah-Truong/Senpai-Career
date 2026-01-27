@@ -10,6 +10,7 @@ import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVar
 import StudentIcon from "@/components/icons/StudentIcon";
 import CompanyIcon from "@/components/icons/CompanyIcon";
 import AlumIcon from "@/components/icons/AlumIcon";
+import CorporateOBIcon from "@/components/icons/CorporateOBIcon";
 
 export default function RegisterPage() {
   const { t } = useLanguage();
@@ -26,7 +27,7 @@ export default function RegisterPage() {
     {
       type: "student",
       href: "/signup/student",
-      title: t("nav.studentSignUp"),
+      title: t("role.student"),
       description: t("register.studentDesc"),
       icon: (<StudentIcon />),
       features: [
@@ -38,7 +39,7 @@ export default function RegisterPage() {
     {
       type: "obog",
       href: "/signup/obog",
-      title: t("nav.obogSignUp"),
+      title: t("role.obog"),
       description: t("register.obogDesc"),
       icon: (<AlumIcon />),
       features: [
@@ -48,9 +49,21 @@ export default function RegisterPage() {
       ],
     },
     {
+      type: "corporate-ob",
+      href: "/signup/corporate-ob",
+      title: t("role.corporateOb"),
+      description: t("register.corporateObDesc") || "Company-affiliated alumni who can message students",
+      icon: (<CorporateOBIcon />),
+      features: [
+        t("register.corporateObFeature1") || "Send messages to students",
+        t("register.corporateObFeature2") || "Pay-per-message billing (¥500)",
+        t("register.corporateObFeature3") || "Company affiliation",
+      ],
+    },
+    {
       type: "company",
       href: "/signup/company",
-      title: t("nav.companySignUp"),
+      title: t("role.company"),
       description: t("register.companyDesc"),
       icon: (<CompanyIcon />),
       features: [
@@ -92,7 +105,7 @@ export default function RegisterPage() {
 
           {/* Account Type Cards */}
           <motion.div 
-            className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto"
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto"
             variants={staggerContainer}
             initial="initial"
             whileInView="animate"

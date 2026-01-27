@@ -31,11 +31,24 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "working-professional" | "job-offer-holder">("all");
   const [universityFilter, setUniversityFilter] = useState<string>("all");
+  const [languageFilter, setLanguageFilter] = useState<string[]>([]);
+  const [industryFilter, setIndustryFilter] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   const universities = Array.from(new Set(obogUsers.map((o) => o.university).filter(Boolean))) as string[];
   universities.sort();
 
-  // Filter users based on search, type, and university (features.md 4.4)
+  // Get unique languages from all OB/OG users
+  const allLanguages = Array.from(new Set(
+    obogUsers.flatMap((o) => o.languages || [])
+  )).sort();
+
+  // Get unique companies (as industry proxy)
+  const allCompanies = Array.from(new Set(
+    obogUsers.map((o) => o.company).filter(Boolean)
+  )).sort() as string[];
+
+  // Filter users based on all filters
   const filteredUsers = obogUsers.filter((obog) => {
     const matchesSearch = searchTerm === "" || 
       (obog.nickname || obog.name).toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,8 +60,16 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
     
     const matchesType = typeFilter === "all" || obog.type === typeFilter;
     const matchesUniversity = universityFilter === "all" || obog.university === universityFilter;
+    const matchesLanguage = languageFilter.length === 0 || 
+      (obog.languages && languageFilter.some(lang => 
+        obog.languages!.some(obogLang => obogLang.toLowerCase() === lang.toLowerCase())
+      ));
+    const matchesIndustry = industryFilter.length === 0 || 
+      (obog.company && industryFilter.some(ind => 
+        obog.company!.toLowerCase().includes(ind.toLowerCase())
+      ));
     
-    return matchesSearch && matchesType && matchesUniversity;
+    return matchesSearch && matchesType && matchesUniversity && matchesLanguage && matchesIndustry;
   });
 
   return (
@@ -156,7 +177,113 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
             </div>
           )}
         </div>
-        {searchTerm && (
+        
+        {/* Advanced Filters Toggle */}
+        <div className="mt-4">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 text-sm font-medium"
+            style={{ color: '#0F2A44' }}
+          >
+            <svg 
+              className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            {t("obogList.filter.advanced") || "Advanced Filters"}
+            {(languageFilter.length > 0 || industryFilter.length > 0) && (
+              <span className="px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-800">
+                {languageFilter.length + industryFilter.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Advanced Filters Panel */}
+        {showFilters && (
+          <motion.div
+            className="mt-4 pt-4 border-t"
+            style={{ borderColor: '#E5E7EB' }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Language Filter */}
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                  {t("obogList.filter.language") || "Languages"}
+                </label>
+                <div className="max-h-40 overflow-y-auto space-y-2 p-2 border rounded" style={{ borderColor: '#D1D5DB' }}>
+                  {allLanguages.map((lang) => (
+                    <label key={lang} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={languageFilter.includes(lang)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setLanguageFilter([...languageFilter, lang]);
+                          } else {
+                            setLanguageFilter(languageFilter.filter(l => l !== lang));
+                          }
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span style={{ color: '#111827' }}>{lang}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Industry/Company Filter */}
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                  {t("obogList.filter.industry") || "Industry / Company"}
+                </label>
+                <div className="max-h-40 overflow-y-auto space-y-2 p-2 border rounded" style={{ borderColor: '#D1D5DB' }}>
+                  {allCompanies.slice(0, 20).map((company) => (
+                    <label key={company} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={industryFilter.includes(company)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setIndustryFilter([...industryFilter, company]);
+                          } else {
+                            setIndustryFilter(industryFilter.filter(c => c !== company));
+                          }
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span className="truncate" style={{ color: '#111827' }}>{company}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(languageFilter.length > 0 || industryFilter.length > 0) && (
+              <div className="mt-4">
+                <button
+                  onClick={() => {
+                    setLanguageFilter([]);
+                    setIndustryFilter([]);
+                  }}
+                  className="text-sm text-indigo-600 hover:underline"
+                >
+                  {t("obogList.filter.clear") || "Clear Filters"}
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {(searchTerm || languageFilter.length > 0 || industryFilter.length > 0) && (
           <motion.p 
             className="mt-2 text-sm text-gray-500"
             initial={{ opacity: 0 }}

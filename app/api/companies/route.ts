@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
-import { readUsers } from "@/lib/users";
+import { getCompaniesWithOBCount } from "@/lib/corporate-ob";
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,12 +13,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const users = await readUsers();
-    const companies = users
-      .filter(u => u.role === "company")
-      .map(({ password, password_hash, ...company }: any) => company);
+    // Get companies from companies table (not company_profiles)
+    // This shows companies ranked by Corporate OB count
+    const companies = await getCompaniesWithOBCount();
 
-    return NextResponse.json({ companies });
+    // Transform to match expected format
+    const formattedCompanies = companies.map((company) => ({
+      id: company.id,
+      name: company.name,
+      companyName: company.name,
+      logo: company.logoUrl,
+      overview: company.description,
+      website: company.website,
+      industry: company.industry,
+      obCount: company.obCount || 0,
+    }));
+
+    return NextResponse.json({ companies: formattedCompanies });
   } catch (error: any) {
     console.error("Error fetching companies:", error);
     return NextResponse.json(

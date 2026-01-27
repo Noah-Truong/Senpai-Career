@@ -151,12 +151,12 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
           <div className="card-gradient p-6">
-            <h3 className="text-xl font-semibold mb-4">{t("admin.dashboard.platformSettings")}</h3>
+            <h3 className="text-xl font-semibold mb-4">{t("admin.corporateOb.title") || "Corporate OB Management"}</h3>
             <p className="text-gray-700 mb-4">
-              {t("admin.dashboard.platformSettingsDesc")}
+              {t("admin.corporateOb.subtitle") || "Manage Corporate OB assignments and verifications"}
             </p>
-            <Link href="/admin/settings" className="btn-primary inline-block">
-              {t("admin.dashboard.settings")}
+            <Link href="/admin/corporate-ob" className="btn-primary inline-block">
+              {t("admin.corporateOb.manage") || "Manage Corporate OB"}
             </Link>
           </div>
         </div>
