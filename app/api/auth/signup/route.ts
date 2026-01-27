@@ -353,7 +353,7 @@ export async function POST(request: NextRequest) {
             .eq("name", profileData.company.trim())
             .maybeSingle();
 
-          let companyId: string;
+          let companyId: string | undefined;
 
           if (!existingCompany) {
             // Create new company
@@ -376,14 +376,14 @@ export async function POST(request: NextRequest) {
             if (companyError) {
               console.error("❌ Error creating company:", companyError);
               // Continue without creating corporate_obs entry - admin can assign later
-              companyId = "";
+              companyId = undefined;
             }
           } else {
-            companyId = existingCompany.id;
+            companyId = existingCompany?.id;
           }
 
           // Create corporate_obs entry
-          if (companyId) {
+          if (companyId && typeof companyId === 'string' && companyId.length > 0) {
             const timestamp = Date.now();
             const randomStr = Math.random().toString(36).substring(2, 15);
             const corporateOBId = `corp_ob_${timestamp}_${randomStr}`;

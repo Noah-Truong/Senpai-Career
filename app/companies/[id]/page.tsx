@@ -48,7 +48,8 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
     })
   );
 
-  const validOBUsers = obUsers.filter(Boolean);
+  // Filter out null values with proper type narrowing
+  const validOBUsers = obUsers.filter((ob): ob is NonNullable<typeof ob> => ob !== null);
 
   return (
     <div className="min-h-screen bg-white">
