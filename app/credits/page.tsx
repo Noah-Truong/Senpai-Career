@@ -20,7 +20,7 @@ export default function CreditsPage() {
   const [isRecurring, setIsRecurring] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
-  const [userRole, setUserRole] = useState<"company" | "student" | "obog" | undefined>(undefined);
+  const [userRole, setUserRole] = useState<"company" | "student" | "obog" | "corporate_ob" | undefined>(undefined);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -63,7 +63,7 @@ export default function CreditsPage() {
 
   const calculatePrice = (credits: number): number => {
     if (!credits || credits <= 0) return 0;
-    const pricePerCredit = userRole === "company" ? 15 : 30;
+    const pricePerCredit = 25; // 25 JPY per credit (20 credits = 500 JPY)
     return Math.round(credits * pricePerCredit);
   };
 
@@ -146,7 +146,9 @@ export default function CreditsPage() {
             {t("credits.deducted")}
           </p>
           <p className="text-sm font-semibold" style={{ color: '#DC2626' }}>
-            {t("credits.deductedAmount")}
+            {userRole === "corporate_ob" 
+              ? t("credits.deductedAmount.corporateOb") || "-20 credits per message (Corporate OB)"
+              : t("credits.deductedAmount.standard") || "-10 credits per message (other account types)"}
           </p>
         </div>
 
@@ -167,15 +169,11 @@ export default function CreditsPage() {
                 {t("credits.rate") || "Rate:"}
               </span>
               <span className="text-lg font-semibold" style={{ color: '#111827' }}>
-                {userRole === "company" 
-                  ? t("credits.companyRate") || "20 credits = ¥300"
-                  : t("credits.standardRate") || "20 credits = ¥600"}
+                {t("credits.unifiedRate") || "20 credits = ¥500"}
               </span>
             </div>
             <p className="text-sm" style={{ color: '#6B7280' }}>
-              {userRole === "company"
-                ? t("credits.companyDiscount") || "Companies receive credits at a discounted rate"
-                : t("credits.standardRateDesc") || "Standard rate for students and OB/OG"}
+              {t("credits.rateDesc") || "All account types"}
             </p>
           </div>
         </div>

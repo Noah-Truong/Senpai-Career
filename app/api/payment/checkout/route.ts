@@ -39,9 +39,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate price based on user role
-    // Companies: 20 credits = 300 JPY (15 JPY per credit)
-    // Others: 20 credits = 600 JPY (30 JPY per credit)
-    const pricePerCredit = user.role === "company" ? 15 : 30; // JPY per credit
+    // All users: 20 credits = 500 JPY (25 JPY per credit)
+    const pricePerCredit = 25; // JPY per credit
     const amountJPY = Math.round(credits * pricePerCredit);
     
     // Stripe amounts are in smallest currency unit (yen = no decimals)

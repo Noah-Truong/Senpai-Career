@@ -9,9 +9,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "./Avatar";
 import Logo from "./Logo";
 import { createClient } from "@/lib/supabase/client";
+import { UserRole } from "@/types";
 import StudentIcon from "./icons/StudentIcon";
 import CompanyIcon from "./icons/CompanyIcon";
 import AlumIcon from "./icons/AlumIcon";
+import CorporateOBIcon from "./icons/CorporateOBIcon";
 
 interface Notification {
   id: string;
@@ -63,7 +65,7 @@ export default function Sidebar({ userCredits, creditChange, onCollapse, isMobil
     if (isMobile) onMobileClose?.();
   };
 
-  const userRole = session?.user?.role as "student" | "obog" | "company" | "admin" | undefined;
+  const userRole = session?.user?.role as UserRole | undefined;
   const userId = session?.user?.id;
   const userName = session?.user?.name || session?.user?.email?.split("@")[0] || "User";
   const userEmail = session?.user?.email || "";
@@ -496,6 +498,7 @@ export default function Sidebar({ userCredits, creditChange, onCollapse, isMobil
                 {userRole === "student" && <StudentIcon />}
                 {userRole === "company" && <CompanyIcon />}
                 {userRole === "obog" && <AlumIcon />}
+                {userRole === "corporate_ob" && <CorporateOBIcon />}
               </Link>
             )}
             {showCollapse ? (
@@ -546,7 +549,13 @@ export default function Sidebar({ userCredits, creditChange, onCollapse, isMobil
                     {userName}
                   </p>
                   {userRole && (
-                    <p className="text-xs text-gray-500 capitalize">{userRole}</p>
+                    <p className="text-xs text-gray-500">
+                      {userRole === "corporate_ob" 
+                        ? t("role.corporateOb") || "Corporate OB"
+                        : userRole === "obog"
+                        ? t("role.obog") || "Alumni"
+                        : t(`role.${userRole}`) || userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                    </p>
                   )}
                 </div>
               )}

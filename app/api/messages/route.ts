@@ -2,19 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { getUserById, updateUser, ensureUserExists } from "@/lib/users";
 import { createMultilingualContent } from "@/lib/translate";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import {
   getOrCreateThread,
   getThreadById,
   getUserThreads,
   createMessage as createMessageInDb,
 } from "@/lib/messages";
-import { isCorporateOB, getCorporateOBCompany } from "@/lib/corporate-ob";
-import Stripe from "stripe";
-
-const getStripe = () => new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2025-12-15.clover",
-});
+import { isCorporateOB } from "@/lib/corporate-ob";
 
 export async function POST(request: NextRequest) {
   try {
@@ -62,17 +57,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if this is a Corporate OB message (different billing)
+    // Check if this is a Corporate OB message
     const isCorporateOBUser = await isCorporateOB(fromUserId);
+    const isAdmin = fromUser.role === "admin";
     
-    // For Corporate OB: use pay-per-message (¥500) instead of credits
+    // For Corporate OB: use credits (20 credits per message)
+    // For Admin: unlimited messages (no credits or charges)
     // For others: use credits (10 credits per message)
-    if (isCorporateOBUser) {
-      // Corporate OB billing will be handled after message creation
-      // Skip credit check for Corporate OB
+    if (isAdmin) {
+      // Admin can send unlimited messages - skip credit check and deduction
     } else {
-      // Credits cost is the same for all non-Corporate OB users
-      const creditsCost = 10; // Same for all account types
+      // Determine credits cost based on user role
+      const creditsCost = isCorporateOBUser ? 20 : 10;
       const currentCredits = fromUser.credits ?? 0;
 
       if (currentCredits < creditsCost) {
@@ -148,10 +144,12 @@ export async function POST(request: NextRequest) {
       thread = await getOrCreateThread(fromUserId, actualToUserId);
     }
 
-    // Deduct credits for non-Corporate OB users BEFORE creating message
-    // Corporate OB will be charged via Stripe after message creation
-    if (!isCorporateOBUser) {
-      const creditsCost = 10;
+    // Deduct credits for non-admin users BEFORE creating message
+    // Corporate OB: 20 credits per message
+    // Others: 10 credits per message
+    // Admin can send unlimited messages - no credits or charges
+    if (!isAdmin) {
+      const creditsCost = isCorporateOBUser ? 20 : 10;
       const currentCredits = fromUser.credits ?? 0;
       const newCredits = currentCredits - creditsCost;
       try {
@@ -182,61 +180,6 @@ export async function POST(request: NextRequest) {
     // Create message in database
     const message = await createMessageInDb(thread.id, fromUserId, messageContent);
 
-    // For Corporate OB: Charge ¥500 per message via Stripe
-    if (isCorporateOBUser) {
-      try {
-        const corporateOBCompany = await getCorporateOBCompany(fromUserId);
-        if (!corporateOBCompany || !corporateOBCompany.stripeCustomerId) {
-          // Refund/delete message if no payment method
-          return NextResponse.json(
-            { 
-              error: "No payment method configured. Please add a payment method to send messages.",
-              code: "NO_PAYMENT_METHOD",
-              requiresPaymentMethod: true
-            },
-            { status: 402 }
-          );
-        }
-
-        const stripe = getStripe();
-        const amountJPY = 500; // ¥500 per message
-
-        // Create PaymentIntent
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: amountJPY,
-          currency: "jpy",
-          customer: corporateOBCompany.stripeCustomerId,
-          payment_method: undefined, // Will use default payment method
-          confirm: true,
-          description: `Message to student - ${actualToUserId}`,
-        });
-
-        // Create charge record
-        const supabase = createAdminClient();
-        const timestamp = Date.now();
-        const randomStr = Math.random().toString(36).substring(2, 15);
-        const chargeId = `charge_${timestamp}_${randomStr}`;
-
-        await supabase.from("charges").insert({
-          id: chargeId,
-          company_id: corporateOBCompany.id,
-          corporate_ob_id: fromUserId,
-          message_id: message.id,
-          amount: amountJPY,
-          stripe_payment_intent_id: paymentIntent.id,
-          status: paymentIntent.status === "succeeded" ? "succeeded" : "pending",
-        });
-
-        if (paymentIntent.status !== "succeeded") {
-          console.warn("PaymentIntent not succeeded:", paymentIntent.status);
-        }
-      } catch (billingError: any) {
-        console.error("Error processing Corporate OB billing:", billingError);
-        // Don't fail the message if billing fails - log it for admin review
-        // In production, you might want to handle this differently
-      }
-    }
-
     // Send notification to recipient
     try {
       const { sendRoleBasedNotification } = await import("@/lib/notification-helpers");
@@ -264,9 +207,8 @@ export async function POST(request: NextRequest) {
         message,
         threadId: thread.id,
         success: true,
-        creditsDeducted: isCorporateOBUser ? 0 : 10,
-        remainingCredits: isCorporateOBUser ? undefined : ((fromUser.credits ?? 0) - 10),
-        amountCharged: isCorporateOBUser ? 500 : undefined,
+        creditsDeducted: isAdmin ? 0 : (isCorporateOBUser ? 20 : 10),
+        remainingCredits: isAdmin ? undefined : ((fromUser.credits ?? 0) - (isCorporateOBUser ? 20 : 10)),
       },
       { status: 201 }
     );
