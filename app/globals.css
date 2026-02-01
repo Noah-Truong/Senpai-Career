@@ -220,7 +220,7 @@ a, button, input, textarea, select {
 
   /* Primary Button - Navy */
   .btn-primary {
-    @apply px-4 py-2 text-white font-medium transition-all;
+    @apply px-4 py-2.5 text-white font-medium transition-all;
     min-height: 44px;
     background-color: var(--color-navy);
     border-radius: var(--radius-md);
@@ -318,6 +318,14 @@ a, button, input, textarea, select {
   .card-gradient:hover {
     box-shadow: var(--shadow-md);
     border-color: var(--border-strong);
+  }
+
+  /* Static card gradient with no hover effect */
+  .card-gradient-static {
+    @apply p-6;
+    background-color: var(--color-bg-light);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
   }
 
   /* Section with mint background - friendly feel */
@@ -428,6 +436,43 @@ textarea::placeholder {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+}
+
+/* Prevent hover effects on static cards */
+.no-hover,
+.no-hover:hover,
+.no-hover:focus,
+.no-hover:active,
+.no-hover:focus-visible {
+  transform: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  scale: 1 !important;
+  rotate: 0 !important;
+  will-change: auto !important;
+  animation: none !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Also prevent any hover effects on children */
+.no-hover *,
+.no-hover:hover *,
+.no-hover *:hover {
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Target grid items specifically in WhatIsSection */
+section:has(.no-hover) .no-hover,
+section:has(.no-hover) .no-hover:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  scale: 1 !important;
 }
 
 html {

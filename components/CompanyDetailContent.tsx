@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslated } from "@/lib/translation-helpers";
+import { useSession } from "@/contexts/AuthContext";
 import Link from "next/link";
 import Avatar from "./Avatar";
 import CorporateOBBadge from "./CorporateOBBadge";
+import SaveButton from "./SaveButton";
 
 interface Company {
   id: string;
@@ -32,9 +35,25 @@ interface CompanyDetailContentProps {
 export default function CompanyDetailContent({ company, corporateOBs }: CompanyDetailContentProps) {
   const { t } = useLanguage();
   const { translate } = useTranslated();
+  const { data: session } = useSession();
+
+  // Record browsing history (students only)
+  useEffect(() => {
+    if (company?.id && session?.user?.role === "student") {
+      fetch("/api/browsing-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemType: "company", itemId: company.id }),
+      }).catch(console.error);
+    }
+  }, [company?.id, session?.user?.role]);
 
   return (
-    <div className="card-gradient p-8">
+    <>
+      <Link href="/companies" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+        ← {t("button.backToCompanies")}
+      </Link>
+      <div className="card-gradient p-8">
       {/* Company Header */}
       <div className="flex items-start mb-6">
         {company.logoUrl ? (
@@ -51,29 +70,36 @@ export default function CompanyDetailContent({ company, corporateOBs }: CompanyD
           </div>
         )}
         <div className="flex-1">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: '#111827' }}>
-            {company.name}
-          </h1>
-          {company.industry && (
-            <p className="text-lg mb-2" style={{ color: '#6B7280' }}>
-              {t("companies.industry")}: {company.industry}
-            </p>
-          )}
-          {company.obCount !== undefined && (
-            <p className="text-lg mb-2" style={{ color: '#6B7280' }}>
-              {company.obCount} {t("companies.obCount")}
-            </p>
-          )}
-          {company.website && (
-            <a
-              href={company.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              {company.website}
-            </a>
-          )}
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2" style={{ color: '#111827' }}>
+                {company.name}
+              </h1>
+              {company.industry && (
+                <p className="text-lg mb-2" style={{ color: '#6B7280' }}>
+                  {t("companies.industry")}: {company.industry}
+                </p>
+              )}
+              {company.obCount !== undefined && (
+                <p className="text-lg mb-2" style={{ color: '#6B7280' }}>
+                  {company.obCount} {t("companies.obCount")}
+                </p>
+              )}
+              {company.website && (
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  {company.website}
+                </a>
+              )}
+            </div>
+            {session?.user?.role === "student" && (
+              <SaveButton itemType="company" itemId={company.id} />
+            )}
+          </div>
         </div>
       </div>
 
@@ -136,5 +162,6 @@ export default function CompanyDetailContent({ company, corporateOBs }: CompanyD
         )}
       </div>
     </div>
+    </>
   );
 }

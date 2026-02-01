@@ -216,7 +216,7 @@ CREATE TABLE IF NOT EXISTS availability (
 CREATE TABLE IF NOT EXISTS saved_items (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   student_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  item_type TEXT NOT NULL CHECK (item_type IN ('company', 'recruitment')),
+  item_type TEXT NOT NULL CHECK (item_type IN ('company', 'recruitment', 'obog')),
   item_id TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(student_id, item_type, item_id)
@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS saved_items (
 CREATE TABLE IF NOT EXISTS browsing_history (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
   student_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  item_type TEXT NOT NULL CHECK (item_type IN ('company', 'recruitment')),
+  item_type TEXT NOT NULL CHECK (item_type IN ('company', 'recruitment', 'obog')),
   item_id TEXT NOT NULL,
   viewed_at TIMESTAMPTZ DEFAULT NOW()
 );

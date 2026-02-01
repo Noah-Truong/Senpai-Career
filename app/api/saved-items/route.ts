@@ -77,9 +77,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (itemType !== "company" && itemType !== "recruitment") {
+    if (itemType !== "company" && itemType !== "recruitment" && itemType !== "obog") {
       return NextResponse.json(
-        { error: "Invalid itemType. Must be 'company' or 'recruitment'" },
+        { error: "Invalid itemType. Must be 'company', 'recruitment', or 'obog'" },
         { status: 400 }
       );
     }
@@ -109,6 +109,20 @@ export async function POST(request: NextRequest) {
       if (!recruitment) {
         return NextResponse.json(
           { error: "Recruitment not found" },
+          { status: 404 }
+        );
+      }
+    } else if (itemType === "obog") {
+      const { data: obog } = await supabase
+        .from("users")
+        .select("id")
+        .eq("id", itemId)
+        .in("role", ["obog", "corporate_ob"])
+        .single();
+
+      if (!obog) {
+        return NextResponse.json(
+          { error: "OB/OG not found" },
           { status: 404 }
         );
       }

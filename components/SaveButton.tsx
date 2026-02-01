@@ -5,7 +5,7 @@ import { useSession } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SaveButtonProps {
-  itemType: "company" | "recruitment";
+  itemType: "company" | "recruitment" | "obog";
   itemId: string;
   className?: string;
 }

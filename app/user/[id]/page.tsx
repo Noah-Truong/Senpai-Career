@@ -139,6 +139,25 @@ export default function PublicProfilePage() {
     }
   }, [id, loadUser]);
 
+  // Record browsing history (students only, for OB/OG and company profiles)
+  useEffect(() => {
+    if (user && session?.user?.role === "student" && id) {
+      if (user.role === "obog" || user.role === "corporate_ob") {
+        fetch("/api/browsing-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itemType: "obog", itemId: id }),
+        }).catch(console.error);
+      } else if (user.role === "company") {
+        fetch("/api/browsing-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ itemType: "company", itemId: id }),
+        }).catch(console.error);
+      }
+    }
+  }, [user, id, session?.user?.role]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
@@ -199,7 +218,8 @@ export default function PublicProfilePage() {
               />
             )}
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2 flex-wrap">
                 <span className={`px-3 py-1 rounded text-sm font-semibold ${
                   user.role === "student" ? "bg-blue-100 text-blue-800" :
                   user.role === "obog" ? "bg-green-100 text-green-800" :
@@ -237,6 +257,11 @@ export default function PublicProfilePage() {
                     <span className="text-yellow-700 font-semibold">{averageRating.toFixed(1)}</span>
                     <span className="text-yellow-600 text-xs">({t("review.averageRating") || "rating"})</span>
                   </div>
+                )}
+                </div>
+                {/* Save Button for OB/OG profiles */}
+                {(isOBOG || isCorporateOB) && session?.user?.role === "student" && (
+                  <SaveButton itemType="obog" itemId={user.id} />
                 )}
               </div>
               <h2 className="text-3xl font-bold mb-2" style={{ color: '#111827' }}>

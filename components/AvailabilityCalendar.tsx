@@ -718,7 +718,7 @@ export default function AvailabilityCalendar({
               <div className="flex gap-4">
                 <button
                   onClick={onClose}
-                  className="px-6 py-2 bg-gray-500 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="px-6 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   {t("button.cancel")}
                 </button>
@@ -840,7 +840,8 @@ export default function AvailabilityCalendar({
                   setBookingNotes("");
                   setBookingMeetingUrl("");
                 }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                className="px-4 py-2 bg-gray-500 rounded hover:bg-gray-600"
+                style={{ color: '#FFFFFF' }}
               >
                 {t("button.cancel") || "Cancel"}
               </button>

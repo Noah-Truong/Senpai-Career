@@ -31,38 +31,29 @@ const MissionSection = () => {
             >
               {t("home.mission.desc")}
             </motion.p>
-            <motion.ul
-              className="space-y-4"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            >
+            <ul className="space-y-4">
               {[
                 t("home.mission.mentors"),
                 t("home.mission.opportunities"),
                 t("home.mission.connect"),
                 t("home.mission.confidence")
               ].map((item, index) => (
-                <motion.li
+                <li
                   key={index}
                   className="flex items-start"
-                  variants={staggerItem}
                 >
-                  <motion.svg
+                  <svg
                     className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5"
                     fill="none"
                     stroke="#059669"
                     viewBox="0 0 24 24"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.2, delay: index * 0.03 }}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </motion.svg>
+                  </svg>
                   <span style={{ color: '#374151' }}>{item}</span>
-                </motion.li>
+                </li>
               ))}
-            </motion.ul>
+            </ul>
           </div>
           <div className="relative">
             <motion.div

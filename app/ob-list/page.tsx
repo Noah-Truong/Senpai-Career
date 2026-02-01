@@ -242,16 +242,16 @@ export default function OBVisitPage() {
           ) : (
             <div className="text-center py-12">
               <p className="text-lg mb-4" style={{ color: '#374151' }}>
-                Compliance approval required to view OB/OG profiles
+                {t("obvisit.compliance.approvalRequired")}
               </p>
               <p className="text-sm mb-6" style={{ color: '#6B7280' }}>
-                Please submit your compliance documents and wait for admin approval.
+                {t("obvisit.compliance.pleaseSubmit")}
               </p>
               <Link
                 href="/student/profile?tab=compliance"
                 className="btn-primary inline-block"
               >
-                Go to Compliance Submission
+                {t("obvisit.compliance.goToSubmission")}
               </Link>
             </div>
           )}
@@ -330,7 +330,7 @@ export default function OBVisitPage() {
         <div className="flex justify-center py-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-2xl">
             <p className="text-sm text-yellow-800 mb-2">
-              <strong>Compliance Required:</strong> To access OB/OG profiles, you must submit compliance documents and receive admin approval.
+              <strong>{t("obvisit.compliance.required")}</strong> {t("obvisit.compliance.accessMessage")}
             </p>
             <div className="flex gap-2">
               <button
@@ -343,7 +343,7 @@ export default function OBVisitPage() {
                 href="/student/profile?tab=compliance"
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium shadow-md transition-all"
               >
-                Submit Compliance Documents
+                {t("obvisit.compliance.submitDocuments")}
               </Link>
             </div>
           </div>

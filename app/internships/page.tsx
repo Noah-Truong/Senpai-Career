@@ -80,11 +80,7 @@ export default function InternshipPage() {
         <motion.div 
           className="p-6 mb-8 border rounded"
           style={{ backgroundColor: 'white', borderColor: '#E5E7EB', borderRadius: '6px' }}
-          variants={cardVariants}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true }}
-          whileHover="hover"
+          variants={slideUp}
         >
           <h2 
             className="text-lg font-semibold mb-3"
@@ -95,18 +91,14 @@ export default function InternshipPage() {
           <p style={{ color: '#6B7280' }} className="mb-4">
             {t("internship.about.desc")}
           </p>
-          <motion.div 
+          <div 
             className="p-4 border-l-4"
             style={{ backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }}
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.25 }}
           >
             <p className="text-sm" style={{ color: '#374151' }}>
               <strong>{t("internship.about.hours")}</strong> {t("internship.about.hoursDesc")}
             </p>
-          </motion.div>
+          </div>
         </motion.div>
 
         {/* Search Bar */}

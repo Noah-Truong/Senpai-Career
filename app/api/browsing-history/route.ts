@@ -96,9 +96,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (itemType !== "company" && itemType !== "recruitment") {
+    if (itemType !== "company" && itemType !== "recruitment" && itemType !== "obog") {
       return NextResponse.json(
-        { error: "Invalid itemType. Must be 'company' or 'recruitment'" },
+        { error: "Invalid itemType. Must be 'company', 'recruitment', or 'obog'" },
         { status: 400 }
       );
     }
