@@ -87,16 +87,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // Non-logged in users: just show header and content
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white overflow-x-hidden">
         <Header />
-        <main className="p-4 sm:p-6 min-h-[50vh]">{children}</main>
+        <main className="p-4 sm:p-6 min-h-[50vh] overflow-x-hidden">{children}</main>
       </div>
     );
   }
 
   // Logged-in users: show sidebar layout with minimal header
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F8FFFC' }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: '#F8FFFC' }}>
       {/* Sidebar: desktop always visible; mobile as overlay drawer */}
       <Sidebar
         userCredits={userCredits}
@@ -135,7 +135,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-4 sm:p-6 min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)]">
+        <main className="p-4 sm:p-6 min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] overflow-x-hidden">
           {children}
         </main>
       </div>

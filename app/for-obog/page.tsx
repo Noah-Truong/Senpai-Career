@@ -231,16 +231,16 @@ export default function ForOBOGPage() {
             <p className="text-xl mb-8 opacity-90">
               {t("obog.cta.subtitle")}
             </p>
-            <div className="flex flex-col sm:flex-row gap-5 sm:gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-4 justify-center">
               <Link
                 href="/signup/obog"
-                className="btn-secondary px-8 py-3"
+                className="btn-secondary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base"
               >
                 {t("obog.cta.signUp")}
               </Link>
               <a
                 href="mailto:info@senpaicareer.com"
-                className="px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:gradient-text transition-all"
+                className="px-4 sm:px-6 md:px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:gradient-text transition-all text-sm sm:text-base"
               >
                 {t("obog.cta.learnMore")}
               </a>

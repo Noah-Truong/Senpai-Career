@@ -176,7 +176,7 @@ export default function HowToUsePage() {
             {/* CTA */}
             <div className="text-center">
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap" className="inline-block">
-                <Link href="/signup/student" className="btn-primary px-8 py-3">
+                <Link href="/signup/student" className="btn-primary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base">
                   {t("howto.student.cta")}
                 </Link>
               </motion.div>
@@ -268,7 +268,7 @@ export default function HowToUsePage() {
             {/* CTA */}
             <div className="text-center">
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap" className="inline-block">
-                <Link href="/signup/obog" className="btn-primary px-8 py-3">
+                <Link href="/signup/obog" className="btn-primary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base">
                   {t("howto.obog.cta")}
                 </Link>
               </motion.div>
@@ -355,7 +355,7 @@ export default function HowToUsePage() {
             {/* CTA */}
             <div className="text-center">
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap" className="inline-block">
-                <Link href="/signup/company" className="btn-primary px-8 py-3">
+                <Link href="/signup/company" className="btn-primary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base">
                   {t("howto.company.cta")}
                 </Link>
               </motion.div>

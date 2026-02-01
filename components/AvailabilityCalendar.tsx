@@ -486,7 +486,7 @@ export default function AvailabilityCalendar({
       onClick={onClose}
     >
       <motion.div
-        className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-lg w-full max-w-[95vw] sm:max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
         variants={modalContentVariants}
         initial="initial"
         animate="animate"
@@ -494,28 +494,28 @@ export default function AvailabilityCalendar({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="card-gradient p-6 border-b border-gray-200">
+        <div className="card-gradient p-3 sm:p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 pr-2">
               {canConfigure 
                 ? t("profile.availability.modal.title.configure") 
                 : t("profile.availability.modal.title.view").replace("{name}", obogName)}
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              className="text-gray-500 hover:text-gray-700 text-2xl font-bold min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               ×
             </button>
           </div>
 
           {/* Duration Selector - Show to all users, allow changing to filter view */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {[15, 30, 60, 1440].map((mins) => (
               <button
                 key={mins}
                 onClick={() => setDuration(mins as 15 | 30 | 60 | 1440)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                   duration === mins
                     ? "bg-navy text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -528,7 +528,7 @@ export default function AvailabilityCalendar({
         </div>
 
         {/* Calendar Grid */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-3 sm:p-6">
           {loading ? (
             <div className="text-center py-12">
               <p className="text-gray-600">{t("profile.availability.loading")}</p>
@@ -539,13 +539,13 @@ export default function AvailabilityCalendar({
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
-                      <th className="sticky left-0 z-10 bg-white border-r border-b border-gray-300 p-2 text-left font-semibold text-gray-700 min-w-[100px]">
+                      <th className="sticky left-0 z-10 bg-white border-r border-b border-gray-300 p-1 sm:p-2 text-left font-semibold text-gray-700 min-w-[70px] sm:min-w-[100px] text-xs sm:text-sm">
                         {t("profile.availability.time")}
                       </th>
                       {dates.map((date) => (
                         <th
                           key={date.toISOString()}
-                          className="border-b border-gray-300 p-2 text-center font-semibold text-gray-700 min-w-[120px]"
+                          className="border-b border-gray-300 p-1 sm:p-2 text-center font-semibold text-gray-700 min-w-[80px] sm:min-w-[120px] text-xs sm:text-sm"
                         >
                           <div className="text-sm">{formatDate(date)}</div>
                         </th>

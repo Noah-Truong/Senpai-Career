@@ -221,7 +221,7 @@ export default function ForCompaniesPage() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/company"
-                  className="btn-secondary px-8 py-3"
+                  className="btn-secondary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base"
                 >
                   {t("companies.cta.signUp")}
                 </Link>
@@ -229,7 +229,7 @@ export default function ForCompaniesPage() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <a
                   href="mailto:info@senpaicareer.com"
-                  className="px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:gradient-text transition-all"
+                  className="px-4 sm:px-6 md:px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:gradient-text transition-all text-sm sm:text-base"
                 >
                   {t("companies.cta.contact")}
                 </a>

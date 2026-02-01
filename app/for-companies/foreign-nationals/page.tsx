@@ -259,7 +259,7 @@ export default function ForeignRecruitmentPage() {
             {t("foreignRecruitment.cta.desc")}
           </motion.p>
           <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
-            <Link href={isLoggedIn ? "/company/students" : "/register"} className="btn-primary text-lg px-8 py-4">
+            <Link href={isLoggedIn ? "/company/students" : "/register"} className="btn-primary text-base sm:text-lg px-4 sm:px-6 md:px-8 py-3 sm:py-4">
               {t("foreignRecruitment.cta.button")}
             </Link>
           </motion.div>

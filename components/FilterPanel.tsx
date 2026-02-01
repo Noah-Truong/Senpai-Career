@@ -111,10 +111,10 @@ export default function FilterPanel({
 
         {/* Type Filter Buttons (for OB/OG) */}
         {showTypeFilter && onTypeFilterChange && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => onTypeFilterChange("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                 typeFilter === "all" 
                   ? "bg-pink-500 text-white" 
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -124,7 +124,7 @@ export default function FilterPanel({
             </button>
             <button
               onClick={() => onTypeFilterChange("working-professional")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                 typeFilter === "working-professional"
                   ? "text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -137,7 +137,7 @@ export default function FilterPanel({
             </button>
             <button
               onClick={() => onTypeFilterChange("job-offer-holder")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                 typeFilter === "job-offer-holder" 
                   ? "bg-green-500 text-white" 
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -150,14 +150,14 @@ export default function FilterPanel({
 
         {/* University Filter */}
         {universities.length > 0 && onUniversityFilterChange && (
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+          <div className="flex items-center gap-2 flex-shrink min-w-0">
+            <label className="text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap sm:whitespace-normal">
               {t("obogList.filter.university") || "University"}
             </label>
             <select
               value={universityFilter}
               onChange={(e) => onUniversityFilterChange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-[150px] sm:max-w-none"
               style={{ color: "#111827" }}
             >
               <option value="all">{allLabel || t("obogList.filter.all") || "All"}</option>

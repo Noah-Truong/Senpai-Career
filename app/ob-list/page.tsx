@@ -289,7 +289,7 @@ export default function OBVisitPage() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/student"
-                  className="btn-primary px-8 py-3"
+                  className="btn-primary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base"
                 >
                   {t("obvisit.cta.signUpStudent")}
                 </Link>
@@ -297,7 +297,7 @@ export default function OBVisitPage() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/obog"
-                  className="px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded font-semibold hover:bg-white hover:text-gray-900 transition-all"
+                  className="px-4 sm:px-6 md:px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded font-semibold hover:bg-white hover:text-gray-900 transition-all text-sm sm:text-base"
                   style={{ borderRadius: '6px' }}
                 >
                   {t("obvisit.cta.signUpObog")}
@@ -352,8 +352,8 @@ export default function OBVisitPage() {
       
       {/* Safety and Rules Popup */}
       {showRules && (
-        <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 scrollbar-visible">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto scrollbar-visible">
+        <div className="fixed inset-0 backdrop-blur-md bg-black/30 flex items-center justify-center z-50 p-2 sm:p-4 scrollbar-visible">
+          <div className="bg-white rounded-lg p-4 sm:p-6 max-w-[95vw] sm:max-w-2xl w-full max-h-[85vh] overflow-y-auto scrollbar-visible">
             {/* Safety Rules */}
       <motion.section
         className="pt-2 pb-4 bg-white"
@@ -415,7 +415,7 @@ export default function OBVisitPage() {
                 <button
                   onClick={handleAcceptRules}
                   disabled={isAccepting}
-                  className="relative overflow-hidden px-8 py-3 rounded font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative overflow-hidden px-4 sm:px-6 md:px-8 py-3 rounded font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   style={{ 
                     backgroundColor: '#0F2A44', // Navy color
                     minWidth: '120px'

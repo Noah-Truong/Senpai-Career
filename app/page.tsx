@@ -61,7 +61,7 @@ export default function Home() {
                 <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                   <Link
                     href="/signup/student"
-                    className="btn-primary px-8 py-3 text-base"
+                    className="btn-primary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base"
                   >
                     {t("home.hero.getStarted")}
                   </Link>
@@ -69,7 +69,7 @@ export default function Home() {
                 <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                   <Link
                     href="/signup/company"
-                    className="btn-secondary px-8 py-3 text-base"
+                    className="btn-secondary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base"
                   >
                     {t("home.hero.forCompanies")}
                   </Link>
@@ -311,11 +311,11 @@ export default function Home() {
                 info@senpaicareer.com
               </motion.a>
             </p>
-            <div className="flex flex-col sm:flex-row gap-5 sm:gap-5 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center">
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/student"
-                  className="px-8 py-3 bg-white font-medium rounded transition-colors"
+                  className="px-4 sm:px-6 md:px-8 py-3 bg-white font-medium rounded transition-colors text-sm sm:text-base"
                   style={{ color: '#0F2A44', borderRadius: '6px' }}
                 >
                   {t("home.cta.signUpStudent")}
@@ -324,7 +324,7 @@ export default function Home() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/obog"
-                  className="px-8 py-3 bg-transparent border border-white font-medium rounded transition-colors hover:bg-white hover:text-navy"
+                  className="px-4 sm:px-6 md:px-8 py-3 bg-transparent border border-white font-medium rounded transition-colors hover:bg-white hover:text-navy text-sm sm:text-base"
                   style={{ borderRadius: '6px' }}
                 >
                   {t("home.cta.signUpObog")}
@@ -341,7 +341,7 @@ export default function Home() {
         style={{ backgroundColor: '#0A1E32' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div>
               <h3 className="text-lg font-semibold mb-4">Senpai Career</h3>
               <p className="text-sm opacity-80">

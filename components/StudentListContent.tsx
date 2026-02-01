@@ -124,14 +124,14 @@ export default function StudentListContent({ students }: StudentListContentProps
           </div>
 
           {universities.length > 0 && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <label className="text-sm font-medium whitespace-nowrap" style={{ color: '#374151' }}>
+            <div className="flex items-center gap-2 flex-shrink min-w-0">
+              <label className="text-xs sm:text-sm font-medium whitespace-nowrap sm:whitespace-normal" style={{ color: '#374151' }}>
                 {t("studentList.filter.university") || "University"}
               </label>
               <select
                 value={universityFilter}
                 onChange={(e) => setUniversityFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-[120px] sm:max-w-none"
                 style={{ color: "#111827" }}
               >
                 <option value="all">{t("studentList.filter.all") || "All"}</option>
@@ -143,14 +143,14 @@ export default function StudentListContent({ students }: StudentListContentProps
           )}
 
           {years.length > 0 && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <label className="text-sm font-medium whitespace-nowrap" style={{ color: '#374151' }}>
+            <div className="flex items-center gap-2 flex-shrink min-w-0">
+              <label className="text-xs sm:text-sm font-medium whitespace-nowrap sm:whitespace-normal" style={{ color: '#374151' }}>
                 {t("studentList.filter.year") || "Year"}
               </label>
               <select
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-[120px] sm:max-w-none"
                 style={{ color: "#111827" }}
               >
                 <option value="all">{t("studentList.filter.all") || "All"}</option>

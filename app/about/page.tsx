@@ -35,7 +35,7 @@ export default function AboutPage() {
             <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
               <Link
                 href="/about/ob-visit"
-                className="btn-primary px-8 py-3 text-base font-medium inline-flex items-center"
+                className="btn-primary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base font-medium inline-flex items-center"
               >
                 {t("nav.obAbout")}
               </Link>
@@ -57,13 +57,15 @@ export default function AboutPage() {
             animate="animate"
           >
             <motion.p 
-              style={{ color: '#374151', fontSize: '16px', lineHeight: '1.7' }}
+              className="text-base sm:text-xl"
+              style={{ color: '#374151', lineHeight: '1.7' }}
               variants={staggerItem}
             >
               {t("about.mission.p1")}
             </motion.p>
             <motion.p 
-              style={{ color: '#374151', fontSize: '16px', lineHeight: '1.7' }}
+              className="text-base sm:text-xl"
+              style={{ color: '#374151', lineHeight: '1.7' }}
               variants={staggerItem}
             >
               {t("about.mission.p2")}
@@ -249,7 +251,7 @@ export default function AboutPage() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/student"
-                  className="px-8 py-3 bg-white font-medium rounded transition-colors hover:bg-gray-100"
+                  className="px-4 sm:px-6 md:px-8 py-3 bg-white font-medium rounded transition-colors hover:bg-gray-100 text-sm sm:text-base"
                   style={{ color: '#0F2A44', borderRadius: '6px' }}
                 >
                   {t("about.cta.signUpStudent")}
@@ -258,7 +260,7 @@ export default function AboutPage() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/company"
-                  className="px-8 py-3 bg-transparent border border-white font-medium rounded transition-colors hover:bg-white/10"
+                  className="px-4 sm:px-6 md:px-8 py-3 bg-transparent border border-white font-medium rounded transition-colors hover:bg-white/10 text-sm sm:text-base"
                   style={{ borderRadius: '6px' }}
                 >
                   {t("about.cta.signUpCompany")}
@@ -267,7 +269,7 @@ export default function AboutPage() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/obog"
-                  className="px-8 py-3 bg-transparent border border-white font-medium rounded transition-colors hover:bg-white/10"
+                  className="px-4 sm:px-6 md:px-8 py-3 bg-transparent border border-white font-medium rounded transition-colors hover:bg-white/10 text-sm sm:text-base"
                   style={{ borderRadius: '6px' }}
                 >
                   {t("about.cta.signUpObog")}

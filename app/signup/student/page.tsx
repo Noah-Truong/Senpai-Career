@@ -282,7 +282,7 @@ export default function StudentSignupPage() {
                     style={{ borderColor: '#D1D5DB', borderRadius: '6px', color: '#111827' }}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="university" className="block text-sm font-medium" style={{ color: '#374151' }}>
                       {t("form.university")} *

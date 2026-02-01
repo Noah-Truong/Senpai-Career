@@ -447,7 +447,7 @@ export default function PublicProfilePage() {
                   </div>
                 )}
                 {(user.hourlyWage || user.weeklyHours) && (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {user.hourlyWage && (
                       <div>
                         <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("companies.hourlyWage")}</h3>

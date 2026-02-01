@@ -21,6 +21,36 @@ interface Notification {
   createdAt: string;
 }
 
+// Breadcrumb path name mappings
+const pathNameMap: Record<string, { en: string; ja: string }> = {
+  "": { en: "Home", ja: "ホーム" },
+  "about": { en: "About Us", ja: "サービス概要" },
+  "ob-visit": { en: "OB/OG Visit", ja: "OB/OG訪問とは" },
+  "how-to-use": { en: "How to Use", ja: "使い方" },
+  "login": { en: "Login", ja: "ログイン" },
+  "register": { en: "Register", ja: "登録" },
+  "signup": { en: "Sign Up", ja: "会員登録" },
+  "student": { en: "Student", ja: "学生" },
+  "obog": { en: "Alumni", ja: "OBOG" },
+  "company": { en: "Company", ja: "企業" },
+  "for-companies": { en: "For Companies", ja: "企業向け" },
+  "foreign-nationals": { en: "Foreign Nationals", ja: "外国人採用" },
+  "recruitment": { en: "Recruitment", ja: "新卒採用" },
+  "internships": { en: "Internships", ja: "長期インターン" },
+  "recruiting": { en: "New Grad Recruitment", ja: "新卒採用" },
+  "for-obog": { en: "For Alumni", ja: "OBOG向け" },
+  "profile": { en: "Profile", ja: "プロフィール" },
+  "messages": { en: "Messages", ja: "メッセージ" },
+  "ob-list": { en: "Alumni List", ja: "OBOG一覧" },
+  "student-list": { en: "Student List", ja: "学生一覧" },
+  "companies": { en: "Companies", ja: "企業一覧" },
+  "dashboard": { en: "Dashboard", ja: "ダッシュボード" },
+  "admin": { en: "Admin", ja: "管理者" },
+  "settings": { en: "Settings", ja: "設定" },
+  "report": { en: "Report", ja: "通報" },
+  "user": { en: "User", ja: "ユーザー" },
+};
+
 // Dropdown component for navigation
 function NavDropdown({ 
   label, 
@@ -49,14 +79,14 @@ function NavDropdown({
   }, []);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative flex" ref={dropdownRef}>
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         whileTap={{ scale: 0.97 }}
         className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded transition-colors ${
           isActive 
-            ? 'text-navy bg-surface-light' 
-            : 'text-text-body hover:text-navy hover:bg-surface-light'
+            ? 'text-navy nav-active' 
+            : 'text-gray-600 hover:text-navy hover:bg-gray-50'
         }`}
         style={{ color: isActive ? '#0F2A44' : '#374151' }}
       >
@@ -105,7 +135,7 @@ interface HeaderProps {
 
 export default function Header({ minimal = false }: HeaderProps) {
   const { data: session } = useSession();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -190,11 +220,13 @@ export default function Header({ minimal = false }: HeaderProps) {
   // Memoized helper functions to prevent unnecessary recalculations
   const isActiveLink = useCallback((href: string) => {
     if (href === "/") return pathname === "/";
+    // For /about, only match exact path (not /about/ob-visit which belongs to "For Students" dropdown)
+    if (href === "/about") return pathname === "/about";
     return pathname === href || pathname.startsWith(href + "/");
   }, [pathname]);
 
   const getLinkClasses = useCallback((href: string) => {
-    const baseClasses = "px-3 py-2 text-sm font-medium rounded transition-colors";
+    const baseClasses = "px-3 py-2 text-sm font-medium flex items-center justify-centerrounded transition-colors";
     if (isActiveLink(href)) {
       return `${baseClasses} nav-active`;
     }
@@ -446,8 +478,9 @@ export default function Header({ minimal = false }: HeaderProps) {
   }
 
   return (
+    <>
     <header
-      className="sticky top-0 z-50 bg-white border-b"
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-b"
       style={{
         borderColor: '#E5E7EB',
         boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
@@ -731,5 +764,52 @@ export default function Header({ minimal = false }: HeaderProps) {
         )}
       </div>
     </header>
+    {/* Spacer for fixed header */}
+    <div className="h-14 sm:h-[74px]" />
+    {/* Breadcrumb */}
+    {pathname !== "/" && (
+      <div className="bg-gray-50 border-b" style={{ borderColor: '#E5E7EB' }}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <nav className="flex items-center py-2 text-sm" aria-label="Breadcrumb">
+            <Link 
+              href="/" 
+              className="text-gray-500 hover:text-navy transition-colors"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+              </svg>
+            </Link>
+            {pathname.split("/").filter(Boolean).map((segment, index, arr) => {
+              const path = "/" + arr.slice(0, index + 1).join("/");
+              const isLast = index === arr.length - 1;
+              // Check if segment is a UUID (dynamic route parameter)
+              const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
+              const displayName = isUUID 
+                ? (language === "ja" ? "詳細" : "Details")
+                : (pathNameMap[segment]?.[language] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "));
+              
+              return (
+                <span key={path} className="flex items-center">
+                  <svg className="w-4 h-4 mx-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  {isLast ? (
+                    <span className="text-gray-900 font-medium">{displayName}</span>
+                  ) : (
+                    <Link 
+                      href={path} 
+                      className="text-gray-500 hover:text-navy transition-colors"
+                    >
+                      {displayName}
+                    </Link>
+                  )}
+                </span>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+    )}
+  </>
   );
 }
