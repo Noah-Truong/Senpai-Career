@@ -1092,7 +1092,7 @@ export default function ProfilePage() {
           </form>
         )}
         {/* Sign Out Section */}
-        {!isEditing && (
+        {!isEditing && activeTab === "profile" && (
           <div className="card-gradient p-8 border-t-2 border-red-200 mb-6">
             <h3 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>
               {t("profile.signOut.title") || "Sign Out"}
@@ -1108,7 +1108,7 @@ export default function ProfilePage() {
         )}
 
         {/* Delete Account Section */}
-        {!isEditing && (
+        {!isEditing && activeTab === "profile" && (
           <div className="card-gradient p-8 border-t-2 border-red-200">
             <h3 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>
               {t("profile.deleteAccount.title") || "Delete Account"}

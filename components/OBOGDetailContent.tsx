@@ -8,6 +8,7 @@ import MessageButton from "./MessageButton";
 import Avatar from "./Avatar";
 import ReportButton from "./ReportButton";
 import AvailabilityCalendar from "./AvailabilityCalendar";
+import { useParams, useRouter } from "next/navigation";
 
 interface OBOGDetailContentProps {
   obog: {
@@ -31,7 +32,7 @@ export default function OBOGDetailContent({ obog, averageRating }: OBOGDetailCon
   const { t, language } = useLanguage();
   const { data: session } = useSession();
   const [showCalendar, setShowCalendar] = useState(false);
-  
+  const router = useRouter();
   const isOwner = session?.user?.id === obog.id && session?.user?.role === "obog";
   
   // Format rating to 1 decimal place
@@ -41,6 +42,12 @@ export default function OBOGDetailContent({ obog, averageRating }: OBOGDetailCon
 
   return (
     <div className="card-gradient p-8">
+      <button 
+        onClick={() => router.back()} 
+        className="text-blue-600 hover:text-blue-800 mb-4 inline-block"
+      >
+        ← {t("button.back")}
+      </button>
       {/* Profile Header */}
       <div className="flex items-start mb-6">
         <Avatar 
