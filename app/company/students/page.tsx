@@ -6,8 +6,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
+import Pagination from "@/components/Pagination";
 import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/animations";
+
+const DEFAULT_ITEMS_PER_PAGE = 12;
 
 interface Student {
   id: string;
@@ -33,6 +36,8 @@ export default function CompanyStudentsPage() {
   const router = useRouter();
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
   const [filters, setFilters] = useState({
     languages: "",
     jlptLevel: "",
@@ -98,10 +103,12 @@ export default function CompanyStudentsPage() {
   const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
+    setCurrentPage(1);
   }, []);
 
   const handleClearFilters = useCallback(() => {
     setFilters({ languages: "", jlptLevel: "", skills: "", workLocation: "", weeklyHours: "", experience: "" });
+    setCurrentPage(1);
   }, []);
 
   const filteredStudents = useMemo(() => {
@@ -310,13 +317,14 @@ export default function CompanyStudentsPage() {
             </p>
           </div>
         ) : (
+          <>
           <motion.div 
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
           >
-            {filteredStudents.map((student, index) => (
+            {paginatedStudents.map((student, index) => (
               <motion.div
                 key={student.id}
                 variants={staggerItem}
@@ -413,6 +421,17 @@ export default function CompanyStudentsPage() {
               </motion.div>
             ))}
           </motion.div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredStudents.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(n) => { setItemsPerPage(n); setCurrentPage(1); }}
+            itemsPerPageOptions={[9, 12, 24, 48]}
+            showItemsPerPage={true}
+          />
+          </>
         )}
       </div>
   );

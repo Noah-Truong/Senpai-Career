@@ -5,9 +5,12 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "@/contexts/AuthContext";
 import CompanyLogo from "@/components/CompanyLogo";
+import Pagination from "@/components/Pagination";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
 import Footer from "@/components/Footer";
+
+const DEFAULT_ITEMS_PER_PAGE = 12;
 
 export default function RecruitingPage() {
   const { t } = useLanguage();
@@ -16,6 +19,8 @@ export default function RecruitingPage() {
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
 
   const loadListings = useCallback(async () => {
     try {
@@ -51,7 +56,6 @@ export default function RecruitingPage() {
   // Filter listings based on search
   const filteredListings = useMemo(() => {
     if (!searchTerm) return listingsWithDescriptions;
-    
     const search = searchTerm.toLowerCase();
     return listingsWithDescriptions.filter((listing) => {
       return (
@@ -63,6 +67,13 @@ export default function RecruitingPage() {
       );
     });
   }, [listingsWithDescriptions, searchTerm]);
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredListings.length / itemsPerPage));
+  const paginatedListings = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredListings.slice(start, start + itemsPerPage);
+  }, [filteredListings, currentPage, itemsPerPage]);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#D7FFEF' }}>
@@ -117,7 +128,7 @@ export default function RecruitingPage() {
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               placeholder={t("recruiting.searchPlaceholder") || "Search by title, company, skills..."}
               className="w-full pl-10 pr-4 py-2 bg-white border rounded focus:outline-none focus:ring-2"
               style={{ 
@@ -165,13 +176,14 @@ export default function RecruitingPage() {
             )}
           </div>
         ) : (
+          <>
           <motion.div 
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
           >
-            {filteredListings.map((listing: any, index: number) => (
+            {paginatedListings.map((listing: any, index: number) => (
               <motion.div
                 key={listing.id}
                 variants={staggerItem}
@@ -236,6 +248,17 @@ export default function RecruitingPage() {
               </motion.div>
             ))}
           </motion.div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredListings.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(n) => { setItemsPerPage(n); setCurrentPage(1); }}
+            itemsPerPageOptions={[9, 12, 24, 48]}
+            showItemsPerPage={true}
+          />
+          </>
         )}
       </motion.div>
     </div>

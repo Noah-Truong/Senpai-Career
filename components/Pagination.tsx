@@ -77,7 +77,7 @@ export default function Pagination({
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
       {/* Items per page selector */}
       {showItemsPerPage && onItemsPerPageChange && (
-        <div className="flex items-center gap-2 text-sm" style={{ color: '#6B7280' }}>
+        <div className="flex items-center gap-2 text-sm" style={{ color: 'rgb(0, 0, 0)' }}>
           <label htmlFor="itemsPerPage">
             {t("pagination.show") || "Show"}
           </label>
@@ -86,7 +86,7 @@ export default function Pagination({
             value={itemsPerPage}
             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
             className="px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            style={{ borderColor: '#D1D5DB', color: '#111827' }}
+            style={{ borderColor: '#D1D5DB', color: 'rgb(0, 0, 0)' }}
           >
             {itemsPerPageOptions.map((option) => (
               <option key={option} value={option}>
@@ -99,7 +99,7 @@ export default function Pagination({
       )}
 
       {/* Page info */}
-      <div className="text-sm" style={{ color: '#6B7280' }}>
+      <div className="text-sm" style={{ color: 'rgb(0, 0, 0)' }}>
         {t("pagination.showing") || "Showing"} {startItem}-{endItem} {t("pagination.of") || "of"} {totalItems}
       </div>
 
@@ -130,12 +130,12 @@ export default function Pagination({
                       ? "bg-blue-600 text-white"
                       : "hover:bg-gray-100"
                   }`}
-                  style={currentPage !== page ? { color: '#374151' } : {}}
+                  style={currentPage !== page ? { color: 'rgb(0, 0, 0)' } : {}}
                 >
                   {page}
                 </button>
               ) : (
-                <span key={index} className="px-2" style={{ color: '#9CA3AF' }}>
+                <span key={index} className="px-2" style={{ color: 'rgb(0, 0, 0)' }}>
                   {page}
                 </span>
               )

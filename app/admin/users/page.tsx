@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AdminLayout from "@/components/AdminLayout";
+import Pagination from "@/components/Pagination";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "@/components/Avatar";
 
@@ -28,6 +29,8 @@ export default function AdminUsersPage() {
   const [assigningCorporateOB, setAssigningCorporateOB] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [studentsPage, setStudentsPage] = useState(1);
+  const [studentsPerPage, setStudentsPerPage] = useState(10);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -194,18 +197,14 @@ export default function AdminUsersPage() {
     }
   };
 
-  if (status === "loading" || loading) {
-    return (
-      <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
-        </div>
-      </AdminLayout>
-    );
-  }
-
+  // Derived data and hooks must be before any conditional return (Rules of Hooks)
   const students = users.filter(u => u.role === "student");
-  
+  const totalStudentPages = Math.max(1, Math.ceil(students.length / studentsPerPage));
+  const paginatedStudents = useMemo(() => {
+    const start = (studentsPage - 1) * studentsPerPage;
+    return students.slice(start, start + studentsPerPage);
+  }, [students, studentsPage, studentsPerPage]);
+
   // Filter all users based on search and role
   const filteredUsers = users.filter(user => {
     const matchesSearch = searchTerm === "" || 
@@ -215,6 +214,16 @@ export default function AdminUsersPage() {
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
+
+  if (status === "loading" || loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <p style={{ color: '#6B7280' }}>{t("common.loading")}</p>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -256,7 +265,7 @@ export default function AdminUsersPage() {
         
         {/* Mobile Card View */}
         <div className="md:hidden divide-y" style={{ borderColor: '#E5E7EB' }}>
-          {students.map((user) => (
+          {paginatedStudents.map((user) => (
             <div key={user.id} className="p-4">
               <div className="flex items-start gap-3 mb-3">
                 <Avatar
@@ -362,7 +371,7 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y" style={{ borderColor: '#E5E7EB' }}>
-              {students.map((user) => (
+              {paginatedStudents.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center min-w-0">
@@ -464,6 +473,20 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
         </div>
+
+        {students.length > 0 && (
+          <div className="px-4 pb-4">
+            <Pagination
+              currentPage={studentsPage}
+              totalPages={totalStudentPages}
+              totalItems={students.length}
+              itemsPerPage={studentsPerPage}
+              onPageChange={setStudentsPage}
+              onItemsPerPageChange={(n) => { setStudentsPerPage(n); setStudentsPage(1); }}
+              itemsPerPageOptions={[10, 25, 50, 100]}
+            />
+          </div>
+        )}
       </div>
 
       {/* All Users Table */}

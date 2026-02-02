@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "@/contexts/AuthContext";
 import CompanyLogo from "@/components/CompanyLogo";
+import Pagination from "@/components/Pagination";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
 import Footer from "@/components/Footer";
+
+const DEFAULT_ITEMS_PER_PAGE = 12;
 
 export default function InternshipPage() {
   const { t } = useLanguage();
@@ -16,6 +19,8 @@ export default function InternshipPage() {
   const [internships, setInternships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
 
   useEffect(() => {
     loadInternships();
@@ -37,22 +42,30 @@ export default function InternshipPage() {
   };
 
   // Filter internships based on search
-  const filteredInternships = internships.filter((internship) => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    const title = internship.titleKey ? t(internship.titleKey) : internship.title;
-    const workDetails = internship.workDetailsKey ? t(internship.workDetailsKey) : internship.workDetails;
-    const skills = (internship.skillsGainedKeys || internship.skillsGained || [])
-      .map((s: string) => internship.skillsGainedKeys ? t(s) : s)
-      .join(" ");
-    
-    return (
-      title?.toLowerCase().includes(search) ||
-      internship.companyName?.toLowerCase().includes(search) ||
-      workDetails?.toLowerCase().includes(search) ||
-      skills.toLowerCase().includes(search)
-    );
-  });
+  const filteredInternships = useMemo(() => {
+    return internships.filter((internship) => {
+      if (!searchTerm) return true;
+      const search = searchTerm.toLowerCase();
+      const title = internship.titleKey ? t(internship.titleKey) : internship.title;
+      const workDetails = internship.workDetailsKey ? t(internship.workDetailsKey) : internship.workDetails;
+      const skills = (internship.skillsGainedKeys || internship.skillsGained || [])
+        .map((s: string) => internship.skillsGainedKeys ? t(s) : s)
+        .join(" ");
+      return (
+        title?.toLowerCase().includes(search) ||
+        internship.companyName?.toLowerCase().includes(search) ||
+        workDetails?.toLowerCase().includes(search) ||
+        skills.toLowerCase().includes(search)
+      );
+    });
+  }, [internships, searchTerm, t]);
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredInternships.length / itemsPerPage));
+  const paginatedInternships = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredInternships.slice(start, start + itemsPerPage);
+  }, [filteredInternships, currentPage, itemsPerPage]);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#D7FFEF' }}>
@@ -109,7 +122,7 @@ export default function InternshipPage() {
             <motion.input
               type="text"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               placeholder={t("internship.searchPlaceholder") || "Search by title, company, skills..."}
               className="w-full pl-10 pr-4 py-2 bg-white border rounded focus:outline-none focus:ring-2"
               style={{ 
@@ -159,13 +172,14 @@ export default function InternshipPage() {
             )}
           </div>
         ) : (
+          <>
           <motion.div 
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
           >
-            {filteredInternships.map((internship: any, index: number) => (
+            {paginatedInternships.map((internship: any, index: number) => (
               <motion.div
                 key={internship.id}
                 variants={staggerItem}
@@ -235,6 +249,17 @@ export default function InternshipPage() {
               </motion.div>
             ))}
           </motion.div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredInternships.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(n) => { setItemsPerPage(n); setCurrentPage(1); }}
+            itemsPerPageOptions={[9, 12, 24, 48]}
+            showItemsPerPage={true}
+          />
+          </>
         )}
       </motion.div>
       <Footer variant="full" />
