@@ -51,6 +51,14 @@
   --color-error: #DC2626;
   --color-info: #2563EB;
   
+  /* Color-Blind Accessible Alternatives (use these for better accessibility) */
+  --color-accessible-blue: #0077BB;
+  --color-accessible-orange: #EE7733;
+  --color-accessible-cyan: #33BBEE;
+  --color-accessible-magenta: #EE3377;
+  --color-accessible-positive: #0077BB;  /* Use instead of green for success indicators */
+  --color-accessible-negative: #CC3311;  /* Use instead of red for error indicators */;
+  
   /* Spacing */
   --spacing-xs: 4px;
   --spacing-sm: 8px;

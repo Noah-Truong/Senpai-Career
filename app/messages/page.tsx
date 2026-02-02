@@ -176,11 +176,19 @@ export default function MessagesPage() {
               <Link href="/company/students" className="btn-primary inline-block min-h-[44px] px-4 sm:px-6 py-2 text-sm sm:text-base">
                 {t("button.browseStudents") || "Browse Students"}
               </Link>
-            ) : (
+            ) : role === "admin" ?(
+              <Link href="/company/students" className="btn-primary inline-block min-h-[44px] px-4 sm:px-6 py-2 text-sm sm:text-base">
+                {t("button.browseStudents") || "Browse Chats"}
+              </Link>
+          ) : role === "corporate_ob" ? (
+            <Link href="/company/students" className="btn-primary inline-block min-h-[44px] px-4 sm:px-6 py-2 text-sm sm:text-base">
+              {t("button.browseStudents") || "Browse Students"}
+            </Link>
+          ) : (
               <Link href="/student-list" className="btn-primary inline-block min-h-[44px] px-4 sm:px-6 py-2 text-sm sm:text-base">
                 {t("button.browseStudents")}
               </Link>
-            )}
+            ) }
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">

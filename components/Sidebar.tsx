@@ -459,6 +459,15 @@ export default function Sidebar({ userCredits, creditChange, onCollapse, isMobil
           ),
         },
         {
+          href:"/admin/users",
+          label: t("admin.dashboard.manageUsers"),
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          ),
+        },
+        {
           href: "/admin/reports",
           label: t("nav.admin/reports"),
           icon: (
@@ -628,8 +637,8 @@ export default function Sidebar({ userCredits, creditChange, onCollapse, isMobil
           </div>
         )}
 
-        {/* Credits (for non-admin users) */}
-        {userCredits !== null && userRole !== "admin" && (
+        {/* Credits (for non-admin, non-student users - students cannot purchase credits) */}
+        {userCredits !== null && userRole !== "admin" && userRole !== "student" && (
           <div className={`px-4 py-3 border-b border-gray-200 ${isCollapsed && !isMobile ? "flex justify-center" : ""}`}>
             <Link
               href="/credits"
@@ -639,8 +648,8 @@ export default function Sidebar({ userCredits, creditChange, onCollapse, isMobil
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "text-gray-700"
               } ${
-                creditChange?.type === 'add' ? 'animate-pulse bg-green-50' :
-                creditChange?.type === 'deduct' ? 'animate-pulse bg-red-50' : ''
+                creditChange?.type === 'add' ? 'animate-pulse bg-blue-50' :
+                creditChange?.type === 'deduct' ? 'animate-pulse bg-orange-50' : ''
               }`}
               style={userCredits !== 0 ? {color: '#10B981' } : {}}
             >
@@ -665,7 +674,7 @@ export default function Sidebar({ userCredits, creditChange, onCollapse, isMobil
                     initial={{ scale: 1 }}
                     animate={creditChange?.type ? {
                       scale: creditChange.type === 'add' ? [1, 1.3, 1] : [1, 0.9, 1],
-                      color: creditChange.type === 'add' ? '#10B981' : '#DC2626'
+                      color: creditChange.type === 'add' ? '#0077BB' : '#CC3311'
                     } : {}}
                     transition={{ duration: 0.5 }}
                   >
@@ -677,9 +686,8 @@ export default function Sidebar({ userCredits, creditChange, onCollapse, isMobil
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 10 }}
-                        className={`text-xs font-bold ${
-                          creditChange.type === 'add' ? 'text-green-600' : 'text-red-600'
-                        }`}
+                        className="text-xs font-bold"
+                        style={{ color: creditChange.type === 'add' ? '#0077BB' : '#CC3311' }}
                       >
                         {creditChange.type === 'add' ? '+' : '-'}{creditChange.amount}
                       </motion.span>
@@ -699,7 +707,7 @@ export default function Sidebar({ userCredits, creditChange, onCollapse, isMobil
                 setShowNotifications(!showNotifications);
                 if (!showNotifications) loadNotifications();
               }}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-gray-600 hover:text-gray-900 hover:bg-[#F0FFF8] ${isCollapsed && !isMobile ? "justify-center px-2" : ""}`}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-gray-600 hover:text-gray-900 hover:bg-[#F0FFF8] w-full ${isCollapsed && !isMobile ? "justify-center px-2" : ""}`}
               title={isCollapsed && !isMobile ? t("nav.notifications") : undefined}
             >
               <div className="relative flex-shrink-0">

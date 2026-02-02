@@ -159,34 +159,36 @@ export default function AppLayout({ children }: AppLayoutProps) {
         onMobileClose={() => setMobileMenuOpen(false)}
       />
 
-      {/* Main content area - no offset on mobile; sidebar width on desktop */}
+      {/* Fixed header - stays at top of screen */}
+      <header
+        className={`fixed top-0 right-0 z-30 bg-white border-b h-14 sm:h-16 flex items-center justify-between gap-2 px-3 sm:px-6 transition-all duration-300 ${
+          isMobile ? "left-0" : sidebarCollapsed ? "left-16" : "left-64"
+        }`}
+        style={{ borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-sm)' }}
+      >
+        {isMobile && (
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className="tap-target p-2 -ml-1 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-navy transition-colors"
+            aria-label="Open menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+        <div className="flex-1 flex items-center justify-end min-w-0">
+          <Header minimal />
+        </div>
+      </header>
+
+      {/* Main content area - offset for sidebar and header */}
       <div
-        className={`transition-all duration-300 ${
+        className={`min-h-screen flex flex-col transition-all duration-300 pt-14 sm:pt-16 ${
           isMobile ? "ml-0" : sidebarCollapsed ? "ml-16" : "ml-64"
         }`}
       >
-        {/* Top bar with notifications/messages */}
-        <header
-          className="sticky top-0 z-30 bg-white border-b h-14 sm:h-16 flex items-center justify-between gap-2 px-3 sm:px-6"
-          style={{ borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-sm)' }}
-        >
-          {isMobile && (
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              className="tap-target p-2 -ml-1 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-navy transition-colors"
-              aria-label="Open menu"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          )}
-          <div className="flex-1 flex items-center justify-end min-w-0">
-            <Header minimal />
-          </div>
-        </header>
-
         {/* Breadcrumb */}
         <div className="bg-gray-50 border-b" style={{ borderColor: '#E5E7EB' }}>
           <div className="px-4 sm:px-6 lg:px-8">
@@ -231,7 +233,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         {/* Page content */}
-        <main className="min-h-[50vh] overflow-x-hidden">
+        <main className="flex-1 overflow-x-hidden">
           {children}
         </main>
       </div>

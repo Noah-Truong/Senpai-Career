@@ -132,32 +132,38 @@ export default function AdminDashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="card-gradient p-6">
+          <div className="card-gradient p-6 h-full flex flex-col">
             <h3 className="text-xl font-semibold mb-4">{t("admin.dashboard.userManagement")}</h3>
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-700 mb-4 flex-grow">
               {t("admin.dashboard.userManagementDesc")}
             </p>
-            <Link href="/admin/users" className="btn-primary inline-block">
-              {t("admin.dashboard.manageUsers")}
-            </Link>
+            <div className="mt-auto">
+              <Link href="/admin/users" className="btn-primary inline-block">
+                {t("admin.dashboard.manageUsers")}
+              </Link>
+            </div>
           </div>
-          <div className="card-gradient p-6">
+          <div className="card-gradient p-6 h-full flex flex-col">
             <h3 className="text-xl font-semibold mb-4">{t("admin.dashboard.reports")}</h3>
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-700 mb-4 flex-grow">
               {t("admin.dashboard.reportsDesc")}
             </p>
-            <Link href="/admin/reports" className="btn-primary inline-block">
-              {t("admin.dashboard.viewReports")}
-            </Link>
+            <div className="mt-auto">
+              <Link href="/admin/reports" className="btn-primary inline-block">
+                {t("admin.dashboard.viewReports")}
+              </Link>
+            </div>
           </div>
-          <div className="card-gradient p-6">
+          <div className="card-gradient p-6 h-full flex flex-col">
             <h3 className="text-xl font-semibold mb-4">{t("admin.corporateOb.title") || "Corporate OB Management"}</h3>
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-700 mb-4 flex-grow">
               {t("admin.corporateOb.subtitle") || "Manage Corporate OB assignments and verifications"}
             </p>
-            <Link href="/admin/corporate-ob" className="btn-primary inline-block">
-              {t("admin.corporateOb.manage") || "Manage Corporate OB"}
-            </Link>
+            <div className="mt-auto">
+              <Link href="/admin/corporate-ob" className="btn-primary inline-block">
+                {t("admin.corporateOb.manage") || "Manage Corporate OB"}
+              </Link>
+            </div>
           </div>
         </div>
 

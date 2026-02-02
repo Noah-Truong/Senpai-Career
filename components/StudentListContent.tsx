@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "./Avatar";
+import Pagination from "./Pagination";
 import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 
@@ -34,6 +35,8 @@ export default function StudentListContent({ students }: StudentListContentProps
   const [languageFilter, setLanguageFilter] = useState<string[]>([]);
   const [industryFilter, setIndustryFilter] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
 
   // Get unique values for filters
   const universities = Array.from(new Set(students.map((s) => s.university).filter(Boolean))) as string[];
@@ -73,6 +76,13 @@ export default function StudentListContent({ students }: StudentListContentProps
 
     return matchesSearch && matchesUniversity && matchesYear && matchesLanguage && matchesIndustry;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredStudents.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredStudents, currentPage, itemsPerPage]);
 
   const getYearLabel = (year: number | undefined) => {
     if (!year) return "";
@@ -115,7 +125,7 @@ export default function StudentListContent({ students }: StudentListContentProps
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 placeholder={t("studentList.searchPlaceholder") || "Search by name, university, skills, interests..."}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 style={{ color: '#000000' }}
@@ -130,7 +140,7 @@ export default function StudentListContent({ students }: StudentListContentProps
               </label>
               <select
                 value={universityFilter}
-                onChange={(e) => setUniversityFilter(e.target.value)}
+                onChange={(e) => { setUniversityFilter(e.target.value); setCurrentPage(1); }}
                 className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-[120px] sm:max-w-none"
                 style={{ color: "#111827" }}
               >
@@ -149,7 +159,7 @@ export default function StudentListContent({ students }: StudentListContentProps
               </label>
               <select
                 value={yearFilter}
-                onChange={(e) => setYearFilter(e.target.value)}
+                onChange={(e) => { setYearFilter(e.target.value); setCurrentPage(1); }}
                 className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 max-w-[120px] sm:max-w-none"
                 style={{ color: "#111827" }}
               >
@@ -214,6 +224,7 @@ export default function StudentListContent({ students }: StudentListContentProps
                           } else {
                             setLanguageFilter(languageFilter.filter(l => l !== lang));
                           }
+                          setCurrentPage(1);
                         }}
                         className="w-4 h-4"
                       />
@@ -240,6 +251,7 @@ export default function StudentListContent({ students }: StudentListContentProps
                           } else {
                             setIndustryFilter(industryFilter.filter(i => i !== industry));
                           }
+                          setCurrentPage(1);
                         }}
                         className="w-4 h-4"
                       />
@@ -267,16 +279,75 @@ export default function StudentListContent({ students }: StudentListContentProps
           </motion.div>
         )}
 
+        {/* Active Filters Indicator */}
         {(searchTerm || languageFilter.length > 0 || industryFilter.length > 0 || universityFilter !== "all" || yearFilter !== "all") && (
-          <motion.p
-            className="mt-2 text-sm"
-            style={{ color: '#6B7280' }}
+          <motion.div 
+            className="mt-3 flex flex-wrap items-center gap-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            {filteredStudents.length} {t("studentList.resultsFound") || "results found"}
-          </motion.p>
+            <span className="text-sm font-medium" style={{ color: '#6B7280' }}>
+              {filteredStudents.length} {t("studentList.resultsFound") || "results found"}
+            </span>
+            <span className="text-gray-300">|</span>
+            <span className="text-xs" style={{ color: '#9CA3AF' }}>{t("filter.activeFilters") || "Active filters:"}</span>
+            
+            {searchTerm && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                &quot;{searchTerm}&quot;
+                <button onClick={() => { setSearchTerm(""); setCurrentPage(1); }} className="hover:text-blue-600" aria-label="Remove filter">×</button>
+              </span>
+            )}
+            {universityFilter !== "all" && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs">
+                {universityFilter}
+                <button onClick={() => { setUniversityFilter("all"); setCurrentPage(1); }} className="hover:text-indigo-600" aria-label="Remove filter">×</button>
+              </span>
+            )}
+            {yearFilter !== "all" && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                {getYearLabel(parseInt(yearFilter))}
+                <button onClick={() => { setYearFilter("all"); setCurrentPage(1); }} className="hover:text-purple-600" aria-label="Remove filter">×</button>
+              </span>
+            )}
+            {languageFilter.map((lang) => (
+              <span key={lang} className="inline-flex items-center gap-1 px-2 py-1 bg-teal-100 text-teal-800 rounded-full text-xs">
+                {lang}
+                <button 
+                  onClick={() => { setLanguageFilter(languageFilter.filter(l => l !== lang)); setCurrentPage(1); }} 
+                  className="hover:text-teal-600" 
+                  aria-label="Remove filter"
+                >×</button>
+              </span>
+            ))}
+            {industryFilter.map((ind) => (
+              <span key={ind} className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs">
+                {ind}
+                <button 
+                  onClick={() => { setIndustryFilter(industryFilter.filter(i => i !== ind)); setCurrentPage(1); }} 
+                  className="hover:text-amber-600" 
+                  aria-label="Remove filter"
+                >×</button>
+              </span>
+            ))}
+            
+            {/* Clear All Filters */}
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setUniversityFilter("all");
+                setYearFilter("all");
+                setLanguageFilter([]);
+                setIndustryFilter([]);
+                setCurrentPage(1);
+              }}
+              className="text-xs font-medium hover:underline"
+              style={{ color: '#DC2626' }}
+            >
+              {t("filter.clearAll") || "Clear all"}
+            </button>
+          </motion.div>
         )}
       </motion.div>
 
@@ -290,13 +361,14 @@ export default function StudentListContent({ students }: StudentListContentProps
           </p>
         </div>
       ) : (
+        <>
         <motion.div
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
           variants={staggerContainer}
           initial="initial"
           animate="animate"
         >
-          {filteredStudents.map((student, index) => (
+          {paginatedStudents.map((student, index) => (
             <Link
               key={student.id}
               href={`/user/${student.id}`}
@@ -307,7 +379,7 @@ export default function StudentListContent({ students }: StudentListContentProps
                 initial="initial"
                 animate="animate"
                 transition={{ delay: index * 0.05 }}
-                className="card-gradient p-6 hover:shadow-xl transition-all duration-300 cursor-pointer"
+                className="card-gradient p-6 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
               >
                 <div className="flex items-start mb-4">
                   <Avatar
@@ -370,8 +442,11 @@ export default function StudentListContent({ students }: StudentListContentProps
                   </div>
                 )}
 
+                {/* Spacer to push footer content to bottom */}
+                <div className="flex-grow" />
+                
                 {/* Additional Info */}
-                <div className="text-sm space-y-1" style={{ color: '#6B7280' }}>
+                <div className="text-sm space-y-1 mt-auto" style={{ color: '#6B7280' }}>
                   {student.languages && student.languages.length > 0 && (
                     <p className="truncate">
                       <span className="font-medium">{t("studentList.card.languages") || "Languages:"}</span> {student.languages.slice(0, 2).join(", ")}{student.languages.length > 2 ? "..." : ""}
@@ -392,6 +467,21 @@ export default function StudentListContent({ students }: StudentListContentProps
             </Link>
           ))}
         </motion.div>
+        
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredStudents.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(newItemsPerPage) => {
+            setItemsPerPage(newItemsPerPage);
+            setCurrentPage(1);
+          }}
+          itemsPerPageOptions={[12, 24, 48, 96]}
+        />
+        </>
       )}
     </>
   );

@@ -233,7 +233,7 @@ export default function CompanyProfilePage() {
           </div>
           <Link
             href="/company/internships"
-            className="btn-primary"
+            className="btn-primary text-center"
           >
             {t("company.profile.manageRecruitments") || "Manage Recruitments"}
           </Link>

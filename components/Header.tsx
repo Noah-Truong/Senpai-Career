@@ -390,8 +390,8 @@ export default function Header({ minimal = false }: HeaderProps) {
   if (minimal && isLoggedIn) {
     return (
       <div className="flex items-center gap-1 sm:gap-2">
-        {/* Credits display */}
-        {typeof userCredits === 'number' && userRole !== "admin" && (
+        {/* Credits display (hidden for students - they cannot purchase credits) */}
+        {typeof userCredits === 'number' && userRole !== "admin" && userRole !== "student" && (
           <Link
             href="/credits"
             className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 font-medium hover:bg-gray-100 rounded-lg transition-colors"

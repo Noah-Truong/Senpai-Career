@@ -3,7 +3,9 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import AdminLayout from "@/components/AdminLayout";
+import Avatar from "@/components/Avatar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { createClient } from "@/lib/supabase/client";
 
@@ -26,8 +28,14 @@ interface FlaggedMeeting {
   admin_notes?: string;
   student_name?: string;
   student_email?: string;
+  student_role?: string;
+  student_university?: string;
+  student_profile_photo?: string;
   obog_name?: string;
   obog_email?: string;
+  obog_role?: string;
+  obog_company?: string;
+  obog_profile_photo?: string;
   created_at: string;
 }
 
@@ -95,8 +103,14 @@ export default function AdminMeetingsPage() {
             ...meeting,
             student_name: student?.name || "Unknown",
             student_email: student?.email || "Unknown",
+            student_role: student?.role || "student",
+            student_university: student?.university || "",
+            student_profile_photo: student?.profilePhoto || "",
             obog_name: obog?.name || "Unknown",
             obog_email: obog?.email || "Unknown",
+            obog_role: obog?.role || "obog",
+            obog_company: obog?.company || "",
+            obog_profile_photo: obog?.profilePhoto || "",
           };
         })
       );
@@ -187,24 +201,88 @@ export default function AdminMeetingsPage() {
           {meetings.map((meeting) => (
             <div
               key={meeting.id}
-              className="p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
               onClick={() => setSelectedMeeting(meeting)}
             >
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+              <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm sm:text-base truncate" style={{ color: '#111827' }}>
-                    {meeting.student_name} ↔ {meeting.obog_name}
-                  </p>
-                  <p className="text-xs sm:text-sm break-words" style={{ color: '#6B7280' }}>
-                    {meeting.review_reason}
-                  </p>
-                  <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
-                    {new Date(meeting.created_at).toLocaleString()}
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                      {t("admin.meetings.flagged") || "Flagged"}
+                    </span>
+                    <span className="text-xs" style={{ color: '#9CA3AF' }}>
+                      {new Date(meeting.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-sm break-words" style={{ color: '#6B7280' }}>
+                    {meeting.review_reason || t("admin.meetings.noReason") || "No reason provided"}
                   </p>
                 </div>
-                <span className="px-2 sm:px-3 py-1 rounded text-xs font-medium bg-red-100 text-red-800 shrink-0">
-                  {t("admin.meetings.flagged") || "Flagged"}
-                </span>
+              </div>
+              
+              {/* User Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Student Info */}
+                <div className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: '#F0F9FF' }}>
+                  <Avatar
+                    src={meeting.student_profile_photo}
+                    alt={meeting.student_name || "Student"}
+                    size="sm"
+                    fallbackText={meeting.student_name}
+                    className="shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-medium truncate" style={{ color: '#111827' }}>
+                        {meeting.student_name}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                        {t("role.student") || "Student"}
+                      </span>
+                    </div>
+                    <p className="text-xs truncate" style={{ color: '#6B7280' }}>
+                      {meeting.student_email}
+                    </p>
+                    {meeting.student_university && (
+                      <p className="text-xs truncate" style={{ color: '#9CA3AF' }}>
+                        {meeting.student_university}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* OB/OG Info */}
+                <div className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: '#F0FDF4' }}>
+                  <Avatar
+                    src={meeting.obog_profile_photo}
+                    alt={meeting.obog_name || "OB/OG"}
+                    size="sm"
+                    fallbackText={meeting.obog_name}
+                    className="shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-medium truncate" style={{ color: '#111827' }}>
+                        {meeting.obog_name}
+                      </span>
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                        meeting.obog_role === "corporate_ob" 
+                          ? "bg-indigo-100 text-indigo-800" 
+                          : "bg-green-100 text-green-800"
+                      }`}>
+                        {meeting.obog_role === "corporate_ob" ? t("role.corporateOb") || "Corporate OB" : t("role.obog") || "OB/OG"}
+                      </span>
+                    </div>
+                    <p className="text-xs truncate" style={{ color: '#6B7280' }}>
+                      {meeting.obog_email}
+                    </p>
+                    {meeting.obog_company && (
+                      <p className="text-xs truncate" style={{ color: '#9CA3AF' }}>
+                        {meeting.obog_company}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -234,22 +312,146 @@ export default function AdminMeetingsPage() {
             </div>
 
             <div className="space-y-4">
+              {/* Users Involved Section */}
+              <div>
+                <p className="text-sm font-medium mb-3" style={{ color: '#374151' }}>
+                  {t("admin.meetings.usersInvolved") || "Users Involved"}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Student Card */}
+                  <div className="p-4 rounded-lg border" style={{ backgroundColor: '#F0F9FF', borderColor: '#BFDBFE' }}>
+                    <div className="flex items-start gap-3">
+                      <Avatar
+                        src={selectedMeeting.student_profile_photo}
+                        alt={selectedMeeting.student_name || "Student"}
+                        size="md"
+                        fallbackText={selectedMeeting.student_name}
+                        className="shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="text-sm font-semibold" style={{ color: '#111827' }}>
+                            {selectedMeeting.student_name}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            {t("role.student") || "Student"}
+                          </span>
+                        </div>
+                        <p className="text-xs mb-1" style={{ color: '#374151' }}>
+                          <span className="font-medium">{t("admin.users.email") || "Email"}:</span> {selectedMeeting.student_email}
+                        </p>
+                        {selectedMeeting.student_university && (
+                          <p className="text-xs mb-1" style={{ color: '#374151' }}>
+                            <span className="font-medium">{t("profile.university") || "University"}:</span> {selectedMeeting.student_university}
+                          </p>
+                        )}
+                        <p className="text-xs" style={{ color: '#6B7280' }}>
+                          <span className="font-medium">ID:</span> {selectedMeeting.student_id}
+                        </p>
+                        <div className="mt-2 flex gap-2">
+                          <Link
+                            href={`/user/${selectedMeeting.student_id}`}
+                            className="text-xs px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {t("admin.users.viewProfile") || "View Profile"}
+                          </Link>
+                          <Link
+                            href={`/messages/new?userId=${selectedMeeting.student_id}`}
+                            className="text-xs px-2 py-1 rounded bg-purple-600 text-white hover:bg-purple-700"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {t("admin.users.message") || "Message"}
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* OB/OG Card */}
+                  <div className="p-4 rounded-lg border" style={{ backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }}>
+                    <div className="flex items-start gap-3">
+                      <Avatar
+                        src={selectedMeeting.obog_profile_photo}
+                        alt={selectedMeeting.obog_name || "OB/OG"}
+                        size="md"
+                        fallbackText={selectedMeeting.obog_name}
+                        className="shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="text-sm font-semibold" style={{ color: '#111827' }}>
+                            {selectedMeeting.obog_name}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            selectedMeeting.obog_role === "corporate_ob" 
+                              ? "bg-indigo-100 text-indigo-800" 
+                              : "bg-green-100 text-green-800"
+                          }`}>
+                            {selectedMeeting.obog_role === "corporate_ob" ? t("role.corporateOb") || "Corporate OB" : t("role.obog") || "OB/OG"}
+                          </span>
+                        </div>
+                        <p className="text-xs mb-1" style={{ color: '#374151' }}>
+                          <span className="font-medium">{t("admin.users.email") || "Email"}:</span> {selectedMeeting.obog_email}
+                        </p>
+                        {selectedMeeting.obog_company && (
+                          <p className="text-xs mb-1" style={{ color: '#374151' }}>
+                            <span className="font-medium">{t("profile.company") || "Company"}:</span> {selectedMeeting.obog_company}
+                          </p>
+                        )}
+                        <p className="text-xs" style={{ color: '#6B7280' }}>
+                          <span className="font-medium">ID:</span> {selectedMeeting.obog_id}
+                        </p>
+                        <div className="mt-2 flex gap-2">
+                          <Link
+                            href={`/user/${selectedMeeting.obog_id}`}
+                            className="text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {t("admin.users.viewProfile") || "View Profile"}
+                          </Link>
+                          <Link
+                            href={`/messages/new?userId=${selectedMeeting.obog_id}`}
+                            className="text-xs px-2 py-1 rounded bg-purple-600 text-white hover:bg-purple-700"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {t("admin.users.message") || "Message"}
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <p className="text-sm font-medium mb-1" style={{ color: '#374151' }}>
                   {t("admin.meetings.reason") || "Flag Reason"}
                 </p>
                 <p className="text-sm" style={{ color: '#6B7280' }}>
-                  {selectedMeeting.review_reason}
+                  {selectedMeeting.review_reason || t("admin.meetings.noReason") || "No reason provided"}
                 </p>
               </div>
 
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: '#374151' }}>
-                  {t("meeting.dateTime") || "Date / Time"}
-                </p>
-                <p className="text-sm" style={{ color: '#6B7280' }}>
-                  {selectedMeeting.meeting_date_time || t("meeting.notSet") || "Not set"}
-                </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: '#374151' }}>
+                    {t("meeting.dateTime") || "Date / Time"}
+                  </p>
+                  <p className="text-sm" style={{ color: '#6B7280' }}>
+                    {selectedMeeting.meeting_date_time 
+                      ? new Date(selectedMeeting.meeting_date_time).toLocaleString() 
+                      : t("meeting.notSet") || "Not set"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: '#374151' }}>
+                    {t("admin.meetings.createdAt") || "Created At"}
+                  </p>
+                  <p className="text-sm" style={{ color: '#6B7280' }}>
+                    {new Date(selectedMeeting.created_at).toLocaleString()}
+                  </p>
+                </div>
               </div>
 
               <div>

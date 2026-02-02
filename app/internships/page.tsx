@@ -176,10 +176,10 @@ export default function InternshipPage() {
               >
                 <Link
                   href={`/internships/${internship.id}`}
-                  className="bg-white border rounded p-6 hover:shadow-md transition-all duration-200 block"
+                  className="bg-white border rounded p-6 hover:shadow-md transition-all duration-200 block h-full flex flex-col"
                   style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
                 >
-                <div className="flex items-start mb-4">
+                <div className="flex items-start mb-4 flex-shrink-0">
                   <CompanyLogo
                     src={internship.companyLogo}
                     alt={internship.companyName}
@@ -224,7 +224,10 @@ export default function InternshipPage() {
                   </div>
                 )}
 
-                <div className="text-sm" style={{ color: '#6B7280' }}>
+                {/* Spacer to push content to bottom */}
+                <div className="flex-grow" />
+                
+                <div className="text-sm mt-auto" style={{ color: '#6B7280' }}>
                   <p className="line-clamp-2">
                     {internship.whyThisCompanyKey ? t(internship.whyThisCompanyKey) : internship.whyThisCompany}
                   </p>

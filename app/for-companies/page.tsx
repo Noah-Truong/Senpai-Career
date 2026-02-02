@@ -86,8 +86,7 @@ export default function ForCompaniesPage() {
 
       {/* How It Works */}
       <motion.section
-        className="py-16"
-        className="bg-gradient-subtle"
+        className="py-16 bg-gradient-subtle"
         initial="initial"
         animate="animate"
         variants={fadeIn}

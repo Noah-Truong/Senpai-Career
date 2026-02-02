@@ -6,7 +6,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
-import Header from "@/components/Header";
+import { motion } from "framer-motion";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 
 interface Student {
   id: string;
@@ -156,27 +157,35 @@ export default function CompanyStudentsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-white">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-          <p className="text-base sm:text-lg">Loading...</p>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <p className="text-base sm:text-lg" style={{ color: '#6B7280' }}>{t("common.loading") || "Loading..."}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: '#000000' }}>{t("company.students.title")}</h1>
-          <p className="text-sm sm:text-base text-gray-600">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <motion.div 
+          className="mb-6 sm:mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <h2 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: '#111827' }}>
+            {t("company.students.title")}
+          </h2>
+          <p style={{ color: '#6B7280' }}>
             {t("company.students.subtitle")}
           </p>
-        </div>
+        </motion.div>
 
         {/* Filters Section */}
-        <div className="card-gradient p-4 sm:p-6 mb-6 sm:mb-8">
+        <motion.div 
+          className="card-gradient p-4 sm:p-6 mb-6 sm:mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.1 }}
+        >
           <h2 className="text-lg sm:text-xl font-semibold mb-4" style={{ color: '#000000' }}>{t("company.students.filters")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div>
@@ -274,7 +283,7 @@ export default function CompanyStudentsPage() {
               </button>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Work Hour Rule Note */}
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 sm:p-4 mb-6 sm:mb-8">
@@ -301,84 +310,111 @@ export default function CompanyStudentsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredStudents.map((student) => (
-              <div
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            {filteredStudents.map((student, index) => (
+              <motion.div
                 key={student.id}
-                className="card-gradient p-4 sm:p-6 hover:shadow-xl transition-all duration-300"
+                variants={staggerItem}
+                initial="initial"
+                animate="animate"
+                transition={{ delay: index * 0.05 }}
               >
-                <div className="flex items-start mb-4">
-                  <Avatar
-                    src={student.profilePhoto}
-                    alt={student.nickname || student.name}
-                    size="lg"
-                    fallbackText={student.nickname || student.name}
-                    className="mr-4 sm:mr-6 shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg font-semibold truncate">{student.nickname || student.name}</h3>
-                    <p className="text-sm text-gray-600 truncate">{student.university}</p>
-                    {student.year && (
-                      <p className="text-sm text-gray-600">Year {student.year}</p>
-                    )}
+                <Link
+                  href={`/user/${student.id}`}
+                  className="card-gradient p-4 sm:p-6 hover:shadow-xl transition-all duration-300 block h-full flex flex-col"
+                >
+                  <div className="flex items-start mb-4">
+                    <Avatar
+                      src={student.profilePhoto}
+                      alt={student.nickname || student.name}
+                      size="lg"
+                      fallbackText={student.nickname || student.name}
+                      className="mr-4 sm:mr-6 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-lg font-semibold truncate" style={{ color: '#111827' }}>
+                        {student.nickname || student.name}
+                      </h3>
+                      <p className="text-sm truncate" style={{ color: '#6B7280' }}>{student.university}</p>
+                      {student.year && (
+                        <p className="text-sm" style={{ color: '#6B7280' }}>
+                          {student.year === 1 ? t("form.year1") : 
+                           student.year === 2 ? t("form.year2") : 
+                           student.year === 3 ? t("form.year3") : 
+                           student.year === 4 ? t("form.year4") : t("form.graduate")}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="mb-4 space-y-2">
-                  {student.languages && student.languages.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900 mb-1">Languages:</p>
-                      <p className="text-sm text-gray-700">{student.languages.join(", ")}</p>
-                    </div>
-                  )}
                   
-                  {student.jlptLevel && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900 mb-1">JLPT Level:</p>
-                      <p className="text-sm text-gray-700">{student.jlptLevel}</p>
-                    </div>
-                  )}
-                  
-                  {student.interests && student.interests.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900 mb-1">Interests:</p>
-                      <p className="text-sm text-gray-700 line-clamp-2">{student.interests.join(", ")}</p>
-                    </div>
-                  )}
-                  
+                  {/* Skills */}
                   {student.skills && student.skills.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900 mb-1">Skills:</p>
+                    <div className="mb-3">
                       <div className="flex flex-wrap gap-2">
                         {student.skills.slice(0, 3).map((skill: string, idx: number) => (
-                          <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">
+                          <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs" style={{ color: '#374151' }}>
                             {skill}
                           </span>
                         ))}
+                        {student.skills.length > 3 && (
+                          <span className="px-2 py-1 bg-gray-100 rounded text-xs" style={{ color: '#6B7280' }}>
+                            +{student.skills.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Interests */}
+                  {student.interests && student.interests.length > 0 && (
+                    <div className="mb-3">
+                      <div className="flex flex-wrap gap-2">
+                        {student.interests.slice(0, 3).map((interest: string, idx: number) => (
+                          <span key={idx} className="px-2 py-1 bg-green-50 rounded text-xs" style={{ color: '#166534' }}>
+                            {interest}
+                          </span>
+                        ))}
+                        {student.interests.length > 3 && (
+                          <span className="px-2 py-1 bg-gray-100 rounded text-xs" style={{ color: '#6B7280' }}>
+                            +{student.interests.length - 3}
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}
                   
-                  {student.pastInternships && student.pastInternships.length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-900 mb-1">Experience:</p>
-                      <p className="text-sm text-gray-700 line-clamp-2">{student.pastInternships.join(", ")}</p>
-                    </div>
-                  )}
-                </div>
-
-                <Link
-                  href={`/messages/new?studentId=${student.id}`}
-                  className="btn-primary w-full inline-block text-center min-h-[44px] py-3 flex items-center justify-center rounded-md active:opacity-90"
-                >
-                  Send Message
+                  {/* Spacer to push footer content to bottom */}
+                  <div className="flex-grow" />
+                  
+                  {/* Additional Info */}
+                  <div className="text-sm space-y-1 mt-auto" style={{ color: '#6B7280' }}>
+                    {student.languages && student.languages.length > 0 && (
+                      <p className="truncate">
+                        <span className="font-medium">{t("studentList.card.languages") || "Languages:"}</span> {student.languages.slice(0, 2).join(", ")}{student.languages.length > 2 ? "..." : ""}
+                      </p>
+                    )}
+                    {student.jlptLevel && (
+                      <p>
+                        <span className="font-medium">JLPT:</span> {student.jlptLevel}
+                      </p>
+                    )}
+                    {student.desiredIndustry && (
+                      <p className="truncate">
+                        <span className="font-medium">{t("studentList.card.desiredIndustry") || "Interest:"}</span> {student.desiredIndustry}
+                      </p>
+                    )}
+                  </div>
                 </Link>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
-    </div>
   );
 }
 

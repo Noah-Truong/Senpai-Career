@@ -192,7 +192,7 @@ export default function OBVisitPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <>
       {/* Hero Section */}
       <motion.section 
         className="py-16" 
@@ -444,6 +444,6 @@ export default function OBVisitPage() {
         </div>
       )}
 
-    </div>
+    </>
   );
 }

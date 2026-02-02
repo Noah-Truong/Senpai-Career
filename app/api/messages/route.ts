@@ -60,13 +60,16 @@ export async function POST(request: NextRequest) {
     // Check if this is a Corporate OB message
     const isCorporateOBUser = await isCorporateOB(fromUserId);
     const isAdmin = fromUser.role === "admin";
+    const isStudent = fromUser.role === "student";
     
-    // For Corporate OB: use credits (20 credits per message)
-    // For Admin: unlimited messages (no credits or charges)
-    // For others: use credits (10 credits per message)
-    if (isAdmin) {
-      // Admin can send unlimited messages - skip credit check and deduction
-    } else {
+    // Credit costs per message:
+    // - Admin: FREE (unlimited messages)
+    // - Student: FREE (no credits required)
+    // - Corporate OB: 20 credits per message
+    // - Others (OB/OG, Company): 10 credits per message
+    const isFreeUser = isAdmin || isStudent;
+    
+    if (!isFreeUser) {
       // Determine credits cost based on user role
       const creditsCost = isCorporateOBUser ? 20 : 10;
       const currentCredits = fromUser.credits ?? 0;
@@ -144,11 +147,11 @@ export async function POST(request: NextRequest) {
       thread = await getOrCreateThread(fromUserId, actualToUserId);
     }
 
-    // Deduct credits for non-admin users BEFORE creating message
+    // Deduct credits for paid users BEFORE creating message
+    // Free users: Admin, Student (no credits deducted)
     // Corporate OB: 20 credits per message
-    // Others: 10 credits per message
-    // Admin can send unlimited messages - no credits or charges
-    if (!isAdmin) {
+    // Others (OB/OG, Company): 10 credits per message
+    if (!isFreeUser) {
       const creditsCost = isCorporateOBUser ? 20 : 10;
       const currentCredits = fromUser.credits ?? 0;
       const newCredits = currentCredits - creditsCost;
@@ -202,13 +205,17 @@ export async function POST(request: NextRequest) {
       console.error("Error sending message notification:", notifError);
     }
 
+    // Calculate credits info for response
+    const creditsCost = isFreeUser ? 0 : (isCorporateOBUser ? 20 : 10);
+    const remainingCredits = isFreeUser ? undefined : ((fromUser.credits ?? 0) - creditsCost);
+    
     return NextResponse.json(
       { 
         message,
         threadId: thread.id,
         success: true,
-        creditsDeducted: isAdmin ? 0 : (isCorporateOBUser ? 20 : 10),
-        remainingCredits: isAdmin ? undefined : ((fromUser.credits ?? 0) - (isCorporateOBUser ? 20 : 10)),
+        creditsDeducted: creditsCost,
+        remainingCredits,
       },
       { status: 201 }
     );

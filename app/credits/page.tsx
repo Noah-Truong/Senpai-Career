@@ -32,6 +32,8 @@ export default function CreditsPage() {
       loadUserCredits();
 
       const success = searchParams.get("success");
+      const canceled = searchParams.get("canceled");
+      
       if (success) {
         // Load credits first, then refresh sidebar, then clean up URL
         loadUserCredits();
@@ -41,6 +43,14 @@ export default function CreditsPage() {
         const timer = setTimeout(() => {
           router.replace("/credits");
         }, 1000);
+        return () => clearTimeout(timer);
+      }
+      
+      if (canceled) {
+        // User canceled or clicked back - clean up URL after a brief moment
+        const timer = setTimeout(() => {
+          router.replace("/credits");
+        }, 2000);
         return () => clearTimeout(timer);
       }
     }

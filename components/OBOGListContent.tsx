@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslated } from "@/lib/translation-helpers";
 import Avatar from "./Avatar";
+import Pagination from "./Pagination";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
 
@@ -34,6 +35,8 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
   const [languageFilter, setLanguageFilter] = useState<string[]>([]);
   const [industryFilter, setIndustryFilter] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
 
   const universities = Array.from(new Set(obogUsers.map((o) => o.university).filter(Boolean))) as string[];
   universities.sort();
@@ -72,6 +75,18 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
     return matchesSearch && matchesType && matchesUniversity && matchesLanguage && matchesIndustry;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredUsers, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = () => {
+    setCurrentPage(1);
+  };
+
   return (
     <>
       <motion.div 
@@ -102,7 +117,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 placeholder={t("obogList.searchPlaceholder") || "Search by name, company, university, topics..."}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                 style={{ color: '#000000' }}
@@ -116,7 +131,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
             animate="animate"
           >
             <motion.button
-              onClick={() => setTypeFilter("all")}
+              onClick={() => { setTypeFilter("all"); setCurrentPage(1); }}
               className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                 typeFilter === "all" 
                   ? "bg-pink-500 text-white" 
@@ -129,7 +144,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
               {t("obogList.filter.all") || "All"}
             </motion.button>
             <motion.button
-              onClick={() => setTypeFilter("working-professional")}
+              onClick={() => { setTypeFilter("working-professional"); setCurrentPage(1); }}
               className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                 typeFilter === "working-professional"
                   ? "text-white"
@@ -145,7 +160,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
               {t("obogList.filter.professional") || "Professionals"}
             </motion.button>
             <motion.button
-              onClick={() => setTypeFilter("job-offer-holder")}
+              onClick={() => { setTypeFilter("job-offer-holder"); setCurrentPage(1); }}
               className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                 typeFilter === "job-offer-holder" 
                   ? "bg-green-500 text-white" 
@@ -165,7 +180,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
               </label>
               <select
                 value={universityFilter}
-                onChange={(e) => setUniversityFilter(e.target.value)}
+                onChange={(e) => { setUniversityFilter(e.target.value); setCurrentPage(1); }}
                 className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm min-w-0 max-w-[150px] sm:max-w-none"
                 style={{ color: "#111827" }}
               >
@@ -230,6 +245,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
                           } else {
                             setLanguageFilter(languageFilter.filter(l => l !== lang));
                           }
+                          setCurrentPage(1);
                         }}
                         className="w-4 h-4"
                       />
@@ -256,6 +272,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
                           } else {
                             setIndustryFilter(industryFilter.filter(c => c !== company));
                           }
+                          setCurrentPage(1);
                         }}
                         className="w-4 h-4"
                       />
@@ -283,15 +300,75 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
           </motion.div>
         )}
 
-        {(searchTerm || languageFilter.length > 0 || industryFilter.length > 0) && (
-          <motion.p 
-            className="mt-2 text-sm text-gray-500"
+        {/* Active Filters Indicator */}
+        {(searchTerm || typeFilter !== "all" || universityFilter !== "all" || languageFilter.length > 0 || industryFilter.length > 0) && (
+          <motion.div 
+            className="mt-3 flex flex-wrap items-center gap-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            {filteredUsers.length} {t("obogList.resultsFound") || "results found"}
-          </motion.p>
+            <span className="text-sm font-medium" style={{ color: '#6B7280' }}>
+              {filteredUsers.length} {t("obogList.resultsFound") || "results found"}
+            </span>
+            <span className="text-gray-300">|</span>
+            <span className="text-xs" style={{ color: '#9CA3AF' }}>{t("filter.activeFilters") || "Active filters:"}</span>
+            
+            {searchTerm && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                &quot;{searchTerm}&quot;
+                <button onClick={() => { setSearchTerm(""); setCurrentPage(1); }} className="hover:text-blue-600" aria-label="Remove filter">×</button>
+              </span>
+            )}
+            {typeFilter !== "all" && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                {typeFilter === "working-professional" ? t("obogList.card.workingProfessional") : t("obogList.card.jobOfferHolder")}
+                <button onClick={() => { setTypeFilter("all"); setCurrentPage(1); }} className="hover:text-purple-600" aria-label="Remove filter">×</button>
+              </span>
+            )}
+            {universityFilter !== "all" && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs">
+                {universityFilter}
+                <button onClick={() => { setUniversityFilter("all"); setCurrentPage(1); }} className="hover:text-indigo-600" aria-label="Remove filter">×</button>
+              </span>
+            )}
+            {languageFilter.map((lang) => (
+              <span key={lang} className="inline-flex items-center gap-1 px-2 py-1 bg-teal-100 text-teal-800 rounded-full text-xs">
+                {lang}
+                <button 
+                  onClick={() => { setLanguageFilter(languageFilter.filter(l => l !== lang)); setCurrentPage(1); }} 
+                  className="hover:text-teal-600" 
+                  aria-label="Remove filter"
+                >×</button>
+              </span>
+            ))}
+            {industryFilter.map((ind) => (
+              <span key={ind} className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs">
+                {ind}
+                <button 
+                  onClick={() => { setIndustryFilter(industryFilter.filter(i => i !== ind)); setCurrentPage(1); }} 
+                  className="hover:text-amber-600" 
+                  aria-label="Remove filter"
+                >×</button>
+              </span>
+            ))}
+            
+            {/* Clear All Filters */}
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setTypeFilter("all");
+                setUniversityFilter("all");
+                setLanguageFilter([]);
+                setIndustryFilter([]);
+                setCurrentPage(1);
+              }}
+              className="text-xs font-medium hover:underline"
+              style={{ color: '#DC2626' }}
+            >
+              {t("filter.clearAll") || "Clear all"}
+            </button>
+          </motion.div>
         )}
       </motion.div>
 
@@ -301,13 +378,14 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
           <p className="text-gray-500 mt-2">{searchTerm ? (t("obogList.tryDifferent") || "Try a different search term or filter.") : t("obogList.empty.desc")}</p>
         </div>
       ) : (
+        <>
         <motion.div 
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
           variants={staggerContainer}
           initial="initial"
           animate="animate"
         >
-          {filteredUsers.map((obog, index) => (
+          {paginatedUsers.map((obog, index) => (
             <motion.div
               key={obog.id}
               variants={staggerItem}
@@ -317,7 +395,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
             >
               <Link 
                 href={`/obog/${obog.id}`}
-                className="card-gradient p-6 hover:shadow-xl transition-all duration-300 block"
+                className="card-gradient p-6 hover:shadow-xl transition-all duration-300 block h-full flex flex-col"
               >
               <div className="flex items-start mb-4">
                 <Avatar 
@@ -343,7 +421,7 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
                 </div>
               </div>
               
-              <div className="mb-4">
+              <div className="mb-4 flex-shrink-0">
                 <p className="text-sm text-gray-700 mb-3 line-clamp-2">{obog.oneLineMessage ? getTranslated(obog.oneLineMessage, language) : ""}</p>
                 {obog.topics && obog.topics.length > 0 && (
                   <div className="flex flex-wrap gap-2">
@@ -361,7 +439,10 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
                 )}
               </div>
               
-              <div className="text-sm text-gray-600 space-y-1">
+              {/* Spacer to push footer content to bottom */}
+              <div className="flex-grow" />
+              
+              <div className="text-sm text-gray-600 space-y-1 mt-auto">
                 {obog.languages && obog.languages.length > 0 && (
                   <p className="truncate">{t("obogList.card.languages")} {obog.languages.slice(0, 2).join(", ")}{obog.languages.length > 2 ? "..." : ""}</p>
                 )}
@@ -373,6 +454,21 @@ export default function OBOGListContent({ obogUsers }: OBOGListContentProps) {
             </motion.div>
           ))}
         </motion.div>
+        
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredUsers.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(newItemsPerPage) => {
+            setItemsPerPage(newItemsPerPage);
+            setCurrentPage(1);
+          }}
+          itemsPerPageOptions={[12, 24, 48, 96]}
+        />
+        </>
       )}
     </>
   );
