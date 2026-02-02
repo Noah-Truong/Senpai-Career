@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "@/contexts/AuthContext";
+import { useSession, useAuth } from "@/contexts/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getTranslated } from "@/lib/translation-helpers";
@@ -21,6 +21,7 @@ const topicOptions = ["Career Change", "Job Search Strategy", "Interview Prepara
 export default function ProfilePage() {
   const { t, language } = useLanguage();
   const { data: session, status } = useSession();
+  const { refreshUser } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -249,7 +250,26 @@ export default function ProfilePage() {
       }
 
       const data = await response.json();
-      setFormData((prevFormData: any) => ({ ...prevFormData, [fieldName]: data.url }));
+      const newUrl = data.url;
+      
+      // Update both local states (formData for edit mode, user for view mode)
+      setFormData((prevFormData: any) => ({ ...prevFormData, [fieldName]: newUrl }));
+      setUser((prevUser: any) => ({ ...prevUser, [fieldName]: newUrl }));
+      
+      // Auto-save to database immediately
+      const saveResponse = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [fieldName]: newUrl }),
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error("Failed to save photo to profile");
+      }
+
+      // Refresh the auth session to update sidebar avatar
+      await refreshUser();
+
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
     } catch (err: any) {
@@ -443,10 +463,11 @@ export default function ProfilePage() {
             {/* Profile Header */}
             <div className="flex items-start mb-6">
               <Avatar 
-                src={user.profilePhoto} 
-                alt={user.nickname || user.name || "Profile"} 
+                key={user.role === 'company' ? (user.logo || 'no-logo-view') : (user.profilePhoto || 'no-photo-view')}
+                src={user.role === 'company' ? user.logo : user.profilePhoto} 
+                alt={user.nickname || user.name || user.companyName || "Profile"} 
                 size="xl"
-                fallbackText={user.nickname || user.name}
+                fallbackText={user.nickname || user.name || user.companyName}
                 className="mr-8"
               />
               <div className="flex-1">
@@ -671,18 +692,20 @@ export default function ProfilePage() {
         {/* Edit Form Section */}
         {activeTab === "profile" && isEditing && (
           <form onSubmit={handleSubmit} className="card-gradient p-8 space-y-6">
-          {/* Profile Picture */}
+          {/* Profile Picture - Only for non-company users */}
+          {!isCompany && (
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("profile.profilePicture")}</h3>
             <div className="flex items-center gap-8 mb-4">
               <Avatar 
+                key={formData.profilePhoto || 'no-photo'}
                 src={formData.profilePhoto} 
                 alt={formData.name || "Profile"} 
                 size="xl"
                 fallbackText={formData.nickname || formData.name}
               />
               <div className="flex-1">
-                <label htmlFor="profilePhoto" className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("profile.profilePicture")}
                 </label>
                 <input
@@ -692,16 +715,68 @@ export default function ProfilePage() {
                   accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                   onChange={(e) => handleFileUpload(e, "profilePhoto")}
                   disabled={uploadingPhoto}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  style={{ color: '#000000' }}
+                  className="hidden"
                 />
+                <label
+                  htmlFor="profilePhoto"
+                  className={`inline-block px-4 py-2 text-sm font-semibold rounded-md cursor-pointer transition-colors ${uploadingPhoto ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  style={{ backgroundColor: '#E5E7EB', color: '#374151' }}
+                  onMouseEnter={(e) => !uploadingPhoto && (e.currentTarget.style.backgroundColor = '#D1D5DB')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#E5E7EB')}
+                >
+                  {t("form.choosePhoto")}
+                </label>
                 {uploadingPhoto && (
-                  <p className="text-xs text-blue-600 mt-1">{t("common.uploading") || "Uploading..."}</p>
+                  <p className="text-xs text-blue-600 mt-1">{t("common.uploading")}</p>
                 )}
-                <p className="text-xs text-gray-500 mt-1">{t("profile.profilePictureHint") || "Upload a JPEG, PNG, GIF, or WebP image (max 5MB)"}</p>
+                <p className="text-xs text-gray-500 mt-1">{t("profile.profilePictureHint")}</p>
               </div>
             </div>
           </div>
+          )}
+          
+          {/* Company Logo - Only for company users (shown at top for consistency) */}
+          {isCompany && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("form.companyLogo")}</h3>
+            <div className="flex items-center gap-8 mb-4">
+              <Avatar 
+                key={formData.logo || 'no-logo'}
+                src={formData.logo} 
+                alt={formData.companyName || "Company"} 
+                size="xl"
+                fallbackText={formData.companyName}
+              />
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("form.companyLogo")}
+                </label>
+                <input
+                  type="file"
+                  id="companyLogo"
+                  name="logo"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  onChange={(e) => handleFileUpload(e, "logo")}
+                  disabled={uploadingLogo}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="companyLogo"
+                  className={`inline-block px-4 py-2 text-sm font-semibold rounded-md cursor-pointer transition-colors ${uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  style={{ backgroundColor: '#E5E7EB', color: '#374151' }}
+                  onMouseEnter={(e) => !uploadingLogo && (e.currentTarget.style.backgroundColor = '#D1D5DB')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#E5E7EB')}
+                >
+                  {t("button.chooseFile")}
+                </label>
+                {uploadingLogo && (
+                  <p className="text-xs text-blue-600 mt-1">{t("common.uploading")}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">{t("form.companyLogoHint")}</p>
+              </div>
+            </div>
+          </div>
+          )}
 
           {/* Account Info (Read-only) */}
           <div>
@@ -1060,35 +1135,6 @@ export default function ProfilePage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       style={{ color: '#000000' }}
                     />
-                  </div>
-
-                  <div>
-                    <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-1">
-                      {t("form.companyLogo")}
-                    </label>
-                    {formData.logo && (
-                      <div className="mb-2">
-                        <img 
-                          src={formData.logo} 
-                          alt={formData.companyName || "Company Logo"} 
-                          className="w-24 h-24 object-contain rounded border border-gray-300"
-                        />
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      id="logo"
-                      name="logo"
-                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                      onChange={(e) => handleFileUpload(e, "logo")}
-                      disabled={uploadingLogo}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      style={{ color: '#000000' }}
-                    />
-                    {uploadingLogo && (
-                      <p className="text-xs text-blue-600 mt-1">{t("common.uploading") || "Uploading..."}</p>
-                    )}
-                    <p className="text-xs text-gray-500 mt-1">{t("form.companyLogoHint") || "Upload a JPEG, PNG, GIF, or WebP image (max 5MB)"}</p>
                   </div>
                 </>
               )}

@@ -268,14 +268,27 @@ export default function RecruitingDetailPage() {
 
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t("application.resume") || "Resume (Optional)"}
+                        {t("application.resume")}
                       </label>
                       <input
                         type="file"
+                        id="resume-upload"
                         onChange={handleFileChange}
                         accept=".pdf,.doc,.docx"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="hidden"
                       />
+                      <label
+                        htmlFor="resume-upload"
+                        className="inline-block px-4 py-2 text-sm font-semibold rounded-md cursor-pointer transition-colors"
+                        style={{ backgroundColor: '#E5E7EB', color: '#374151' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#D1D5DB')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#E5E7EB')}
+                      >
+                        {t("button.chooseFile")}
+                      </label>
+                      {resumeFile && (
+                        <span className="ml-2 text-sm text-gray-600">{resumeFile.name}</span>
+                      )}
                     </div>
 
                     <div className="flex gap-2">

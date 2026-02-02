@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "@/contexts/AuthContext";
+import { useSession, useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Avatar from "@/components/Avatar";
@@ -17,6 +17,7 @@ const skillOptions = ["Programming", "Data Analysis", "Project Management", "Des
 export default function StudentProfilePage() {
   const { t, language } = useLanguage();
   const { data: session, status } = useSession();
+  const { refreshUser } = useAuth();
   const router = useRouter();
   const supabase = createClient();
 
@@ -176,7 +177,26 @@ export default function StudentProfilePage() {
       }
 
       const data = await response.json();
-      setFormData((prevFormData: any) => ({ ...prevFormData, [fieldName]: data.url }));
+      const newUrl = data.url;
+      
+      // Update both local states (formData and user)
+      setFormData((prevFormData: any) => ({ ...prevFormData, [fieldName]: newUrl }));
+      setUser((prevUser: any) => ({ ...prevUser, [fieldName]: newUrl }));
+      
+      // Auto-save to database immediately
+      const saveResponse = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [fieldName]: newUrl }),
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error("Failed to save photo to profile");
+      }
+
+      // Refresh the auth session to update sidebar avatar
+      await refreshUser();
+
       setSuccess("Photo uploaded successfully!");
       setTimeout(() => setSuccess(""), 2000);
     } catch (err: any) {

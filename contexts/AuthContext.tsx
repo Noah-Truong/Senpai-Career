@@ -54,12 +54,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const data = JSON.parse(text);
             const userData = data.user || data;
             if (userData) {
+              // For companies, use logo as profilePhoto; for others use profilePhoto
+              const photoField = userData.role === 'company' ? userData.logo : userData.profilePhoto;
               const newUser = {
                 id: userData.id,
                 email: userData.email || supabaseUser.email || "",
                 name: userData.name || supabaseUser.user_metadata?.name || supabaseUser.email?.split("@")[0] || "User",
                 role: userData.role || supabaseUser.user_metadata?.role || "student",
-                profilePhoto: userData.profilePhoto,
+                profilePhoto: photoField,
               };
               // Only update state if user data actually changed
               setUser(prev => {

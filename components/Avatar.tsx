@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { avatarVariants } from "@/lib/animations";
 
@@ -18,6 +19,9 @@ export default function Avatar({
   className = "",
   fallbackText 
 }: AvatarProps) {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   // Size classes
   const sizeClasses = {
     sm: "w-8 h-8 text-sm",
@@ -56,6 +60,9 @@ export default function Avatar({
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   };
 
+  // Check if src is valid (not empty, not undefined, not null)
+  const hasValidSrc = src && src.trim() !== "" && !imageError;
+
   return (
     <motion.div 
       className={`${sizeClasses[size]} rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden ${className}`}
@@ -65,24 +72,28 @@ export default function Avatar({
       whileHover={{ scale: 1.1 }}
       transition={{ type: "spring", stiffness: 200, damping: 15 }}
     >
-      {src ? (
+      {hasValidSrc ? (
         <motion.img 
           src={src} 
           alt={alt} 
           className="w-full h-full rounded-full object-cover"
+          onLoad={() => setImageLoaded(true)}
           onError={(e) => {
-            // Fallback to placeholder if image fails to load
-            const target = e.target as HTMLImageElement;
-            target.src = placeholderSvg(getInitial());
+            console.error("Avatar image failed to load:", src);
+            setImageError(true);
           }}
+          style={{ display: imageLoaded ? 'block' : 'none' }}
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.2 }}
         />
-      ) : (
+      ) : null}
+      {/* Show placeholder while loading or on error */}
+      {(!hasValidSrc || !imageLoaded) && (
         <motion.img 
           src={placeholderSvg(getInitial())} 
           alt={alt}
           className="w-full h-full rounded-full object-cover"
+          style={{ display: hasValidSrc && imageLoaded ? 'none' : 'block' }}
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.2 }}
         />

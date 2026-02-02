@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +44,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    // Use admin client for storage operations (bypasses RLS)
+    // User authentication is already verified via auth() above
+    const supabase = createAdminClient();
 
     // Generate unique filename
     const timestamp = Date.now();
@@ -75,13 +77,13 @@ export async function POST(request: NextRequest) {
       .from(bucket)
       .upload(filePath, buffer, {
         contentType: file.type,
-        upsert: false,
+        upsert: true, // Allow overwriting existing files
       });
 
     if (error) {
       console.error("Supabase storage upload error:", error);
       return NextResponse.json(
-        { error: "Failed to upload file to storage" },
+        { error: `Failed to upload file: ${error.message}` },
         { status: 500 }
       );
     }
@@ -102,7 +104,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("File upload error:", error);
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      { error: error.message || "Failed to upload file" },
       { status: 500 }
     );
   }

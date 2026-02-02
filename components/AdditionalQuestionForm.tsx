@@ -254,19 +254,29 @@ export default function AdditionalQuestionForm({
                     </label>
                     <input
                       type="file"
+                      id="screenshot-upload"
                       accept="image/*"
                       onChange={handleScreenshotUpload}
                       disabled={uploadingScreenshot}
-                      className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"
+                      className="hidden"
                     />
+                    <label
+                      htmlFor="screenshot-upload"
+                      className={`inline-block px-3 py-1.5 text-sm font-semibold rounded-md cursor-pointer transition-colors ${uploadingScreenshot ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      style={{ backgroundColor: '#E5E7EB', color: '#374151' }}
+                      onMouseEnter={(e) => !uploadingScreenshot && (e.currentTarget.style.backgroundColor = '#D1D5DB')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#E5E7EB')}
+                    >
+                      {t("button.chooseFile")}
+                    </label>
                     {uploadingScreenshot && (
                       <p className="text-xs mt-1" style={{ color: '#78350F' }}>
-                        {t("common.uploading") || "Uploading..."}
+                        {t("common.uploading")}
                       </p>
                     )}
                     {evidenceScreenshot && (
                       <p className="text-xs mt-1 text-green-700">
-                        ✓ {t("meeting.additionalQuestion.uploaded") || "Uploaded"}
+                        ✓ {t("meeting.additionalQuestion.uploaded")}
                       </p>
                     )}
                   </div>
