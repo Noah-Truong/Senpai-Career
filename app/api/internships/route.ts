@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate compensation_type enum values (hourly, monthly, project, other)
-    const validCompensationTypes = ["hourly", "monthly", "project", "other"];
+    // Validate compensation_type enum values (hourly, fixed, monthly, project, other)
+    const validCompensationTypes = ["hourly", "fixed", "monthly", "project", "other"];
     if (!validCompensationTypes.includes(compensationType)) {
       return NextResponse.json(
         { error: `Invalid compensationType. Must be one of: ${validCompensationTypes.join(", ")}` },
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate compensation amount for hourly/fixed
+    // Map legacy/alternate names: monthly -> fixed, project -> other
     const mappedComp = compensationType === "monthly" ? "fixed" : compensationType === "project" ? "other" : compensationType;
     if (mappedComp === "hourly" && (hourlyWage === undefined || hourlyWage === null || hourlyWage === "")) {
       return NextResponse.json(
