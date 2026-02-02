@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { getUserById, updateUser } from "@/lib/users";
-import { createMultilingualContent } from "@/lib/translate";
 
 // GET - Fetch current company's profile
 export async function GET(request: NextRequest) {
@@ -82,27 +81,6 @@ export async function PUT(request: NextRequest) {
         { error: "Company name is required" },
         { status: 400 }
       );
-    }
-
-    // Translate multilingual fields if they are plain strings
-    const multilingualFields = [
-      'overview',
-      'internshipDetails',
-      'newGradDetails',
-      'idealCandidate',
-      'sellingPoints',
-      'oneLineMessage'
-    ];
-
-    for (const field of multilingualFields) {
-      if (allowedUpdates[field] && typeof allowedUpdates[field] === 'string' && allowedUpdates[field].trim()) {
-        try {
-          allowedUpdates[field] = await createMultilingualContent(allowedUpdates[field]);
-        } catch (error) {
-          console.error(`Translation error for ${field}:`, error);
-          // Continue with plain string if translation fails
-        }
-      }
     }
 
     // Update company profile

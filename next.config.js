@@ -31,6 +31,11 @@ const nextConfig = {
     },
   },
   
+  // Turbopack configuration
+  turbopack: {
+    root: __dirname,
+  },
+  
   // Experimental features for better performance
   experimental: {
     // Optimize package imports for tree-shaking

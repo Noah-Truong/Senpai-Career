@@ -4,6 +4,7 @@ import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslated } from "@/lib/translation-helpers";
 import Link from "next/link";
 import CompanyLogo from "@/components/CompanyLogo";
 import Avatar from "@/components/Avatar";
@@ -16,7 +17,7 @@ interface HistoryItem {
 }
 
 export default function BrowsingHistoryPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -267,7 +268,7 @@ export default function BrowsingHistoryPage() {
                       </div>
                       {item.item_type === "company" && (itemData.overview || itemData.oneLineMessage) && (
                         <p className="text-sm text-gray-600 line-clamp-2">
-                          {itemData.overview || itemData.oneLineMessage}
+                          {getTranslated(itemData.overview || itemData.oneLineMessage, language)}
                         </p>
                       )}
                       {item.item_type === "company" && itemData.industry && (
@@ -277,12 +278,12 @@ export default function BrowsingHistoryPage() {
                       )}
                       {item.item_type === "recruitment" && itemData.workDetails && (
                         <p className="text-sm text-gray-600 line-clamp-2">
-                          {itemData.workDetails}
+                          {getTranslated(itemData.workDetails, language)}
                         </p>
                       )}
                       {item.item_type === "obog" && itemData.oneLineMessage && (
                         <p className="text-sm text-gray-600 line-clamp-2">
-                          {itemData.oneLineMessage}
+                          {getTranslated(itemData.oneLineMessage, language)}
                         </p>
                       )}
                     </div>

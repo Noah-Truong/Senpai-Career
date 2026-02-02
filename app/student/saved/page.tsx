@@ -4,6 +4,7 @@ import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getTranslated } from "@/lib/translation-helpers";
 import Link from "next/link";
 import CompanyLogo from "@/components/CompanyLogo";
 import SaveButton from "@/components/SaveButton";
@@ -16,7 +17,7 @@ interface SavedItem {
 }
 
 export default function SavedItemsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
@@ -178,7 +179,7 @@ export default function SavedItemsPage() {
                         </h3>
                         {company.oneLineMessage && (
                           <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                            {company.oneLineMessage}
+                            {getTranslated(company.oneLineMessage, language)}
                           </p>
                         )}
                         <Link
@@ -231,7 +232,7 @@ export default function SavedItemsPage() {
                         </p>
                         {recruitment.workDetails && (
                           <p className="text-sm text-gray-700 mb-4 line-clamp-2">
-                            {recruitment.workDetails}
+                            {getTranslated(recruitment.workDetails, language)}
                           </p>
                         )}
                         <Link
