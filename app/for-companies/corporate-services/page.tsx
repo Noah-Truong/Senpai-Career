@@ -73,7 +73,8 @@ export default function ForCompaniesPage() {
 
       {/* How It Works */}
       <motion.section
-        className="py-16 bg-gradient-subtle"
+        className="py-16"
+        style={{background: '#D7FFEF'}}
         initial="initial"
         animate="animate"
         variants={fadeIn}
@@ -91,22 +92,28 @@ export default function ForCompaniesPage() {
             initial="initial"
             animate="animate"
           >
-            {[1, 2, 3, 4].map((step) => (
-              <div 
-                key={step}
-                className="flex items-start"
-              >
-                <span 
-                  className="flex-shrink-0 w-10 h-10 bg-[#0F2A44] text-white rounded-full flex items-center justify-center font-bold mr-4"
-                >
-                  {step}
-                </span>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2" style={{ color: '#000000' }}>{t(`companies.howItWorks.${step}.title`)}</h3>
-                  <p className="text-gray-700">
-                    {t(`companies.howItWorks.${step}.desc`)}
-                  </p>
+            {[1, 2, 3, 4].map((step, index, arr) => (
+              <div key={step}>
+                <div className="flex items-start">
+                  <span 
+                    className="flex-shrink-0 w-10 h-10 bg-[#0F2A44] text-white rounded-full flex items-center justify-center font-bold mr-4"
+                  >
+                    {step}
+                  </span>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2" style={{ color: '#000000' }}>{t(`companies.howItWorks.${step}.title`)}</h3>
+                    <p className="text-gray-700">
+                      {t(`companies.howItWorks.${step}.desc`)}
+                    </p>
+                  </div>
                 </div>
+                {index < arr.length - 1 && (
+                  <div className="flex justify-center py-4">
+                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                  </div>
+                )}
               </div>
             ))}
           </motion.div>
