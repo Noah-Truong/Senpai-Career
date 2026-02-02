@@ -272,12 +272,12 @@ export default function CompaniesPage() {
                         <span className="font-semibold" style={{ color: '#374151' }}>{t("companies.workLocation") || "Location"}:</span> {company.workLocation}
                       </p>
                     )}
-                    {company.hourlyWage && (
+                    {(company.hourlyWage !== undefined && company.hourlyWage !== null) && (
                       <p className="text-sm" style={{ color: '#6B7280' }}>
-                        <span className="font-semibold" style={{ color: '#374151' }}>{t("companies.hourlyWage") || "Hourly Wage"}:</span> ¥{company.hourlyWage.toLocaleString()}
+                        <span className="font-semibold" style={{ color: '#374151' }}>{t("companies.hourlyWage") || "Hourly Wage"}:</span> ¥{Number(company.hourlyWage).toLocaleString()}
                       </p>
                     )}
-                    {company.weeklyHours && (
+                    {(company.weeklyHours !== undefined && company.weeklyHours !== null) && (
                       <p className="text-sm" style={{ color: '#6B7280' }}>
                         <span className="font-semibold" style={{ color: '#374151' }}>{t("companies.weeklyHours") || "Weekly Hours"}:</span> {company.weeklyHours}
                       </p>

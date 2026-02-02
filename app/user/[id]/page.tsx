@@ -446,22 +446,22 @@ export default function PublicProfilePage() {
                     <p className="text-gray-700">{user.workLocation}</p>
                   </div>
                 )}
-                {(user.hourlyWage || user.weeklyHours) && (
+                {(user.hourlyWage !== undefined && user.hourlyWage !== null) || (user.weeklyHours !== undefined && user.weeklyHours !== null) ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {user.hourlyWage && (
+                    {(user.hourlyWage !== undefined && user.hourlyWage !== null) && (
                       <div>
                         <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("companies.hourlyWage")}</h3>
-                        <p className="text-gray-700">¥{user.hourlyWage.toLocaleString()}/hr</p>
+                        <p className="text-gray-700">¥{Number(user.hourlyWage).toLocaleString()}/hr</p>
                       </div>
                     )}
-                    {user.weeklyHours && (
+                    {(user.weeklyHours !== undefined && user.weeklyHours !== null) && (
                       <div>
                         <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("companies.weeklyHours")}</h3>
                         <p className="text-gray-700">{user.weeklyHours} hrs/week</p>
                       </div>
                     )}
                   </div>
-                )}
+                ) : null}
                 {user.sellingPoints && (
                   <div>
                     <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("companies.sellingPoints")}</h3>

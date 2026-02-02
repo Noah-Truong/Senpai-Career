@@ -673,6 +673,18 @@ export default function ProfilePage() {
                       <p className="text-gray-700">{user.contactName}</p>
                     </div>
                   )}
+                  {(user.hourlyWage !== undefined && user.hourlyWage !== null) && (
+                    <div>
+                      <h3 className="font-semibold mb-2 text-gray-900">{t("companies.hourlyWage")}</h3>
+                      <p className="text-gray-700">¥{Number(user.hourlyWage).toLocaleString()}/hr</p>
+                    </div>
+                  )}
+                  {(user.weeklyHours !== undefined && user.weeklyHours !== null) && (
+                    <div>
+                      <h3 className="font-semibold mb-2 text-gray-900">{t("companies.weeklyHours")}</h3>
+                      <p className="text-gray-700">{user.weeklyHours} hrs/week</p>
+                    </div>
+                  )}
                   {user.logo && (
                     <div>
                       <h3 className="font-semibold mb-2 text-gray-900">{t("form.companyLogo")}</h3>

@@ -106,6 +106,8 @@ CREATE TABLE IF NOT EXISTS internships (
   company_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   compensation_type compensation_type,
+  hourly_wage INTEGER,
+  fixed_salary INTEGER,
   other_compensation TEXT,
   work_details TEXT,
   skills_gained TEXT[] DEFAULT '{}',

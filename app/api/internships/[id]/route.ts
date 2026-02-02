@@ -89,13 +89,13 @@ export async function PUT(
     }
 
     // Validate compensation data based on type
-    if (compensationType === "hourly" && !hourlyWage) {
+    if (compensationType === "hourly" && (hourlyWage === undefined || hourlyWage === null || hourlyWage === "")) {
       return NextResponse.json(
         { error: "Hourly wage is required for hourly compensation type" },
         { status: 400 }
       );
     }
-    if (compensationType === "fixed" && !fixedSalary) {
+    if (compensationType === "fixed" && (fixedSalary === undefined || fixedSalary === null || fixedSalary === "")) {
       return NextResponse.json(
         { error: "Fixed salary is required for fixed compensation type" },
         { status: 400 }
@@ -129,17 +129,21 @@ export async function PUT(
     }
 
     if (compensationType === "hourly") {
-      updateData.hourlyWage = parseFloat(hourlyWage);
-      updateData.fixedSalary = undefined;
-      updateData.otherCompensation = undefined;
+      updateData.hourlyWage = hourlyWage !== "" && hourlyWage !== undefined && hourlyWage !== null
+        ? Math.round(Number(hourlyWage))
+        : undefined;
+      updateData.fixedSalary = null;
+      updateData.otherCompensation = otherCompensation ?? null;
     } else if (compensationType === "fixed") {
-      updateData.fixedSalary = parseFloat(fixedSalary);
-      updateData.hourlyWage = undefined;
-      updateData.otherCompensation = undefined;
+      updateData.fixedSalary = fixedSalary !== "" && fixedSalary !== undefined && fixedSalary !== null
+        ? Math.round(Number(fixedSalary))
+        : undefined;
+      updateData.hourlyWage = null;
+      updateData.otherCompensation = otherCompensation ?? null;
     } else if (compensationType === "other") {
-      updateData.otherCompensation = otherCompensation;
-      updateData.hourlyWage = undefined;
-      updateData.fixedSalary = undefined;
+      updateData.otherCompensation = otherCompensation ?? null;
+      updateData.hourlyWage = null;
+      updateData.fixedSalary = null;
     }
 
     const { id } = await params;

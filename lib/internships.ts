@@ -12,6 +12,8 @@ function transformInternship(row: any): InternshipListingData {
     companyId: row.company_id,
     title: row.title,
     compensationType: row.compensation_type,
+    hourlyWage: row.hourly_wage != null ? Number(row.hourly_wage) : undefined,
+    fixedSalary: row.fixed_salary != null ? Number(row.fixed_salary) : undefined,
     otherCompensation: row.other_compensation,
     workDetails: row.work_details,
     skillsGained: row.skills_gained || [],
@@ -49,20 +51,27 @@ export const saveInternship = async (
   const supabase = await createClient();
   const internshipId = `internship_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+  const insertData: any = {
+    id: internshipId,
+    company_id: internshipData.companyId,
+    title: internshipData.title,
+    compensation_type: internshipData.compensationType,
+    other_compensation: internshipData.otherCompensation,
+    work_details: internshipData.workDetails,
+    skills_gained: internshipData.skillsGained || [],
+    why_this_company: internshipData.whyThisCompany,
+    type: internshipData.type,
+    status: internshipData.status || "public",
+  };
+  if ((internshipData as any).hourlyWage !== undefined && (internshipData as any).hourlyWage !== null) {
+    insertData.hourly_wage = Math.round(Number((internshipData as any).hourlyWage));
+  }
+  if ((internshipData as any).fixedSalary !== undefined && (internshipData as any).fixedSalary !== null) {
+    insertData.fixed_salary = Math.round(Number((internshipData as any).fixedSalary));
+  }
   const { data, error } = await supabase
     .from("internships")
-    .insert({
-      id: internshipId,
-      company_id: internshipData.companyId,
-      title: internshipData.title,
-      compensation_type: internshipData.compensationType,
-      other_compensation: internshipData.otherCompensation,
-      work_details: internshipData.workDetails,
-      skills_gained: internshipData.skillsGained || [],
-      why_this_company: internshipData.whyThisCompany,
-      type: internshipData.type,
-      status: internshipData.status || "public",
-    })
+    .insert(insertData)
     .select()
     .single();
 
@@ -83,6 +92,8 @@ export const updateInternship = async (
   const updateData: any = {};
   if (updates.title !== undefined) updateData.title = updates.title;
   if (updates.compensationType !== undefined) updateData.compensation_type = updates.compensationType;
+  if (updates.hourlyWage !== undefined) updateData.hourly_wage = updates.hourlyWage == null ? null : Math.round(Number(updates.hourlyWage));
+  if (updates.fixedSalary !== undefined) updateData.fixed_salary = updates.fixedSalary == null ? null : Math.round(Number(updates.fixedSalary));
   if (updates.otherCompensation !== undefined) updateData.other_compensation = updates.otherCompensation;
   if (updates.workDetails !== undefined) updateData.work_details = updates.workDetails;
   if (updates.skillsGained !== undefined) updateData.skills_gained = updates.skillsGained;

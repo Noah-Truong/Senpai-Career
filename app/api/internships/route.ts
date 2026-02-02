@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, compensationType, otherCompensation, workDetails, skillsGained, whyThisCompany, type } = body;
+    const { title, compensationType, hourlyWage, fixedSalary, otherCompensation, workDetails, skillsGained, whyThisCompany, type } = body;
 
     // Validate required fields
     if (!title || !compensationType || !workDetails || !type) {
@@ -85,8 +85,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate other_compensation is provided for "other" type
-    if (compensationType === "other" && !otherCompensation) {
+    // Validate compensation amount for hourly/fixed
+    const mappedComp = compensationType === "monthly" ? "fixed" : compensationType === "project" ? "other" : compensationType;
+    if (mappedComp === "hourly" && (hourlyWage === undefined || hourlyWage === null || hourlyWage === "")) {
+      return NextResponse.json(
+        { error: "Hourly wage is required for hourly compensation type" },
+        { status: 400 }
+      );
+    }
+    if (mappedComp === "fixed" && (fixedSalary === undefined || fixedSalary === null || fixedSalary === "")) {
+      return NextResponse.json(
+        { error: "Fixed salary is required for fixed/monthly compensation type" },
+        { status: 400 }
+      );
+    }
+    if (mappedComp === "other" && !otherCompensation) {
       return NextResponse.json(
         { error: "Compensation description is required for other compensation type" },
         { status: 400 }
@@ -102,9 +115,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const mappedComp =
-      compensationType === "monthly" ? "fixed" : compensationType === "project" ? "other" : compensationType;
-    const newInternship = await saveInternship({
+    const savePayload: any = {
       companyId: session.user.id,
       title,
       compensationType: mappedComp as "hourly" | "fixed" | "other",
@@ -113,8 +124,15 @@ export async function POST(request: NextRequest) {
       skillsGained: skillsGained || [],
       whyThisCompany: whyThisCompany || "",
       type: type as "internship" | "new-grad",
-      status: "public", // New listings default to public
-    });
+      status: "public",
+    };
+    if (mappedComp === "hourly" && hourlyWage !== undefined && hourlyWage !== null && hourlyWage !== "") {
+      savePayload.hourlyWage = Math.round(Number(hourlyWage));
+    }
+    if (mappedComp === "fixed" && fixedSalary !== undefined && fixedSalary !== null && fixedSalary !== "") {
+      savePayload.fixedSalary = Math.round(Number(fixedSalary));
+    }
+    const newInternship = await saveInternship(savePayload);
 
     return NextResponse.json(
       { internship: newInternship, message: "Internship listing created successfully" },

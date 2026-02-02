@@ -65,9 +65,15 @@ export default function NewInternshipPage() {
       };
 
       if (formData.compensationType === "hourly") {
-        compensationData.hourlyWage = parseFloat(formData.hourlyWage);
+        const wage = Number(formData.hourlyWage);
+        if (formData.hourlyWage !== "" && !Number.isNaN(wage)) {
+          compensationData.hourlyWage = Math.round(wage);
+        }
       } else if (formData.compensationType === "fixed") {
-        compensationData.fixedSalary = parseFloat(formData.fixedSalary);
+        const salary = Number(formData.fixedSalary);
+        if (formData.fixedSalary !== "" && !Number.isNaN(salary)) {
+          compensationData.fixedSalary = Math.round(salary);
+        }
       } else if (formData.compensationType === "other") {
         compensationData.otherCompensation = formData.otherCompensation;
       }

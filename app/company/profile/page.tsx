@@ -155,14 +155,19 @@ export default function CompanyProfilePage() {
     setSaving(true);
 
     try {
+      const hourlyNum = formData.hourlyWage !== "" && formData.hourlyWage !== undefined ? Number(formData.hourlyWage) : NaN;
+      const weeklyHrs = formData.weeklyHours !== "" && formData.weeklyHours !== undefined ? parseInt(String(formData.weeklyHours), 10) : NaN;
+      const weeklyDys = formData.weeklyDays !== "" && formData.weeklyDays !== undefined ? parseInt(String(formData.weeklyDays), 10) : NaN;
+      const minHrs = formData.minRequiredHours !== "" && formData.minRequiredHours !== undefined ? parseInt(String(formData.minRequiredHours), 10) : NaN;
+
       const updateData = {
         companyName: formData.companyName,
         overview: formData.overview,
         workLocation: formData.workLocation,
-        hourlyWage: formData.hourlyWage ? parseFloat(formData.hourlyWage) : undefined,
-        weeklyHours: formData.weeklyHours ? parseInt(formData.weeklyHours, 10) : undefined,
-        weeklyDays: formData.weeklyDays ? parseInt(formData.weeklyDays, 10) : undefined,
-        minRequiredHours: formData.minRequiredHours ? parseInt(formData.minRequiredHours, 10) : undefined,
+        hourlyWage: !Number.isNaN(hourlyNum) ? Math.round(hourlyNum) : undefined,
+        weeklyHours: !Number.isNaN(weeklyHrs) ? weeklyHrs : undefined,
+        weeklyDays: !Number.isNaN(weeklyDys) ? weeklyDys : undefined,
+        minRequiredHours: !Number.isNaN(minHrs) ? minHrs : undefined,
         internshipDetails: formData.internshipDetails,
         newGradDetails: formData.newGradDetails,
         idealCandidate: formData.idealCandidate,
@@ -345,6 +350,8 @@ export default function CompanyProfilePage() {
                   type="number"
                   id="hourlyWage"
                   name="hourlyWage"
+                  min={0}
+                  step={1}
                   value={formData.hourlyWage}
                   onChange={handleChange}
                   placeholder="1500"

@@ -1,11 +1,12 @@
 "use client";
 
+import { use, useCallback, useEffect, useState } from "react";
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-export default function EditInternshipPage({ params }: { params: { id: string } }) {
+export default function EditInternshipPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: internshipId } = use(params);
   const { t } = useLanguage();
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -26,8 +27,6 @@ export default function EditInternshipPage({ params }: { params: { id: string } 
     whyThisCompany: "",
     status: "public" as "public" | "stopped",
   });
-
-  const internshipId = params?.id;
   const companyUserId = session?.user?.id;
 
   const loadInternship = useCallback(async () => {
@@ -130,9 +129,15 @@ export default function EditInternshipPage({ params }: { params: { id: string } 
       };
 
       if (formData.compensationType === "hourly") {
-        compensationData.hourlyWage = parseFloat(formData.hourlyWage);
+        const wage = Number(formData.hourlyWage);
+        if (formData.hourlyWage !== "" && !Number.isNaN(wage)) {
+          compensationData.hourlyWage = Math.round(wage);
+        }
       } else if (formData.compensationType === "fixed") {
-        compensationData.fixedSalary = parseFloat(formData.fixedSalary);
+        const salary = Number(formData.fixedSalary);
+        if (formData.fixedSalary !== "" && !Number.isNaN(salary)) {
+          compensationData.fixedSalary = Math.round(salary);
+        }
       } else if (formData.compensationType === "other") {
         compensationData.otherCompensation = formData.otherCompensation;
       }
