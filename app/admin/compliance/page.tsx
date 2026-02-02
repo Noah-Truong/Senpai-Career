@@ -141,16 +141,6 @@ export default function AdminCompliancePage() {
   const approvedCount = submissions.filter(s => s.complianceStatus === "approved").length;
   const rejectedCount = submissions.filter(s => s.complianceStatus === "rejected").length;
 
-  const getDocumentName = (docUrl: string): string => {
-    if (docUrl.includes("permission") || docUrl.includes("activity")) {
-      return "Permission for Activities Outside Qualification";
-    }
-    if (docUrl.includes("japanese") || docUrl.includes("jlpt") || docUrl.includes("cert")) {
-      return "Japanese Language Certification";
-    }
-    return "Document";
-  };
-
   return (
     <AdminLayout>
       <div className="mb-4 sm:mb-6">
@@ -265,7 +255,7 @@ export default function AdminCompliancePage() {
                 </p>
                 {selectedSubmission.nationality && (
                   <p className="text-xs sm:text-sm mt-1" style={{ color: '#6B7280' }}>
-                    Nationality: {selectedSubmission.nationality}
+                    {t("admin.compliance.nationality")}: {selectedSubmission.nationality}
                   </p>
                 )}
               </div>

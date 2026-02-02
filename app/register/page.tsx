@@ -84,13 +84,13 @@ export default function RegisterPage() {
           <div className="text-center mb-10">
             <h1 
               className="text-3xl md:text-4xl font-bold mb-4"
-              style={{ color: '#111827' }}
+              style={{ color: '#000000' }}
             >
               {t("register.title")}
             </h1>
             <p 
               className="text-lg max-w-2xl mx-auto"
-              style={{ color: '#6B7280' }}
+              style={{ color: '#000000' }}
             >
               {t("register.subtitle")}
             </p>
@@ -124,7 +124,7 @@ export default function RegisterPage() {
                 <div className="p-6 flex flex-col flex-1">
                   <p 
                     className="mb-6 text-center text-sm"
-                    style={{ color: '#6B7280' }}
+                    style={{ color: '#000000' }}
                   >
                     {account.description}
                   </p>
@@ -144,7 +144,7 @@ export default function RegisterPage() {
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        <span style={{ color: '#374151', fontSize: '14px' }}>{feature}</span>
+                        <span style={{ color: '#000000', fontSize: '14px' }}>{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -172,7 +172,7 @@ export default function RegisterPage() {
 
           {/* Already have account */}
           <div className="text-center mt-10">
-            <p style={{ color: '#6B7280' }}>
+            <p style={{ color: '#000000' }}>
               {t("register.haveAccount")}{" "}
               <Link 
                 href="/login" 

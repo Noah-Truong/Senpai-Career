@@ -100,9 +100,30 @@ export default function StudentProfilePage() {
       setComplianceAgreed(processedUser.complianceAgreed || false);
       setComplianceDocuments(processedUser.complianceDocuments || []);
       // Extract document URLs from compliance_documents array
+      // Documents are stored with prefix format like "permission:https://..." or "japanese_cert:https://..."
       const docs = processedUser.complianceDocuments || [];
-      setPermissionDocument(docs.find((d: string) => d.includes("permission") || d.includes("activity")) || "");
-      setJapaneseCertDocument(docs.find((d: string) => d.includes("japanese") || d.includes("jlpt") || d.includes("cert")) || "");
+      console.log("Loaded compliance documents:", docs); // Debug log
+      
+      // Find permission document - check for prefix or keyword in URL
+      const permDoc = docs.find((d: string) => d.startsWith("permission:") || d.includes("permission") || d.includes("activity")) || "";
+      // Find japanese cert document - check for prefix or keyword in URL  
+      const japDoc = docs.find((d: string) => d.startsWith("japanese_cert:") || d.includes("japanese") || d.includes("jlpt") || d.includes("cert")) || "";
+      
+      // Extract the URL part - handle both prefixed (permission:https://...) and plain URL formats
+      const extractUrl = (doc: string): string => {
+        if (!doc) return "";
+        // Check for prefix format (e.g., "permission:https://...")
+        const prefixMatch = doc.match(/^[a-z_]+:(https?:\/\/.+)$/i);
+        if (prefixMatch) return prefixMatch[1];
+        // If it's already a URL, return as-is
+        if (doc.startsWith("http")) return doc;
+        return doc;
+      };
+      
+      setPermissionDocument(extractUrl(permDoc));
+      setJapaneseCertDocument(extractUrl(japDoc));
+      console.log("Extracted permission doc:", extractUrl(permDoc)); // Debug log
+      console.log("Extracted japanese cert:", extractUrl(japDoc)); // Debug log
       setError("");
       setLoading(false);
     } catch (err: any) {
@@ -243,6 +264,7 @@ export default function StudentProfilePage() {
 
       const data = await response.json();
       const documentUrl = data.url;
+      console.log("Uploaded document URL:", documentUrl); // Debug log
 
       if (documentType === "permission") {
         setPermissionDocument(documentUrl);
@@ -477,8 +499,17 @@ export default function StudentProfilePage() {
                     accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     onChange={(e) => handleFileUpload(e, "profilePhoto")}
                     disabled={uploadingPhoto}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"
+                    className="hidden"
                   />
+                  <label
+                    htmlFor="profilePhoto"
+                    className="inline-block px-4 py-2 text-sm font-semibold rounded-md cursor-pointer transition-colors"
+                    style={{ backgroundColor: '#E5E7EB', color: '#374151' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#D1D5DB')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#E5E7EB')}
+                  >
+                    {t("form.choosePhoto")}
+                  </label>
                   {uploadingPhoto && (
                     <p className="text-xs text-blue-600 mt-1">{t("common.uploading") || "Uploading..."}</p>
                   )}
@@ -673,27 +704,27 @@ export default function StudentProfilePage() {
           <div className="card-gradient p-8 space-y-6">
             <div>
               <h2 className="text-2xl font-semibold mb-4" style={{ color: '#111827' }}>
-                Compliance Submission
+                {t("compliance.title")}
               </h2>
               <p className="text-gray-600 mb-6">
-                Please read and agree to the terms and rules before using the platform.
+                {t("compliance.subtitle")}
               </p>
             </div>
 
             {/* Terms and Rules */}
             <div 
-              className="p-6 border-l-4 mb-6 max-h-96 overflow-y-auto"
+              className="p-6 border-l-4 mb-6"
               style={{ backgroundColor: '#FEF3C7', borderLeftColor: '#F59E0B' }}
             >
               <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>
-                Terms of Service & Platform Rules
+                {t("form.termsAndRules")}
               </h3>
               <div className="space-y-4 text-sm" style={{ color: '#374151' }}>
                 <div>
-                  <p className="font-semibold mb-2">Platform Usage</p>
+                  <p className="font-semibold mb-2">{t("form.platformUsage")}</p>
                   <ul className="list-disc list-inside space-y-1 ml-2">
-                    <li>This platform is for job hunting and career consultation purposes only</li>
-                    <li>Exchanging personal contact information is generally prohibited</li>
+                    <li>{t("form.platformUsage.jobHunting")}</li>
+                    <li>{t("form.platformUsage.noPersonalContact")}</li>
                   </ul>
                 </div>
 
@@ -701,20 +732,19 @@ export default function StudentProfilePage() {
                   className="mt-4 p-4 bg-white rounded border"
                   style={{ borderColor: '#F59E0B' }}
                 >
-                  <p className="font-semibold mb-3">Key Safety Rules:</p>
+                  <p className="font-semibold mb-3">{t("form.keyRules")}</p>
                   <ul className="list-disc list-inside space-y-2 text-xs">
-                    <li>No use outside job hunting/career consultation</li>
-                    <li>Exchanging personal contact info: generally prohibited</li>
-                    <li>No online meetings after 10pm</li>
-                    <li>No meetings involving alcohol</li>
-                    <li>No meetings in private off-site rooms (recommend open cafe / office meeting room)</li>
-                    <li>No recording / filming / posting to SNS</li>
-                    <li>No religious or business solicitation</li>
-                    <li>Strong warning: no ghosting / no-show for students (2 strikes = permanent ban)</li>
+                    <li>{t("form.rules.noOutsideConsultation")}</li>
+                    <li>{t("form.rules.noPersonalContact")}</li>
+                    <li>{t("form.rules.noLateMeetings")}</li>
+                    <li>{t("form.rules.noAlcohol")}</li>
+                    <li>{t("form.rules.noPrivateRooms")}</li>
+                    <li>{t("form.rules.noRecording")}</li>
+                    <li>{t("form.rules.noSolicitation")}</li>
+                    <li>{t("form.rules.noGhosting")}</li>
                   </ul>
                   <p className="mt-3 text-xs italic">
-                    These rules are designed to keep our community safe and focused on career development. 
-                    Violations are taken seriously and may result in account suspension or permanent ban.
+                    {t("form.rules.disclaimer")}
                   </p>
                 </div>
               </div>
@@ -722,19 +752,17 @@ export default function StudentProfilePage() {
 
             {/* Compliance Agreement */}
             <div className="space-y-4">
-              <label className="flex items-start cursor-pointer">
+              <label className="inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
                   checked={complianceAgreed}
                   onChange={(e) => setComplianceAgreed(e.target.checked)}
-                  className="mt-1 h-5 w-5 border-gray-300 rounded"
+                  className="h-5 w-5 border-gray-300 rounded"
                   style={{ accentColor: '#2563EB' }}
                   disabled={user?.complianceStatus === "approved" || user?.complianceStatus === "submitted"}
                 />
-                <span className="ml-3 text-sm" style={{ color: '#374151' }}>
-                  <span className="font-semibold">I acknowledge that I have read and understood</span> the Terms of Service 
-                  and Platform Rules. I agree to comply with all stated rules and understand that violations may result 
-                  in account suspension or permanent ban.
+                <span className="ml-3 text-sm leading-none" style={{ color: '#374151' }}>
+                  <span className="font-semibold">{t("compliance.acknowledgement")}</span> {t("compliance.agreementText")}
                 </span>
               </label>
 
@@ -742,34 +770,57 @@ export default function StudentProfilePage() {
               {(user?.nationality && user.nationality.toLowerCase() !== "japan" && user.nationality.toLowerCase() !== "japanese") && (
                 <div className="space-y-4 mt-6 p-4 border rounded" style={{ borderColor: '#E5E7EB', backgroundColor: '#F9FAFB' }}>
                   <h3 className="text-lg font-semibold" style={{ color: '#111827' }}>
-                    Required Documents (International Students)
+                    {t("compliance.requiredDocs")}
                   </h3>
                   
                   {/* Permission for Activities Outside Qualification */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium" style={{ color: '#374151' }}>
-                      Permission for Activities Outside Qualification *
+                      {t("compliance.permissionDoc")} *
                     </label>
                     <div className="flex items-center gap-4">
                       <input
                         type="file"
+                        id="permissionDoc"
                         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) handleDocumentUpload(file, "permission");
                         }}
                         disabled={user?.complianceStatus === "approved" || uploadingDocument === "permission"}
-                        className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"
+                        className="hidden"
                       />
+                      <label
+                        htmlFor="permissionDoc"
+                        className="inline-block px-4 py-2 text-sm font-semibold rounded-md cursor-pointer transition-colors"
+                        style={{ 
+                          backgroundColor: user?.complianceStatus === "approved" || uploadingDocument === "permission" ? '#D1D5DB' : '#E5E7EB', 
+                          color: '#374151',
+                          opacity: user?.complianceStatus === "approved" || uploadingDocument === "permission" ? 0.6 : 1,
+                          cursor: user?.complianceStatus === "approved" || uploadingDocument === "permission" ? 'not-allowed' : 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (user?.complianceStatus !== "approved" && uploadingDocument !== "permission") {
+                            e.currentTarget.style.backgroundColor = '#D1D5DB';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (user?.complianceStatus !== "approved" && uploadingDocument !== "permission") {
+                            e.currentTarget.style.backgroundColor = '#E5E7EB';
+                          }
+                        }}
+                      >
+                        {t("compliance.chooseFile")}
+                      </label>
                       {uploadingDocument === "permission" && (
-                        <span className="text-sm text-gray-500">Uploading...</span>
+                        <span className="text-sm text-gray-500">{t("compliance.uploading")}</span>
                       )}
                     </div>
                     {permissionDocument && (
                       <div className="flex items-center gap-2 text-sm text-green-700">
                         <span>✓</span>
                         <a href={permissionDocument} target="_blank" rel="noopener noreferrer" className="underline">
-                          View uploaded document
+                          {t("compliance.viewUploaded")}
                         </a>
                       </div>
                     )}
@@ -778,28 +829,51 @@ export default function StudentProfilePage() {
                   {/* Japanese Language Certification */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium" style={{ color: '#374151' }}>
-                      Japanese Language Certification *
+                      {t("compliance.japaneseCert")} *
                     </label>
                     <div className="flex items-center gap-4">
                       <input
                         type="file"
+                        id="japaneseCertDoc"
                         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) handleDocumentUpload(file, "japanese");
                         }}
                         disabled={user?.complianceStatus === "approved" || uploadingDocument === "japanese"}
-                        className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"
+                        className="hidden"
                       />
+                      <label
+                        htmlFor="japaneseCertDoc"
+                        className="inline-block px-4 py-2 text-sm font-semibold rounded-md cursor-pointer transition-colors"
+                        style={{ 
+                          backgroundColor: user?.complianceStatus === "approved" || uploadingDocument === "japanese" ? '#D1D5DB' : '#E5E7EB', 
+                          color: '#374151',
+                          opacity: user?.complianceStatus === "approved" || uploadingDocument === "japanese" ? 0.6 : 1,
+                          cursor: user?.complianceStatus === "approved" || uploadingDocument === "japanese" ? 'not-allowed' : 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (user?.complianceStatus !== "approved" && uploadingDocument !== "japanese") {
+                            e.currentTarget.style.backgroundColor = '#D1D5DB';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (user?.complianceStatus !== "approved" && uploadingDocument !== "japanese") {
+                            e.currentTarget.style.backgroundColor = '#E5E7EB';
+                          }
+                        }}
+                      >
+                        {t("compliance.chooseFile")}
+                      </label>
                       {uploadingDocument === "japanese" && (
-                        <span className="text-sm text-gray-500">Uploading...</span>
+                        <span className="text-sm text-gray-500">{t("compliance.uploading")}</span>
                       )}
                     </div>
                     {japaneseCertDocument && (
                       <div className="flex items-center gap-2 text-sm text-green-700">
                         <span>✓</span>
                         <a href={japaneseCertDocument} target="_blank" rel="noopener noreferrer" className="underline">
-                          View uploaded document
+                          {t("compliance.viewUploaded")}
                         </a>
                       </div>
                     )}
@@ -825,18 +899,22 @@ export default function StudentProfilePage() {
                   }`}>
                     {user.complianceStatus === "approved" && "✓ "}
                     {user.complianceStatus === "rejected" && "✗ "}
-                    Compliance {user.complianceStatus === "approved" ? "approved" : user.complianceStatus === "rejected" ? "rejected" : "submitted"} on {user.complianceAgreedAt 
+                    {user.complianceStatus === "approved" 
+                      ? t("compliance.approvedOn") 
+                      : user.complianceStatus === "rejected" 
+                      ? t("compliance.rejectedOn") 
+                      : t("compliance.submittedOn")} {user.complianceAgreedAt 
                       ? new Date(user.complianceAgreedAt).toLocaleDateString() 
-                      : "recently"}
+                      : ""}
                   </p>
                   {user.complianceStatus === "submitted" && (
                     <p className="text-xs text-yellow-700 mt-1">
-                      Your documents are under review by an administrator. You will be notified once approved.
+                      {t("compliance.underReview")}
                     </p>
                   )}
                   {user.complianceStatus === "rejected" && (
                     <p className="text-xs text-red-700 mt-1">
-                      Your compliance submission was rejected. Please review and resubmit your documents.
+                      {t("compliance.rejectedMessage")}
                     </p>
                   )}
                 </div>
@@ -857,12 +935,12 @@ export default function StudentProfilePage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span>Submitting...</span>
+                      <span>{t("compliance.submitting")}</span>
                     </>
                   ) : user?.complianceStatus === "submitted" ? (
-                    "Under Review"
+                    t("compliance.underReviewButton")
                   ) : (
-                    "Submit Compliance Documents"
+                    t("compliance.submitButton")
                   )}
                 </button>
               </div>

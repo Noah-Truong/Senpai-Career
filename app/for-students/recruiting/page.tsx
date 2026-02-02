@@ -92,11 +92,11 @@ export default function RecruitingPage() {
         >
           <h2 
             className="text-lg font-semibold mb-3"
-            style={{ color: '#111827' }}
+            style={{ color: '#000000' }}
           >
             {t("recruiting.about.title")}
           </h2>
-          <p style={{ color: '#6B7280' }} className="mb-4">
+          <p style={{ color: '#000000' }} className="mb-4">
             {t("recruiting.about.desc")}
           </p>
         </div>
@@ -134,7 +134,7 @@ export default function RecruitingPage() {
           {searchTerm && (
             <motion.p 
               className="mt-2 text-sm" 
-              style={{ color: '#6B7280' }}
+              style={{ color: '#000000' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.2 }}
@@ -152,7 +152,7 @@ export default function RecruitingPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.25 }}
           >
-            <p style={{ color: '#6B7280' }}>{t("common.loading") || "Loading listings..."}</p>
+            <p style={{ color: '#000000' }}>{t("common.loading") || "Loading listings..."}</p>
           </motion.div>
         ) : filteredListings.length === 0 ? (
           <motion.div 
@@ -162,10 +162,10 @@ export default function RecruitingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
           >
-            <p className="text-lg mb-4" style={{ color: '#374151' }}>
+            <p className="text-lg mb-4" style={{ color: '#000000' }}>
               {searchTerm ? (t("recruiting.noResults") || "No positions found matching your search.") : t("recruiting.empty.title")}
             </p>
-            <p className="mb-6" style={{ color: '#6B7280' }}>
+            <p className="mb-6" style={{ color: '#000000' }}>
               {searchTerm ? (t("recruiting.tryDifferent") || "Try a different search term.") : t("recruiting.empty.desc")}
             </p>
             {!isLoggedIn && !searchTerm && (
@@ -227,7 +227,7 @@ export default function RecruitingPage() {
                         <span 
                           key={idx} 
                           className="px-2 py-1 rounded text-xs"
-                          style={{ backgroundColor: '#D7FFEF', color: '#374151' }}
+                          style={{ backgroundColor: '#D7FFEF', color: '#000000' }}
                         >
                           {skill}
                         </span>

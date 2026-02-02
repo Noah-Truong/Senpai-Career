@@ -57,7 +57,7 @@ export default function HowToUsePage() {
           >
             {t("howto.title")}
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: '#000000' }}>
             {t("howto.subtitle")}
           </p>
         </div>
@@ -373,7 +373,7 @@ export default function HowToUsePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 
             className="text-2xl font-bold mb-8 text-center" 
-            style={{ color: "#0F2A44" }}
+            style={{ color: "#000000" }}
           >
             {t("howto.faq.title")}
           </h2>

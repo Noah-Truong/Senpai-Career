@@ -207,9 +207,10 @@ export default function BrowsingHistoryPage() {
               const typeBadge = getTypeBadge();
 
               return (
-                <div
+                <Link
                   key={item.id}
-                  className="card-gradient p-6 hover:shadow-lg transition-all duration-200"
+                  href={getDetailLink()}
+                  className="block card-gradient p-6 hover:shadow-lg transition-all duration-200"
                 >
                   <div className="flex items-start gap-4">
                     {item.item_type === "obog" ? (
@@ -238,7 +239,7 @@ export default function BrowsingHistoryPage() {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-lg font-semibold">
+                            <h3 className="text-lg font-semibold text-navy hover:text-navy/80 transition-colors">
                               {item.item_type === "company"
                                 ? itemData.companyName
                                 : item.item_type === "obog"
@@ -265,34 +266,28 @@ export default function BrowsingHistoryPage() {
                         </span>
                       </div>
                       {item.item_type === "company" && (itemData.overview || itemData.oneLineMessage) && (
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        <p className="text-sm text-gray-600 line-clamp-2">
                           {itemData.overview || itemData.oneLineMessage}
                         </p>
                       )}
                       {item.item_type === "company" && itemData.industry && (
-                        <p className="text-xs text-gray-500 mb-2">
+                        <p className="text-xs text-gray-500 mt-1">
                           {t("companies.industry") || "Industry"}: {itemData.industry}
                         </p>
                       )}
                       {item.item_type === "recruitment" && itemData.workDetails && (
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        <p className="text-sm text-gray-600 line-clamp-2">
                           {itemData.workDetails}
                         </p>
                       )}
                       {item.item_type === "obog" && itemData.oneLineMessage && (
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        <p className="text-sm text-gray-600 line-clamp-2">
                           {itemData.oneLineMessage}
                         </p>
                       )}
-                      <Link
-                        href={getDetailLink()}
-                        className="btn-primary inline-block"
-                      >
-                        {t("button.viewDetails") || "View Details"}
-                      </Link>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

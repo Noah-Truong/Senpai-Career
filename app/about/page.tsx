@@ -67,7 +67,7 @@ export default function AboutPage() {
             {t("about.problem.title")}
           </h2>
           <div className="space-y-6">
-            <div className="card-gradient-static p-6">
+            <div className="card-gradient-static p-6 bg-white">
               <h3 
                 className="text-xl font-semibold mb-4"
                 style={{ color: '#000000' }}
@@ -91,7 +91,7 @@ export default function AboutPage() {
                 ))}
               </ul>
             </div>
-            <div className="card-gradient-static p-6">
+            <div className="card-gradient-static p-6 bg-white">
               <h3 
                 className="text-xl font-semibold mb-4"
                 style={{ color: '#000000' }}
@@ -108,7 +108,7 @@ export default function AboutPage() {
                   <li key={i} className="flex items-start">
                     <span 
                       className="mr-3 mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: '#0F2A44' }}
+                      style={{ backgroundColor: ' #0F2A44' }}
                     />
                     <span style={{ color: '#000000' }}>{item}</span>
                   </li>
@@ -162,7 +162,7 @@ export default function AboutPage() {
           <h2 className="text-2xl md:text-3xl font-bold mb-8" style={{ color: '#000000' }}>
             {t("about.market.title")}
           </h2>
-          <div className="card-gradient-static p-6">
+          <div className="card-gradient-static p-6 bg-white">
             <p 
               className="mb-4" 
               style={{ color: '#000000', lineHeight: '1.7' }}

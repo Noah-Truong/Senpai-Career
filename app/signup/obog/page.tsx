@@ -400,15 +400,15 @@ export default function OBOGSignupPage() {
                   </ul>
                 </div>
               </div>
-              <label className="flex items-start">
+              <label className="inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-1 h-4 w-4 border-gray-300 rounded"
+                  className="h-4 w-4 border-gray-300 rounded"
                   style={{ accentColor: '#2563EB' }}
                 />
-                <span className="ml-2 text-sm" style={{ color: '#374151' }}>
+                <span className="ml-2 text-sm leading-none" style={{ color: '#374151' }}>
                   {t("signup.acceptTerms")} *
                 </span>
               </label>

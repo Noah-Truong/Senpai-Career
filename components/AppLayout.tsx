@@ -135,7 +135,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-4 sm:p-6 min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] overflow-x-hidden">
+        <main className="min-h-[50vh] overflow-x-hidden">
           {children}
         </main>
       </div>

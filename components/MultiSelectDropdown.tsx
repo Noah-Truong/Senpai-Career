@@ -25,7 +25,7 @@ export default function MultiSelectDropdown({
   otherPlaceholder = "Enter other option",
 }: MultiSelectDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [otherValue, setOtherValue] = useState("");
+  const [newOtherValue, setNewOtherValue] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,13 +38,8 @@ export default function MultiSelectDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    // Initialize otherValue from selected items that aren't in options
-    const otherSelected = selected.filter((item) => !options.includes(item));
-    if (otherSelected.length > 0) {
-      setOtherValue(otherSelected[0]);
-    }
-  }, []);
+  // Get all "other" values (items not in predefined options)
+  const otherValues = selected.filter((item) => !options.includes(item));
 
   const toggleOption = (option: string) => {
     if (selected.includes(option)) {
@@ -54,24 +49,26 @@ export default function MultiSelectDropdown({
     }
   };
 
-  const handleOtherChange = (value: string) => {
-    setOtherValue(value);
-    const standardSelected = selected.filter((item) => options.includes(item));
-    if (value.trim()) {
-      onChange([...standardSelected, value.trim()]);
-    } else {
-      onChange(standardSelected);
+  const addOtherValue = () => {
+    const trimmedValue = newOtherValue.trim();
+    if (trimmedValue && !selected.includes(trimmedValue)) {
+      onChange([...selected, trimmedValue]);
+      setNewOtherValue("");
+    }
+  };
+
+  const handleOtherKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addOtherValue();
     }
   };
 
   const removeOption = (option: string) => {
     onChange(selected.filter((item) => item !== option));
-    if (!options.includes(option)) {
-      setOtherValue("");
-    }
   };
 
-  const hasOtherSelected = selected.some((item) => !options.includes(item));
+  const hasOtherSelected = otherValues.length > 0;
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -138,37 +135,63 @@ export default function MultiSelectDropdown({
               ))}
               {allowOther && (
                 <div className="border-t px-4 py-2" style={{ borderColor: '#E5E7EB' }}>
-                  <label className="flex items-center mb-2">
-                    <input
-                      type="checkbox"
-                      checked={hasOtherSelected}
-                      readOnly
-                      className="h-4 w-4 border-gray-300 rounded"
-                      style={{ accentColor: '#2563EB' }}
-                    />
-                    <span className="ml-3 text-sm font-medium" style={{ color: '#111827' }}>
-                      Other
+                  <div className="flex items-center mb-2">
+                    <span className="text-sm font-medium" style={{ color: '#111827' }}>
+                      Other {hasOtherSelected && `(${otherValues.length})`}
                     </span>
-                  </label>
-                  <motion.input
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    type="text"
-                    value={otherValue}
-                    onChange={(e) => handleOtherChange(e.target.value)}
-                    placeholder={otherPlaceholder}
-                    className="w-full px-3 py-2 border rounded text-sm focus:outline-none focus:ring-2"
-                    style={{ 
-                      borderColor: '#D1D5DB', 
-                      borderRadius: '6px', 
-                      color: '#111827' 
-                    }}
-                    onFocus={() => {
-                      if (!hasOtherSelected) {
-                        handleOtherChange(" ");
-                      }
-                    }}
-                  />
+                  </div>
+                  {/* Show existing other values */}
+                  {otherValues.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {otherValues.map((value) => (
+                        <span
+                          key={value}
+                          className="inline-flex items-center px-2 py-0.5 rounded text-xs"
+                          style={{ backgroundColor: '#E0E7FF', color: '#3730A3' }}
+                        >
+                          {value}
+                          <button
+                            type="button"
+                            onClick={() => removeOption(value)}
+                            className="ml-1 hover:text-red-600"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {/* Input for adding new other values */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newOtherValue}
+                      onChange={(e) => setNewOtherValue(e.target.value)}
+                      onKeyDown={handleOtherKeyDown}
+                      placeholder={otherPlaceholder}
+                      className="flex-1 px-3 py-2 border rounded text-sm focus:outline-none focus:ring-2"
+                      style={{ 
+                        borderColor: '#D1D5DB', 
+                        borderRadius: '6px', 
+                        color: '#111827' 
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={addOtherValue}
+                      disabled={!newOtherValue.trim()}
+                      className="px-3 py-2 text-sm font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ 
+                        backgroundColor: newOtherValue.trim() ? '#2563EB' : '#E5E7EB',
+                        color: newOtherValue.trim() ? '#FFFFFF' : '#9CA3AF',
+                        borderRadius: '6px'
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
               )}
             </motion.div>

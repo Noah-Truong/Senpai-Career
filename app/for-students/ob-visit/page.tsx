@@ -41,7 +41,7 @@ export default function OBVisitPage() {
     >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.h2 
-              className="text-3xl font-bold text-gray-900 mb-8"
+              className="text-3xl font-bold text-black mb-8"
               variants={slideUp}
             >
               {t("obvisit.whatIs.title")}
@@ -53,13 +53,13 @@ export default function OBVisitPage() {
               animate="animate"
             >
               <motion.p 
-                className="text-lg text-gray-700 mb-6"
+                className="text-lg text-black mb-6"
                 variants={staggerItem}
               >
                 {t("obvisit.whatIs.p1")}
               </motion.p>
               <motion.p 
-                className="text-lg text-gray-700 mb-6"
+                className="text-lg text-black mb-6"
                 variants={staggerItem}
               >
                 {t("obvisit.whatIs.p2")}
@@ -77,7 +77,7 @@ export default function OBVisitPage() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
-            className="text-3xl font-bold text-gray-900 mb-8"
+            className="text-3xl font-bold text-black mb-8"
             variants={slideUp}
           >
             {t("obvisit.benefits.title")}
@@ -106,7 +106,7 @@ export default function OBVisitPage() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold mb-2" style={{ color: '#000000' }}>{benefit.title}</h3>
-                <p className="text-gray-700">
+                <p className="text-black">
                   {benefit.desc}
                 </p>
               </div>
@@ -125,7 +125,7 @@ export default function OBVisitPage() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
-            className="text-3xl font-bold text-gray-900 mb-8"
+            className="text-3xl font-bold text-black mb-8"
             variants={slideUp}
           >
             {t("obvisit.profiles.title")}
@@ -153,11 +153,11 @@ export default function OBVisitPage() {
                 className="border-l-4 pl-6" 
                 style={{ borderColor: '#2563EB' }}
               >
-                <h3 className="text-xl font-semibold mb-2 text-gray-900">{profile.title}</h3>
-                <p className="text-gray-700 mb-4">
+                <h3 className="text-xl font-semibold mb-2 text-black">{profile.title}</h3>
+                <p className="text-black mb-4">
                   {profile.desc}
                 </p>
-                <ul className="space-y-2 text-gray-700">
+                <ul className="space-y-2 text-black">
                   {profile.items.map((item, i) => (
                     <li 
                       key={i}
@@ -183,7 +183,7 @@ export default function OBVisitPage() {
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
-            className="text-3xl font-bold text-gray-900 mb-8"
+            className="text-3xl font-bold text-black mb-8"
             variants={slideUp}
           >
             {t("obvisit.howItWorks.title")}
@@ -207,7 +207,7 @@ export default function OBVisitPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-2" style={{ color: '#000000' }}>{t(`obvisit.howItWorks.${step}.title`)}</h3>
-                    <p className="text-gray-700">
+                    <p className="text-black">
                       {t(`obvisit.howItWorks.${step}.desc`)}
                     </p>
                   </div>

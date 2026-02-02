@@ -66,11 +66,11 @@ export default function InternshipPage() {
         <motion.div className="mb-8" variants={slideUp}>
           <h1 
             className="text-2xl md:text-3xl font-bold mb-2"
-            style={{ color: '#111827' }}
+            style={{ color: '#000000' }}
           >
             {t("internship.title")}
           </h1>
-          <p style={{ color: '#6B7280' }}>
+          <p style={{ color: '#000000' }}>
             {t("internship.subtitle")}
           </p>
         </motion.div>
@@ -83,11 +83,11 @@ export default function InternshipPage() {
         >
           <h2 
             className="text-lg font-semibold mb-3"
-            style={{ color: '#111827' }}
+            style={{ color: '#000000' }}
           >
             {t("internship.about.title")}
           </h2>
-          <p style={{ color: '#6B7280' }} className="mb-4">
+          <p style={{ color: '#000000' }} className="mb-4">
             {t("internship.about.desc")}
           </p>
           <div 
@@ -135,7 +135,7 @@ export default function InternshipPage() {
           {searchTerm && (
             <motion.p 
               className="mt-2 text-sm" 
-              style={{ color: '#6B7280' }}
+              style={{ color: '#000000' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.2 }}
@@ -150,17 +150,17 @@ export default function InternshipPage() {
             className="p-8 text-center border rounded"
             style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           >
-            <p style={{ color: '#6B7280' }}>{t("common.loading") || "Loading internships..."}</p>
+            <p style={{ color: '#000000' }}>{t("common.loading") || "Loading internships..."}</p>
           </div>
         ) : filteredInternships.length === 0 ? (
           <div 
             className="p-8 text-center border rounded"
             style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
           >
-            <p className="text-lg mb-4" style={{ color: '#374151' }}>
+            <p className="text-lg mb-4" style={{ color: '#000000' }}>
               {searchTerm ? (t("internship.noResults") || "No internships found matching your search.") : t("internship.empty.title")}
             </p>
-            <p className="mb-6" style={{ color: '#6B7280' }}>
+            <p className="mb-6" style={{ color: '#000000' }}>
               {searchTerm ? (t("internship.tryDifferent") || "Try a different search term.") : t("internship.empty.desc")}
             </p>
             {!isLoggedIn && !searchTerm && (
@@ -225,7 +225,7 @@ export default function InternshipPage() {
                         <span 
                           key={idx} 
                           className="px-2 py-1 rounded text-xs"
-                          style={{ backgroundColor: '#D7FFEF', color: '#374151' }}
+                          style={{ backgroundColor: '#D7FFEF', color: '#000000' }}
                         >
                           {internship.skillsGainedKeys ? t(skillKeyOrSkill) : skillKeyOrSkill}
                         </span>

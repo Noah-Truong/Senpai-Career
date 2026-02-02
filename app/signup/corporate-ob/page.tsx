@@ -396,17 +396,48 @@ export default function CorporateOBSignupPage() {
                 </div>
               </div>
 
-              {/* Terms */}
-              <div className="flex items-start">
-                <input
-                  type="checkbox"
-                  id="acceptTerms"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-1 mr-2"
-                />
-                <label htmlFor="acceptTerms" className="text-sm" style={{ color: '#374151' }}>
-                  {t("signup.acceptTerms")}
+              {/* Terms and Rules */}
+              <div 
+                className="p-4 border-l-4"
+                style={{ backgroundColor: '#FEF3C7', borderLeftColor: '#F59E0B' }}
+              >
+                <h3 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>{t("form.termsAndRules")}</h3>
+                <div className="space-y-3 text-sm mb-4" style={{ color: '#374151' }}>
+                  <p className="font-semibold">{t("form.readAndAccept")}</p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>{t("form.termsOfService")}</li>
+                    <li>{t("form.platformRules")}</li>
+                  </ul>
+                  <div 
+                    className="mt-4 p-3 bg-white rounded border"
+                    style={{ borderColor: '#F59E0B' }}
+                  >
+                    <p className="font-semibold mb-2">{t("form.keyRules")}</p>
+                    <ul className="list-disc list-inside space-y-1 text-xs">
+                      <li>{t("form.rules.noOutsideConsultation")}</li>
+                      <li>{t("form.rules.noPersonalContact")}</li>
+                      <li>{t("form.rules.noLateMeetings")}</li>
+                      <li>{t("form.rules.noAlcohol")}</li>
+                      <li>{t("form.rules.noPrivateRooms")}</li>
+                      <li>{t("form.rules.noRecording")}</li>
+                      <li>{t("form.rules.noSolicitation")}</li>
+                      <li>{t("form.rules.noPoaching")}</li>
+                      <li>{t("form.rules.respectPrivacy")}</li>
+                      <li>{t("form.rules.noGhosting")}</li>
+                    </ul>
+                  </div>
+                </div>
+                <label className="inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="h-4 w-4 border-gray-300 rounded"
+                    style={{ accentColor: '#2563EB' }}
+                  />
+                  <span className="ml-2 text-sm leading-none" style={{ color: '#374151' }}>
+                    {t("signup.acceptTerms")} *
+                  </span>
                 </label>
               </div>
 

@@ -50,7 +50,7 @@ export default function Home() {
             </div>
             <p 
               className="text-lg md:text-xl mb-8 max-w-2xl mx-auto"
-              style={{ color: ' #374151' }}
+              style={{ color: '#000000' }}
             >
               {t("home.hero.subtitle")}
             </p>
@@ -95,14 +95,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 
             className="text-2xl md:text-3xl font-bold text-center mb-12"
-            style={{ color: '#111827' }}
+            style={{ color: '#000000' }}
           >
             {t("home.mission.title")}
           </h2>
           <div className="max-w-3xl mx-auto text-center">
             <p 
               className="text-lg mb-8" 
-              style={{ color: '#374151' }}
+              style={{ color: '#000000' }}
             >
               {t("home.mission.intro")}
             </p>
@@ -125,7 +125,7 @@ export default function Home() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span style={{ color: '#374151' }}>{item}</span>
+                  <span style={{ color: '#000000' }}>{item}</span>
                 </li>
               ))}
             </ul>
@@ -173,7 +173,7 @@ export default function Home() {
                     </span>
                     <div>
                       <h4 className="font-semibold mb-1" style={{ color: '#111827' }}>{step.title}</h4>
-                      <p style={{ color: '#6B7280' }}>{step.desc}</p>
+                      <p style={{ color: 'rgb(0, 0, 0)' }}>{step.desc}</p>
                     </div>
                   </li>
                 ))}
@@ -198,7 +198,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 
             className="text-2xl md:text-3xl font-bold text-center mb-12"
-            style={{ color: '#111827' }}
+            style={{ color: '#000000' }}
           >
             {t("home.journey.title")}
           </h2>
@@ -211,8 +211,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("home.journey.obog")}</h3>
-                <p className="text-sm" style={{ color: '#6B7280' }}>{t("home.journey.obogDesc")}</p>
+                <h3 className="font-semibold mb-2" style={{ color: '#000000' }}>{t("home.journey.obog")}</h3>
+                <p className="text-sm" style={{ color: '#000000' }}>{t("home.journey.obogDesc")}</p>
               </div>
 
               {/* Arrow - Horizontal on desktop, Vertical on mobile */}
@@ -229,8 +229,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("home.journey.internship")}</h3>
-                <p className="text-sm" style={{ color: '#6B7280' }}>{t("home.journey.internshipDesc")}</p>
+                <h3 className="font-semibold mb-2" style={{ color: '#000000' }}>{t("home.journey.internship")}</h3>
+                <p className="text-sm" style={{ color: '#000000' }}>{t("home.journey.internshipDesc")}</p>
               </div>
 
               {/* Arrow - Horizontal on desktop, Vertical on mobile */}
@@ -247,8 +247,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                   </svg>
                 </div>
-                <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("home.journey.recruiting")}</h3>
-                <p className="text-sm" style={{ color: '#6B7280' }}>{t("home.journey.recruitingDesc")}</p>
+                <h3 className="font-semibold mb-2" style={{ color: '#000000' }}>{t("home.journey.recruiting")}</h3>
+                <p className="text-sm" style={{ color: '#000000' }}>{t("home.journey.recruitingDesc")}</p>
               </div>
 
               {/* Arrow - Horizontal on desktop, Vertical on mobile */}
@@ -265,13 +265,13 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="font-semibold mb-2" style={{ color: '#111827' }}>{t("home.journey.scout")}</h3>
-                <p className="text-sm" style={{ color: '#6B7280' }}>{t("home.journey.scoutDesc")}</p>
+                <h3 className="font-semibold mb-2" style={{ color: '#000000' }}>{t("home.journey.scout")}</h3>
+                <p className="text-sm" style={{ color: '#000000' }}>{t("home.journey.scoutDesc")}</p>
               </div>
             </div>
 
             <div className="mt-10 text-center">
-              <p className="mb-6" style={{ color: '#374151' }}>
+              <p className="mb-6" style={{ color: '#000000' }}>
                 {t("home.journey.path")}
               </p>
               <div className="flex flex-col sm:flex-row gap-5 sm:gap-4 justify-center">
