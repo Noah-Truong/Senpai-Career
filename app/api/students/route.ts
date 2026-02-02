@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // Fetch all students with completed profiles and approved compliance
+    // Fetch all students with completed profiles (compliance status can be pending or approved)
     const { data: students, error } = await supabase
       .from("student_profiles")
       .select(`
@@ -42,8 +42,7 @@ export async function GET(request: NextRequest) {
         profile_completed,
         compliance_status
       `)
-      .eq("profile_completed", true)
-      .eq("compliance_status", "approved");
+      .eq("profile_completed", true);
 
     if (error) {
       console.error("Error fetching students:", error);
