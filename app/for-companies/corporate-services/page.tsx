@@ -38,25 +38,12 @@ export default function ForCompaniesPage() {
       </motion.section>
 
       {/* Benefits for Companies */}
-      <motion.section
-        className="py-16 bg-white"
-        initial="initial"
-        animate="animate"
-        variants={fadeIn}
-      >
+      <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2 
-            className="text-3xl font-bold text-gray-900 mb-8"
-            variants={slideUp}
-          >
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">
             {t("companies.why.title")}
-          </motion.h2>
-          <motion.div
-            className="grid md:grid-cols-2 gap-6"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-          >
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
             {[
               { icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z", title: t("companies.why.funnel.title"), desc: t("companies.why.funnel.desc") },
               { icon: "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z", title: t("companies.why.tryFirst.title"), desc: t("companies.why.tryFirst.desc") },
@@ -65,7 +52,7 @@ export default function ForCompaniesPage() {
             ].map((benefit, index) => (
               <div 
                 key={index}
-                className="card-gradient p-6"
+                className="card-gradient-static p-6"
               >
                 <div 
                   className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-[#0F2A44]"
@@ -80,9 +67,9 @@ export default function ForCompaniesPage() {
                 </p>
               </div>
             ))}
-          </motion.div>
+          </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* How It Works */}
       <motion.section
@@ -214,7 +201,7 @@ export default function ForCompaniesPage() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <a
                   href="mailto:info@senpaicareer.com"
-                  className="px-4 sm:px-6 md:px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:gradient-text transition-all text-sm sm:text-base"
+                  className="btn-secondary px-4 sm:px-6 md:px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-lg font-semibold hover:bg-[#0F2A44] hover:gradient-text transition-all text-sm sm:text-base"
                 >
                   {t("companies.cta.contact")}
                 </a>
@@ -228,4 +215,3 @@ export default function ForCompaniesPage() {
     </div>
   );
 }
-

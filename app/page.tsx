@@ -7,6 +7,7 @@ import HeroLogo from "@/components/HeroLogo";
 import { motion } from "framer-motion";
 import { Suspense, lazy, memo } from "react";
 import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
+import Footer from "@/components/Footer";
 
 // Lazy load heavy sections for better performance
 const WhatIsSection = lazy(() => import("@/components/sections/WhatIsSection"));
@@ -180,7 +181,7 @@ export default function Home() {
             </div>
             <div className="text-center mt-8">
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
-                <Link href="/about/ob-visit" className="btn-primary px-6 py-3">
+                <Link href="/for-students/ob-visit" className="btn-primary px-6 py-3">
                   {t("home.obogVisit.learnMore")}
                 </Link>
               </motion.div>
@@ -280,7 +281,7 @@ export default function Home() {
                   </Link>
                 </motion.div>
                 <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
-                  <Link href="/internships" className="btn-secondary px-6 py-3">
+                  <Link href="/for-students/internships" className="btn-secondary px-6 py-3">
                     {t("home.journey.viewInternships")}
                   </Link>
                 </motion.div>
@@ -324,7 +325,7 @@ export default function Home() {
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/obog"
-                  className="px-4 sm:px-6 md:px-8 py-3 bg-transparent border border-white font-medium rounded transition-colors hover:bg-white hover:text-navy text-sm sm:text-base"
+                  className="px-4 sm:px-6 md:px-8 py-3 bg-transparent border border-white font-medium rounded transition-colors hover:bg-gray-800 hover:text-navy text-sm sm:text-base"
                   style={{ borderRadius: '6px' }}
                 >
                   {t("home.cta.signUpObog")}
@@ -335,63 +336,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* Footer */}
-      <footer 
-        className="py-12 text-white" 
-        style={{ backgroundColor: '#0A1E32' }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Senpai Career</h3>
-              <p className="text-sm opacity-80">
-                {t("about.hero.subtitle")}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">{t("home.footer.students")}</h4>
-              <ul className="space-y-2 text-sm opacity-80">
-                <li>
-                  <Link href="/about/ob-visit" className="hover:opacity-100 transition-opacity">{t("nav.obVisit") || "OB/OG Visits"}</Link>
-                </li>
-                <li>
-                  <Link href="/internships" className="hover:opacity-100 transition-opacity">{t("nav.internship")}</Link>
-                </li>
-                <li>
-                  <Link href="/recruiting" className="hover:opacity-100 transition-opacity">{t("nav.recruiting")}</Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">{t("home.footer.companies")}</h4>
-              <ul className="space-y-2 text-sm opacity-80">
-                <li>
-                  <Link href="/for-companies" className="hover:opacity-100 transition-opacity">{t("home.footer.companyInfo")}</Link>
-                </li>
-                <li>
-                  <Link href="/subsidy" className="hover:opacity-100 transition-opacity">{t("nav.subsidy")}</Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">{t("home.footer.contact")}</h4>
-              <p className="text-sm opacity-80">
-                <motion.a 
-                  href="mailto:info@senpaicareer.com" 
-                  className="hover:opacity-100 transition-opacity"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  info@senpaicareer.com
-                </motion.a>
-              </p>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 text-center text-sm opacity-60" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <p>{t("common.copyright")}</p>
-          </div>
-        </div>
-      </footer>
+      <Footer variant="full" />
     </div>
   );
 }

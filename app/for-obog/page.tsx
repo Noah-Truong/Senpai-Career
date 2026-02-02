@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "@/contexts/AuthContext";
+import Footer from "@/components/Footer";
 
 export default function ForOBOGPage() {
   const { t } = useLanguage();
@@ -249,18 +250,7 @@ export default function ForOBOGPage() {
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="text-white py-12" style={{
-        background: 'linear-gradient(135deg, rgba(17, 24, 39, 1) 0%, rgba(31, 41, 55, 1) 100%)',
-        borderTop: '2px solid transparent',
-        borderImage: 'linear-gradient(135deg, rgba(242, 106, 163, 0.3) 0%, rgba(245, 159, 193, 0.3) 35%, rgba(111, 211, 238, 0.3) 70%, rgba(76, 195, 230, 0.3) 100%) 1'
-      }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-white">{t("common.copyright")}</p>
-          </div>
-        </div>
-      </footer>
+      <Footer variant="full" />
     </div>
   );
 }

@@ -137,7 +137,7 @@ export default function SavedItemsPage() {
               <Link href="/companies" className="btn-primary">
                 {t("saved.browseCompanies") || "Browse Companies"}
               </Link>
-              <Link href="/recruiting" className="btn-primary">
+              <Link href="/for-students/recruiting" className="btn-primary">
                 {t("saved.browseRecruitments") || "Browse Recruitments"}
               </Link>
             </div>

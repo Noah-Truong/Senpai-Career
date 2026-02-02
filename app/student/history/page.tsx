@@ -160,10 +160,10 @@ export default function BrowsingHistoryPage() {
               <Link href="/ob-list" className="btn-primary">
                 {t("history.browseOBOG") || "Browse OB/OG"}
               </Link>
-              <Link href="/internships" className="btn-primary">
+              <Link href="/for-students/internships" className="btn-primary">
                 {t("history.browseInternships") || "Browse Internships"}
               </Link>
-              <Link href="/recruiting" className="btn-primary">
+              <Link href="/for-students/recruiting" className="btn-primary">
                 {t("history.browseRecruitments") || "Browse New Grad"}
               </Link>
             </div>

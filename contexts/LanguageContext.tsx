@@ -1829,7 +1829,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav.admin.chatHistory": "チャット履歴",
     "nav.companyProfile": "企業プロフィール",
     "nav.home": "ホーム",
-    "nav.obAbout": "OB訪問とは？",
+    "nav.obAbout": "OB/OG訪問とは？",
     "nav.register": "新規登録",
     "nav.ob-list": "OB/OG一覧",
     "nav.companies": "企業一覧",

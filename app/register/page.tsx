@@ -5,12 +5,11 @@ import Link from "next/link";
 import { useSession } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { motion } from "framer-motion";
-import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
 import StudentIcon from "@/components/icons/StudentIcon";
 import CompanyIcon from "@/components/icons/CompanyIcon";
 import AlumIcon from "@/components/icons/AlumIcon";
 import CorporateOBIcon from "@/components/icons/CorporateOBIcon";
+import Footer from "@/components/Footer";
 
 export default function RegisterPage() {
   const { t } = useLanguage();
@@ -77,18 +76,12 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <motion.section 
+      <section 
         className="py-12 md:py-16" 
         style={{ backgroundColor: '#D7FFEF' }}
-        initial="initial"
-        animate="animate"
-        variants={fadeIn}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="text-center mb-10"
-            variants={slideUp}
-          >
+          <div className="text-center mb-10">
             <h1 
               className="text-3xl md:text-4xl font-bold mb-4"
               style={{ color: '#111827' }}
@@ -101,45 +94,31 @@ export default function RegisterPage() {
             >
               {t("register.subtitle")}
             </p>
-          </motion.div>
+          </div>
 
           {/* Account Type Cards */}
-          <motion.div 
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto"
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-          >
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {accountTypes.map((account) => (
-              <motion.div
+              <div
                 key={account.type}
-                variants={staggerItem}
+                className="bg-white border rounded shadow-sm overflow-hidden flex flex-col h-full"
+                style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
               >
-                <Link
-                  href={account.href}
-                  className="group bg-white border rounded shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col h-full"
-                  style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+                {/* Card Header - Fixed height for consistency */}
+                <div 
+                  className="p-6 text-center text-white flex flex-col items-center"
+                  style={{ backgroundColor: '#0F2A44', height: '220px' }}
                 >
-                {/* Card Header */}
-                <motion.div 
-                  className="p-6 text-center text-white"
-                  style={{ backgroundColor: '#0F2A44' }}
-                  whileHover={{ backgroundColor: '#1A3A5C' }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <motion.div 
-                    className="w-22 h-22 rounded flex items-center justify-center mx-auto mb-3 text-white"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                    whileHover={{ scale: 1.2, rotate: 5 }}
-                    transition={{ duration: 0.2 }}
+                  <div 
+                    className="w-20 h-20 rounded flex items-center justify-center mb-4 mt-2"
+                    style={{ backgroundColor: 'transparent' }}
                   >
                     {account.icon}
-                  </motion.div>
-                  <h2 className="text-xl font-semibold text-white">
+                  </div>
+                  <h2 className={`font-semibold text-white ${account.type === 'corporate-ob' ? 'text-lg' : 'text-xl'}`}>
                     {account.title}
                   </h2>
-                </motion.div>
+                </div>
 
                 {/* Card Content */}
                 <div className="p-6 flex flex-col flex-1">
@@ -151,90 +130,63 @@ export default function RegisterPage() {
                   </p>
 
                   {/* Features List */}
-                  <motion.ul 
-                    className="space-y-3 flex-1"
-                    variants={staggerContainer}
-                    initial="initial"
-                    whileInView="animate"
-                    viewport={{ once: true }}
-                  >
+                  <ul className="space-y-3 flex-1">
                     {account.features.map((feature, index) => (
-                      <motion.li 
+                      <li 
                         key={index} 
                         className="flex items-start"
-                        variants={staggerItem}
-                        whileHover={{ x: 4 }}
-                        transition={{ duration: 0.2 }}
                       >
-                        <motion.svg 
+                        <svg 
                           className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" 
                           fill="none" 
                           stroke="#059669" 
                           viewBox="0 0 24 24"
-                          initial={{ scale: 0 }}
-                          whileInView={{ scale: 1 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.2, delay: index * 0.05 }}
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </motion.svg>
+                        </svg>
                         <span style={{ color: '#374151', fontSize: '14px' }}>{feature}</span>
-                      </motion.li>
+                      </li>
                     ))}
-                  </motion.ul>
+                  </ul>
 
-                  {/* CTA Button */}
-                  <motion.div 
-                    className="w-full py-3 px-6 rounded text-white font-medium text-center group-hover:opacity-90 transition-opacity mt-6 flex items-center justify-center"
+                  {/* CTA Button - Only this is wrapped in Link */}
+                  <Link
+                    href={account.href}
+                    className="w-full py-3 px-6 rounded text-white font-medium text-center mt-6 flex items-center justify-center hover:opacity-90 transition-opacity"
                     style={{ backgroundColor: '#2563EB', borderRadius: '6px' }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ duration: 0.2 }}
                   >
                     {t("register.getStarted")}
-                    <motion.svg 
+                    <svg 
                       className="w-4 h-4 ml-2" 
                       fill="none" 
                       stroke="currentColor" 
                       viewBox="0 0 24 24"
-                      animate={{ x: [0, 4, 0] }}
-                      transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </motion.svg>
-                  </motion.div>
+                    </svg>
+                  </Link>
                 </div>
-              </Link>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
 
           {/* Already have account */}
-          <motion.div 
-            className="text-center mt-10"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.25, delay: 0.3 }}
-          >
+          <div className="text-center mt-10">
             <p style={{ color: '#6B7280' }}>
               {t("register.haveAccount")}{" "}
-              <motion.span
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
+              <Link 
+                href="/login" 
+                className="font-medium hover:underline"
+                style={{ color: '#2563EB' }}
               >
-                <Link 
-                  href="/login" 
-                  className="font-medium hover:underline"
-                  style={{ color: '#2563EB' }}
-                >
-                  {t("nav.logIn")}
-                </Link>
-              </motion.span>
+                {t("nav.logIn")}
+              </Link>
             </p>
-          </motion.div>
+          </div>
         </div>
-      </motion.section>
+      </section>
+
+      <Footer variant="full" />
     </div>
   );
 }

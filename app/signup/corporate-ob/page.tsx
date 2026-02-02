@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
+import Footer from "@/components/Footer";
 
 export default function CorporateOBSignupPage() {
   const { t } = useLanguage();
@@ -429,6 +430,8 @@ export default function CorporateOBSignupPage() {
           )}
         </div>
       </div>
+
+      <Footer variant="full" />
     </div>
   );
 }

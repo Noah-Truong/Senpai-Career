@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
+import Footer from "@/components/Footer";
 // import { isBlockedFreeDomain, getBlockedDomainError } from "@/lib/blocked-email-domains";
 
 export default function StudentSignupPage() {
@@ -475,6 +476,8 @@ export default function StudentSignupPage() {
           </form>
         </div>
       </div>
+
+      <Footer variant="full" />
     </div>
   );
 }

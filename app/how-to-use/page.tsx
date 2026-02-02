@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { buttonVariants } from "@/lib/animations";
+import Footer from "@/components/Footer";
 
 type UserType = "student" | "obog" | "company";
 
@@ -403,6 +404,8 @@ export default function HowToUsePage() {
           </p>
         </div>
       </section>
+
+      <Footer variant="full" />
     </div>
   );
 }

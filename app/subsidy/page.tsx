@@ -3,6 +3,7 @@
 import Header from "@/components/Header";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Footer from "@/components/Footer";
 
 export default function SubsidyPage() {
   const { t } = useLanguage();
@@ -56,6 +57,8 @@ export default function SubsidyPage() {
           </div>
         </div>
       </div>
+
+      <Footer variant="full" />
     </div>
   );
 }

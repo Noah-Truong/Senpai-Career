@@ -254,6 +254,9 @@ a, button, input, textarea, select {
     min-height: 44px;
     background-color: var(--color-navy);
     border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .btn-primary:hover {
@@ -281,6 +284,9 @@ a, button, input, textarea, select {
     color: var(--color-navy);
     border: 1px solid var(--color-navy);
     border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .btn-secondary:hover {
@@ -456,7 +462,7 @@ textarea::placeholder {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-light);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -507,7 +513,7 @@ section:has(.no-hover) .no-hover:hover {
 
 html {
   scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) var(--color-bg-light);
+  scrollbar-color: var(--border-strong) transparent;
 }
 
 /* ============================================

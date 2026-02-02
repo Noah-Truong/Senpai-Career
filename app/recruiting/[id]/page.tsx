@@ -159,7 +159,7 @@ export default function RecruitingDetailPage() {
       <div className="min-h-screen bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-red-600">{error || "Listing not found"}</p>
-          <Link href="/recruiting" className="btn-primary mt-4 inline-block">
+          <Link href="/for-students/recruiting" className="btn-primary mt-4 inline-block">
             {t("button.backToListings") || "Back to Listings"}
           </Link>
         </div>
@@ -170,7 +170,7 @@ export default function RecruitingDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link href="/recruiting" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+        <Link href="/for-students/recruiting" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
           ← {t("button.backToListings") || "Back to Listings"}
         </Link>
 

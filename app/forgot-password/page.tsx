@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function ForgotPasswordPage() {
   const { t } = useLanguage();
@@ -144,6 +145,8 @@ export default function ForgotPasswordPage() {
           )}
         </div>
       </div>
+
+      <Footer variant="full" />
     </div>
   );
 }

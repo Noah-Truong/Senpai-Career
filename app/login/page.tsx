@@ -7,6 +7,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, buttonVariants } from "@/lib/animations";
 import { createClient } from "@/lib/supabase/client";
+import Footer from "@/components/Footer";
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -159,6 +160,8 @@ export default function LoginPage() {
           </form>
         </motion.div>
       </div>
+
+      <Footer variant="full" />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { useSession } from "@/contexts/AuthContext";
 import OBOGListContent from "@/components/OBOGListContent";
 import { motion } from "framer-motion";
 import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
+import Footer from "@/components/Footer";
 
 export default function OBVisitPage() {
   const { t } = useLanguage();
@@ -93,26 +94,22 @@ export default function OBVisitPage() {
               { icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z", title: t("obvisit.benefits.culture.title"), desc: t("obvisit.benefits.culture.desc") },
               { icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253", title: t("obvisit.benefits.interview.title"), desc: t("obvisit.benefits.interview.desc") },
             ].map((benefit, index) => (
-              <motion.div 
+              <div 
                 key={index}
                 className="bg-white p-6 rounded-lg shadow-sm"
-                variants={cardVariants}
-                whileHover="hover"
               >
-                <motion.div 
+                <div 
                   className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-[#0F2A44]"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.2 }}
                 >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={benefit.icon} />
                   </svg>
-                </motion.div>
+                </div>
                 <h3 className="text-xl font-semibold mb-2" style={{ color: '#000000' }}>{benefit.title}</h3>
                 <p className="text-gray-700">
                   {benefit.desc}
                 </p>
-              </motion.div>
+              </div>
             ))}
           </motion.div>
         </div>
@@ -151,36 +148,27 @@ export default function OBVisitPage() {
                 items: [t("obvisit.profiles.professionals.1"), t("obvisit.profiles.professionals.2"), t("obvisit.profiles.professionals.3")]
               },
             ].map((profile, index) => (
-              <motion.div 
+              <div 
                 key={index}
                 className="border-l-4 pl-6" 
                 style={{ borderColor: '#2563EB' }}
-                variants={staggerItem}
-                whileHover={{ x: 4 }}
-                transition={{ duration: 0.2 }}
               >
                 <h3 className="text-xl font-semibold mb-2 text-gray-900">{profile.title}</h3>
                 <p className="text-gray-700 mb-4">
                   {profile.desc}
                 </p>
-                <motion.ul
-                  className="space-y-2 text-gray-700"
-                  variants={staggerContainer}
-                  initial="initial"
-                  animate="animate"
-                >
+                <ul className="space-y-2 text-gray-700">
                   {profile.items.map((item, i) => (
-                    <motion.li 
+                    <li 
                       key={i}
                       className="flex items-start"
-                      variants={staggerItem}
                     >
                       <span className="gradient-text mr-2">•</span>
                       <span>{item}</span>
-                    </motion.li>
+                    </li>
                   ))}
-                </motion.ul>
-              </motion.div>
+                </ul>
+              </div>
             ))}
           </motion.div>
         </div>
@@ -207,20 +195,16 @@ export default function OBVisitPage() {
             animate="animate"
           >
             {[1, 2, 3, 4].map((step) => (
-              <motion.div 
+              <div 
                 key={step}
                 className="bg-white p-6 rounded-lg shadow-sm"
-                variants={cardVariants}
-                whileHover="hover"
               >
                 <div className="flex items-start">
-                  <motion.div 
+                  <div 
                     className="flex-shrink-0 w-10 h-10 bg-[#0F2A44] text-white rounded-full flex items-center justify-center font-bold mr-4"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.2 }}
                   >
                     {step}
-                  </motion.div>
+                  </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-2" style={{ color: '#000000' }}>{t(`obvisit.howItWorks.${step}.title`)}</h3>
                     <p className="text-gray-700">
@@ -228,12 +212,13 @@ export default function OBVisitPage() {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </motion.div>
         </div>
       </motion.section>
+
+      <Footer variant="full" />
     </div>
   );
 }
-

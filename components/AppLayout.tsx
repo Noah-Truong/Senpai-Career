@@ -89,7 +89,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return (
       <div className="min-h-screen bg-white overflow-x-hidden">
         <Header />
-        <main className="p-4 sm:p-6 min-h-[50vh] overflow-x-hidden">{children}</main>
+        <main className="min-h-[50vh] overflow-x-hidden">{children}</main>
       </div>
     );
   }

@@ -34,8 +34,10 @@ const pathNameMap: Record<string, { en: string; ja: string }> = {
   "obog": { en: "Alumni", ja: "OBOG" },
   "company": { en: "Company", ja: "企業" },
   "for-companies": { en: "For Companies", ja: "企業向け" },
+  "corporate-services": { en: "Corporate Services", ja: "法人サービス" },
   "foreign-nationals": { en: "Foreign Nationals", ja: "外国人採用" },
   "recruitment": { en: "Recruitment", ja: "新卒採用" },
+  "for-students": { en: "For Students", ja: "学生向け" },
   "internships": { en: "Internships", ja: "長期インターン" },
   "recruiting": { en: "New Grad Recruitment", ja: "新卒採用" },
   "for-obog": { en: "For Alumni", ja: "OBOG向け" },
@@ -83,12 +85,12 @@ function NavDropdown({
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         whileTap={{ scale: 0.97 }}
-        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded transition-colors ${
+        className={`flex items-center gap-1 px-3 py-2 font-medium rounded transition-colors ${
           isActive 
             ? 'text-navy nav-active' 
             : 'text-gray-600 hover:text-navy hover:bg-gray-50'
         }`}
-        style={{ color: isActive ? '#0F2A44' : '#374151' }}
+        style={{ color: isActive ? '#0F2A44' : '#374151', fontSize: '1.09375rem' }}
       >
         {label}
         <svg 
@@ -108,15 +110,15 @@ function NavDropdown({
             animate="visible"
             exit="hidden"
             variants={dropdownVariants}
-            className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded shadow-lg z-50 origin-top"
+            className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded shadow-lg z-50 origin-top"
             style={{ borderRadius: '6px' }}
           >
             {items.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-navy transition-colors"
-                style={{ color: '#374151' }}
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-navy transition-colors whitespace-nowrap"
+                style={{ color: '#374151', fontSize: '0.975rem' }}
                 onClick={() => setIsOpen(false)}
               >
                 {item.label}
@@ -226,7 +228,7 @@ export default function Header({ minimal = false }: HeaderProps) {
   }, [pathname]);
 
   const getLinkClasses = useCallback((href: string) => {
-    const baseClasses = "px-3 py-2 text-sm font-medium flex items-center justify-centerrounded transition-colors";
+    const baseClasses = "px-3 py-2 font-medium flex items-center justify-center rounded transition-colors";
     if (isActiveLink(href)) {
       return `${baseClasses} nav-active`;
     }
@@ -373,13 +375,13 @@ export default function Header({ minimal = false }: HeaderProps) {
 
   // Navigation items for dropdown menus (before login)
   const studentMenuItems = [
-    { href: "/about/ob-visit", label: t("nav.aboutObVisit") || "About Alumni Visits" },
-    { href: "/internships", label: t("nav.internships") || "Long-Term Internships" },
-    { href: "/recruiting", label: t("nav.recruiting") || "New Graduate Recruitment" },
+    { href: "/for-students/ob-visit", label: t("nav.obAbout") || "About Alumni Visits" },
+    { href: "/for-students/internships", label: t("nav.internships") || "Long-Term Internships" },
+    { href: "/for-students/recruiting", label: t("nav.recruiting") || "New Graduate Recruitment" },
   ];
 
   const companyMenuItems = [
-    { href: "/for-companies", label: t("nav.corporateServices") || "Corporate Services" },
+    { href: "/for-companies/corporate-services", label: t("nav.corporateServices") || "Corporate Services" },
     { href: "/for-companies/recruitment", label: t("nav.recruitmentProcess") || "Recruitment Process" },
     { href: "/for-companies/foreign-nationals", label: t("nav.foreignRecruitment") || "Foreign National Recruitment" },
   ];
@@ -489,7 +491,7 @@ export default function Header({ minimal = false }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-[74px] min-h-[56px]">
           {/* Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0">
+          <Link href="/" className="flex items-center flex-shrink-0 max-w-[60px] sm:max-w-[80px] md:max-w-none">
             <Logo />
           </Link>
 
@@ -499,51 +501,52 @@ export default function Header({ minimal = false }: HeaderProps) {
               <Link
                 href="/"
                 className={getLinkClasses("/")}
-                style={{ color: isActiveLink("/") ? '#0F2A44' : '#374151' }}
+                style={{ color: isActiveLink("/") ? '#0F2A44' : '#374151', fontSize: '1.09375rem' }}
               >
                 {t("nav.home") || "Home"}
               </Link>
               <Link
                 href="/about"
                 className={getLinkClasses("/about")}
-                style={{ color: isActiveLink("/about") ? '#0F2A44' : '#374151' }}
+                style={{ color: isActiveLink("/about") ? '#0F2A44' : '#374151', fontSize: '1.09375rem' }}
               >
                 {t("nav.about") || "Service Overview"}
+              </Link>
+              <Link
+                href="/how-to-use"
+                className={getLinkClasses("/how-to-use")}
+                style={{ color: isActiveLink("/how-to-use") ? '#0F2A44' : '#374151', fontSize: '1.09375rem' }}
+              >
+                {t("nav.howToUse") || "How to Use"}
               </Link>
               <NavDropdown
                 label={t("nav.forStudents") || "For Students"}
                 items={studentMenuItems}
-                isActive={pathname.startsWith("/about/ob-visit") || pathname.startsWith("/internships") || pathname.startsWith("/recruiting")}
+                isActive={pathname.startsWith("/for-students")}
               />
               <NavDropdown
                 label={t("nav.forCompaniesNav") || "For Companies"}
                 items={companyMenuItems}
                 isActive={pathname.startsWith("/for-companies")}
               />
-              <Link
-                href="/how-to-use"
-                className={getLinkClasses("/how-to-use")}
-                style={{ color: isActiveLink("/how-to-use") ? '#0F2A44' : '#374151' }}
-              >
-                {t("nav.howToUse") || "How to Use"}
-              </Link>
             </nav>
           )}
 
           {/* Right side actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {!isLoggedIn ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-navy transition-colors"
-                  style={{ color: '#374151' }}
+                  className="flex items-center justify-center px-2 sm:px-4 py-1.5 sm:py-2 font-medium text-gray-700 hover:text-navy transition-colors whitespace-nowrap"
+                  style={{ color: '#374151', fontSize: 'clamp(0.8625rem, 2vw, 1.00625rem)' }}
                 >
                   {t("nav.logIn") || "Login"}
                 </Link>
                 <Link
                   href="/register"
-                  className="btn-primary text-sm"
+                  className="btn-primary flex items-center justify-center px-2 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap"
+                  style={{ fontSize: 'clamp(0.8625rem, 2vw, 1.00625rem)' }}
                 >
                   {t("nav.register") || "Register"}
                 </Link>
@@ -661,8 +664,14 @@ export default function Header({ minimal = false }: HeaderProps) {
             <div className="space-y-1.5">
               {!isLoggedIn ? (
                 <>
-                  <Link href="/" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.home") || "Home"}</Link>
-                  <Link href="/about" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.about") || "Service Overview"}</Link>
+                  <Link href="/" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" 
+                  onClick={() => setMobileMenuOpen(false)}>{t("nav.home") || "Home"}</Link>
+
+                  <Link href="/about" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" 
+                  onClick={() => setMobileMenuOpen(false)}>{t("nav.about") || "Service Overview"}</Link>
+                  
+                  <Link href="/how-to-use" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" 
+                  onClick={() => setMobileMenuOpen(false)}>{t("nav.howToUse") || "How to Use"}</Link>
                   
                   {/* For Students section */}
                   <div className="px-4 py-2">
@@ -698,7 +707,6 @@ export default function Header({ minimal = false }: HeaderProps) {
                     </Link>
                   ))}
                   
-                  <Link href="/how-to-use" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.howToUse") || "How to Use"}</Link>
                   
                   <div className="border-t mt-2 pt-2 space-y-1.5" style={{ borderColor: '#E5E7EB' }}>
                     <Link href="/login" className="block px-4 py-3 min-h-[44px] flex items-center text-gray-700 hover:bg-gray-50 rounded" onClick={() => setMobileMenuOpen(false)}>{t("nav.logIn")}</Link>
@@ -767,49 +775,58 @@ export default function Header({ minimal = false }: HeaderProps) {
     {/* Spacer for fixed header */}
     <div className="h-14 sm:h-[74px]" />
     {/* Breadcrumb */}
-    {pathname !== "/" && (
-      <div className="bg-gray-50 border-b" style={{ borderColor: '#E5E7EB' }}>
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <nav className="flex items-center py-2 text-sm" aria-label="Breadcrumb">
-            <Link 
-              href="/" 
-              className="text-gray-500 hover:text-navy transition-colors"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+    <div className="bg-gray-50 border-b" style={{ borderColor: '#E5E7EB' }}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <nav className="flex items-center py-2 text-sm" aria-label="Breadcrumb">
+          {pathname === "/" ? (
+            <>
+              <svg className="w-4 h-4 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
-            </Link>
-            {pathname.split("/").filter(Boolean).map((segment, index, arr) => {
-              const path = "/" + arr.slice(0, index + 1).join("/");
-              const isLast = index === arr.length - 1;
-              // Check if segment is a UUID (dynamic route parameter)
-              const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
-              const displayName = isUUID 
-                ? (language === "ja" ? "詳細" : "Details")
-                : (pathNameMap[segment]?.[language] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "));
-              
-              return (
-                <span key={path} className="flex items-center">
-                  <svg className="w-4 h-4 mx-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                  {isLast ? (
-                    <span className="text-gray-900 font-medium">{displayName}</span>
-                  ) : (
-                    <Link 
-                      href={path} 
-                      className="text-gray-500 hover:text-navy transition-colors"
-                    >
-                      {displayName}
-                    </Link>
-                  )}
-                </span>
-              );
-            })}
-          </nav>
-        </div>
+              <span className="ml-2 text-gray-900 font-medium">{language === "ja" ? "ホーム" : "Home"}</span>
+            </>
+          ) : (
+            <>
+              <Link 
+                href="/" 
+                className="text-gray-500 hover:text-navy transition-colors"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                </svg>
+              </Link>
+              {pathname.split("/").filter(Boolean).map((segment, index, arr) => {
+                const path = "/" + arr.slice(0, index + 1).join("/");
+                const isLast = index === arr.length - 1;
+                // Check if segment is a UUID (dynamic route parameter)
+                const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
+                const displayName = isUUID 
+                  ? (language === "ja" ? "詳細" : "Details")
+                  : (pathNameMap[segment]?.[language] || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "));
+                
+                return (
+                  <span key={path} className="flex items-center">
+                    <svg className="w-4 h-4 mx-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                    {isLast ? (
+                      <span className="text-gray-900 font-medium">{displayName}</span>
+                    ) : (
+                      <Link 
+                        href={path} 
+                        className="text-gray-500 hover:text-navy transition-colors"
+                      >
+                        {displayName}
+                      </Link>
+                    )}
+                  </span>
+                );
+              })}
+            </>
+          )}
+        </nav>
       </div>
-    )}
+    </div>
   </>
   );
 }

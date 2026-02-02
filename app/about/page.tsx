@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
-import { fadeIn, slideUp, staggerContainer, staggerItem, cardVariants, buttonVariants } from "@/lib/animations";
-import { AnimatedSection, AnimatedHeading, AnimatedSubheading, AnimatedCard, AnimatedList, AnimatedListItem } from "@/components/PageWrapper";
+import { buttonVariants } from "@/lib/animations";
+import Footer from "@/components/Footer";
 
 export default function AboutPage() {
   const { t } = useLanguage();
@@ -15,170 +15,132 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <AnimatedSection bgColor="light" className="text-center" animateOnView={false}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedHeading size="lg">
+      <section className="py-16" style={{ backgroundColor: '#D7FFEF' }}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6" style={{ color: '#000000' }}>
             {t("about.hero.title")}
-          </AnimatedHeading>
-          <motion.p 
+          </h1>
+          <p 
             className="text-lg md:text-xl mb-10"
-            style={{ color: '#374151' }}
-            variants={slideUp}
+            style={{ color: '#000000' }}
           >
             {t("about.hero.subtitle")}
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: 0.2 }}
-          >
-            <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
-              <Link
-                href="/about/ob-visit"
-                className="btn-primary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base font-medium inline-flex items-center"
-              >
-                {t("nav.obAbout")}
-              </Link>
-            </motion.div>
+          </p>
+          <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+            <Link
+              href="/for-students/ob-visit"
+              className="btn-primary px-4 sm:px-6 md:px-8 py-3 text-sm sm:text-base font-medium inline-flex items-center"
+            >
+              {t("nav.obAbout")}
+            </Link>
           </motion.div>
         </div>
-      </AnimatedSection>
+      </section>
 
       {/* Mission Statement */}
-      <AnimatedSection animateOnView={false}>
+      <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedSubheading>
+          <h2 className="text-2xl md:text-3xl font-bold mb-8" style={{ color: '#111827' }}>
             {t("about.mission.title")}
-          </AnimatedSubheading>
-          <motion.div
-            className="space-y-4"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-          >
-            <motion.p 
+          </h2>
+          <div className="space-y-4">
+            <p 
               className="text-base sm:text-xl"
               style={{ color: '#374151', lineHeight: '1.7' }}
-              variants={staggerItem}
             >
               {t("about.mission.p1")}
-            </motion.p>
-            <motion.p 
+            </p>
+            <p 
               className="text-base sm:text-xl"
               style={{ color: '#374151', lineHeight: '1.7' }}
-              variants={staggerItem}
             >
               {t("about.mission.p2")}
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
         </div>
-      </AnimatedSection>
+      </section>
 
       {/* Problem Statement */}
-      <AnimatedSection bgColor="light" animateOnView={false}>
+      <section className="py-16" style={{ backgroundColor: '#D7FFEF' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedSubheading>
+          <h2 className="text-2xl md:text-3xl font-bold mb-8" style={{ color: '#000000' }}>
             {t("about.problem.title")}
-          </AnimatedSubheading>
-          <motion.div
-            className="space-y-6"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-          >
-            <AnimatedCard>
+          </h2>
+          <div className="space-y-6">
+            <div className="card-gradient-static p-6">
               <h3 
                 className="text-xl font-semibold mb-4"
-                style={{ color: '#111827' }}
+                style={{ color: '#000000' }}
               >
                 {t("about.problem.students.title")}
               </h3>
-              <AnimatedList className="space-y-3">
+              <ul className="space-y-3">
                 {[
                   t("about.problem.students.1"),
                   t("about.problem.students.2"),
                   t("about.problem.students.3"),
                   t("about.problem.students.4"),
                 ].map((item, i) => (
-                  <AnimatedListItem key={i} className="flex items-start">
-                    <motion.span 
+                  <li key={i} className="flex items-start">
+                    <span 
                       className="mr-3 mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
                       style={{ backgroundColor: '#0F2A44' }}
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.2, delay: i * 0.05 }}
                     />
-                    <span style={{ color: '#374151' }}>{item}</span>
-                  </AnimatedListItem>
+                    <span style={{ color: '#000000' }}>{item}</span>
+                  </li>
                 ))}
-              </AnimatedList>
-            </AnimatedCard>
-            <AnimatedCard>
+              </ul>
+            </div>
+            <div className="card-gradient-static p-6">
               <h3 
                 className="text-xl font-semibold mb-4"
-                style={{ color: '#111827' }}
+                style={{ color: '#000000' }}
               >
                 {t("about.problem.companies.title")}
               </h3>
-              <AnimatedList className="space-y-3">
+              <ul className="space-y-3">
                 {[
                   t("about.problem.companies.1"),
                   t("about.problem.companies.2"),
                   t("about.problem.companies.3"),
                   t("about.problem.companies.4"),
                 ].map((item, i) => (
-                  <AnimatedListItem key={i} className="flex items-start">
-                    <motion.span 
+                  <li key={i} className="flex items-start">
+                    <span 
                       className="mr-3 mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0"
                       style={{ backgroundColor: '#0F2A44' }}
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.2, delay: i * 0.05 }}
                     />
-                    <span style={{ color: '#374151' }}>{item}</span>
-                  </AnimatedListItem>
+                    <span style={{ color: '#000000' }}>{item}</span>
+                  </li>
                 ))}
-              </AnimatedList>
-            </AnimatedCard>
-          </motion.div>
+              </ul>
+            </div>
+          </div>
         </div>
-      </AnimatedSection>
+      </section>
 
       {/* Platform Overview */}
-      <AnimatedSection>
+      <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedSubheading>
+          <h2 className="text-2xl md:text-3xl font-bold mb-8" style={{ color: '#111827' }}>
             {t("about.howItWorks.title")}
-          </AnimatedSubheading>
-          <motion.div 
-            className="space-y-8"
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-          >
+          </h2>
+          <div className="space-y-8">
             {[
               { title: t("about.howItWorks.1.title"), desc: t("about.howItWorks.1.desc") },
               { title: t("about.howItWorks.2.title"), desc: t("about.howItWorks.2.desc") },
               { title: t("about.howItWorks.3.title"), desc: t("about.howItWorks.3.desc") },
             ].map((step, i) => (
-              <motion.div 
+              <div 
                 key={i} 
                 className="flex items-start"
-                variants={staggerItem}
-                whileHover={{ x: 4 }}
-                transition={{ duration: 0.2 }}
               >
-                <motion.div 
+                <div 
                   className="flex-shrink-0 w-10 h-10 text-white rounded flex items-center justify-center font-semibold mr-5"
-                  style={{ backgroundColor: '#0F2A44', borderRadius: '6px' }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.2 }}
+                  style={{ backgroundColor: '#0F2A44', borderRadius: '6px', lineHeight: 1 }}
                 >
                   {i + 1}
-                </motion.div>
+                </div>
                 <div>
                   <h3 
                     className="text-lg font-semibold mb-2"
@@ -188,66 +150,48 @@ export default function AboutPage() {
                   </h3>
                   <p style={{ color: '#6B7280' }}>{step.desc}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
-      </AnimatedSection>
+      </section>
 
       {/* Market Context */}
-      <AnimatedSection bgColor="light">
+      <section className="py-16" style={{ backgroundColor: '#D7FFEF' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedSubheading>
+          <h2 className="text-2xl md:text-3xl font-bold mb-8" style={{ color: '#000000' }}>
             {t("about.market.title")}
-          </AnimatedSubheading>
-          <AnimatedCard>
-            <motion.p 
+          </h2>
+          <div className="card-gradient-static p-6">
+            <p 
               className="mb-4" 
-              style={{ color: '#374151', lineHeight: '1.7' }}
-              variants={staggerItem}
+              style={{ color: '#000000', lineHeight: '1.7' }}
             >
               {t("about.market.p1")}
-            </motion.p>
-            <motion.p 
-              style={{ color: '#374151', lineHeight: '1.7' }}
-              variants={staggerItem}
+            </p>
+            <p 
+              style={{ color: '#000000', lineHeight: '1.7' }}
             >
               {t("about.market.p2")}
-            </motion.p>
-          </AnimatedCard>
+            </p>
+          </div>
         </div>
-      </AnimatedSection>
+      </section>
 
       {/* CTA Section */}
       {!isLoggedIn && (
-        <motion.section 
+        <section 
           className="py-16 text-white" 
           style={{ backgroundColor: '#0F2A44' }}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={fadeIn}
         >
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <motion.h2 
-              className="text-2xl md:text-3xl font-bold mb-4"
-              variants={slideUp}
-            >
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">
               {t("about.cta.title")}
-            </motion.h2>
-            <motion.p 
-              className="text-lg mb-8 opacity-90"
-              variants={slideUp}
-            >
+            </h2>
+            <p className="text-lg mb-8 opacity-90">
               {t("about.cta.subtitle")}
-            </motion.p>
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-5 sm:gap-4 justify-center"
-              variants={staggerContainer}
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
-            >
+            </p>
+            <div className="flex flex-col sm:flex-row gap-5 sm:gap-4 justify-center">
               <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
                 <Link
                   href="/signup/student"
@@ -275,36 +219,21 @@ export default function AboutPage() {
                   {t("about.cta.signUpObog")}
                 </Link>
               </motion.div>
-            </motion.div>
-            <motion.p 
-              className="mt-8 opacity-80"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 0.8 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.25, delay: 0.2 }}
-            >
+            </div>
+            <p className="mt-8 opacity-80">
               {t("about.cta.questions")}{" "}
-              <motion.a 
+              <a 
                 href="mailto:info@senpaicareer.com" 
                 className="underline hover:opacity-80"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
               >
                 info@senpaicareer.com
-              </motion.a>
-            </motion.p>
+              </a>
+            </p>
           </div>
-        </motion.section>
+        </section>
       )}
 
-      {/* Footer */}
-      <footer className="py-8" style={{ backgroundColor: '#0A1E32' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-white opacity-60 text-sm">{t("common.copyright")}</p>
-          </div>
-        </div>
-      </footer>
+      <Footer variant="full" />
     </div>
   );
 }

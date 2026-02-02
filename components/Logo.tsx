@@ -11,7 +11,7 @@ export default function Logo() {
         width={240}
         height={60}
         priority
-        className="h-16 w-auto"
+        className="h-7 sm:h-10 md:h-14 w-auto"
       />
     </div>
   );

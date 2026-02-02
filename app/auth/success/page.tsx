@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Suspense } from "react";
+import Footer from "@/components/Footer";
 
 type SuccessType = "account-updated" | "password-changed" | "profile-updated" | "settings-saved" | "default";
 
@@ -115,73 +116,76 @@ function SuccessContent() {
   const redirectPath = customRedirect || config.redirectPath;
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="w-full max-w-md mx-4">
-        <motion.div
-          className="bg-white rounded-2xl shadow-lg p-8 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          {/* Success Icon */}
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-full max-w-md mx-4">
           <motion.div
-            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            style={{ backgroundColor: '#D7FFEF' }}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
+            className="bg-white rounded-2xl shadow-lg p-8 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
           >
-            <motion.svg
-              className="w-10 h-10"
-              fill="none"
-              stroke="#059669"
-              viewBox="0 0 24 24"
+            {/* Success Icon */}
+            <motion.div
+              className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{ backgroundColor: '#D7FFEF' }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              <motion.svg
+                className="w-10 h-10"
+                fill="none"
+                stroke="#059669"
+                viewBox="0 0 24 24"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
+                {icons[config.icon]}
+              </motion.svg>
+            </motion.div>
+
+            {/* Title */}
+            <motion.h1
+              className="text-2xl font-bold mb-3"
+              style={{ color: '#111827' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
             >
-              {icons[config.icon]}
-            </motion.svg>
-          </motion.div>
+              {title}
+            </motion.h1>
 
-          {/* Title */}
-          <motion.h1
-            className="text-2xl font-bold mb-3"
-            style={{ color: '#111827' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.5 }}
-          >
-            {title}
-          </motion.h1>
-
-          {/* Description */}
-          <motion.p
-            className="mb-8"
-            style={{ color: '#6B7280' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.6 }}
-          >
-            {description}
-          </motion.p>
-
-          {/* Continue button */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.7 }}
-          >
-            <Link
-              href={redirectPath}
-              className="block w-full py-3 px-6 rounded-lg font-medium text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: '#2563EB' }}
+            {/* Description */}
+            <motion.p
+              className="mb-8"
+              style={{ color: '#6B7280' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.6 }}
             >
-              {t("common.continue") || config.redirectLabel}
-            </Link>
+              {description}
+            </motion.p>
+
+            {/* Continue button */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.7 }}
+            >
+              <Link
+                href={redirectPath}
+                className="block w-full py-3 px-6 rounded-lg font-medium text-white transition-opacity hover:opacity-90"
+                style={{ backgroundColor: '#2563EB' }}
+              >
+                {t("common.continue") || config.redirectLabel}
+              </Link>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
+      <Footer variant="full" />
     </div>
   );
 }

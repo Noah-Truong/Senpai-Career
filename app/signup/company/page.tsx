@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { createClient } from "@/lib/supabase/client";
+import Footer from "@/components/Footer";
 // import { isBlockedFreeDomain, getBlockedDomainError } from "@/lib/blocked-email-domains";
 
 export default function CompanySignupPage() {
@@ -316,6 +317,8 @@ export default function CompanySignupPage() {
           </form>
         </div>
       </div>
+
+      <Footer variant="full" />
     </div>
   );
 }
