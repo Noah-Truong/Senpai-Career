@@ -21,7 +21,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-white">
       <section className="relative py-16" style={{
-        background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.08) 0%, rgba(245, 159, 193, 0.08) 35%, rgba(111, 211, 238, 0.08) 70%, rgba(76, 195, 230, 0.08) 100%)'
+        background: 'linear-gradient(135deg, #F26AA314 0%, #F59FC114 35%, #6FD3EE14 70%, #4CC3E614 100%)'
       }}>
         <div className="max-w-lg mx-auto px-4 sm:px-6 lg:px-8">
           {/* Tab Selector */}

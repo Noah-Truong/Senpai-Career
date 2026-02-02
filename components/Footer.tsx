@@ -75,7 +75,7 @@ export default function Footer({ variant = "simple" }: FooterProps) {
             </p>
           </div>
         </div>
-        <div className="mt-8 pt-8 text-center text-sm opacity-60" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="mt-8 pt-8 text-center text-sm opacity-60" style={{ borderTop: '1px solid #FFFFFF1A' }}>
           <p>{t("common.copyright")}</p>
         </div>
       </div>

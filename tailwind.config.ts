@@ -10,6 +10,7 @@ const config: Config = {
     extend: {
       colors: {
         // Primary brand color
+        brand_emerald: '#10B981',
         navy: {
           DEFAULT: '#0F2A44',
           light: '#1A3A5C',

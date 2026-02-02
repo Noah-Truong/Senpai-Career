@@ -173,7 +173,7 @@ export default function Home() {
                     </span>
                     <div>
                       <h4 className="font-semibold mb-1" style={{ color: '#111827' }}>{step.title}</h4>
-                      <p style={{ color: 'rgb(0, 0, 0)' }}>{step.desc}</p>
+                      <p style={{ color: '#000000' }}>{step.desc}</p>
                     </div>
                   </li>
                 ))}

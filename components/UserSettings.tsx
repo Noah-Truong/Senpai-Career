@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "@/contexts/AuthContext";
 import NotificationSettings from "./NotificationSettings";
 
-interface UserSettingsData {
+export interface UserSettingsData {
   language_preference: string;
   theme_preference: string;
   timezone: string;
@@ -17,28 +17,77 @@ interface UserSettingsData {
   two_factor_enabled: boolean;
 }
 
-export default function UserSettings() {
+export interface NotificationSettingsData {
+  email_notifications_enabled: boolean;
+  notification_email: string;
+  notification_frequency: "immediate" | "weekly_summary" | "off";
+  email_application_updates: boolean;
+  email_message_notifications: boolean;
+  email_meeting_notifications: boolean;
+  email_internship_postings: boolean;
+}
+
+interface UserSettingsProps {
+  initialSettings?: UserSettingsData | null;
+  initialNotificationSettings?: NotificationSettingsData | null;
+  isLoading?: boolean;
+}
+
+export default function UserSettings({
+  initialSettings,
+  initialNotificationSettings,
+  isLoading: externalLoading
+}: UserSettingsProps) {
   const { t, language, setLanguage } = useLanguage();
   const { data: session } = useSession();
-  const [settings, setSettings] = useState<UserSettingsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<UserSettingsData | null>(initialSettings || null);
+  const [loading, setLoading] = useState(externalLoading ?? !initialSettings);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [activeSection, setActiveSection] = useState<"general" | "privacy" | "notifications">("general");
 
+  // Update settings when initial data arrives (from prefetch)
   useEffect(() => {
-    loadSettings();
+    if (initialSettings) {
+      setSettings(initialSettings);
+      setLoading(false);
+      // Only sync language from DB if localStorage doesn't have a saved preference
+      // This prevents overriding the user's current session language choice
+      if (typeof window !== "undefined") {
+        const localLanguage = localStorage.getItem("language");
+        if (!localLanguage && (initialSettings.language_preference === "en" || initialSettings.language_preference === "ja")) {
+          setLanguage(initialSettings.language_preference);
+        }
+      }
+    }
+  }, [initialSettings, setLanguage]);
+
+  // Update loading state from external source
+  useEffect(() => {
+    if (externalLoading !== undefined) {
+      setLoading(externalLoading);
+    }
+  }, [externalLoading]);
+
+  // Only fetch if no initial data provided
+  useEffect(() => {
+    if (!initialSettings && !externalLoading) {
+      loadSettings();
+    }
   }, []);
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       const response = await fetch("/api/user-settings");
       if (response.ok) {
         const data = await response.json();
         setSettings(data.settings);
-        // Update language context if settings exist
-        if (data.settings?.language_preference) {
-          setLanguage(data.settings.language_preference);
+        // Only sync language from DB if localStorage doesn't have a saved preference
+        if (typeof window !== "undefined") {
+          const localLanguage = localStorage.getItem("language");
+          if (!localLanguage && data.settings?.language_preference && (data.settings.language_preference === "en" || data.settings.language_preference === "ja")) {
+            setLanguage(data.settings.language_preference);
+          }
         }
       } else {
         // If no settings exist, create default settings
@@ -51,7 +100,7 @@ export default function UserSettings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLanguage]);
 
   const createDefaultSettings = async () => {
     try {
@@ -131,7 +180,7 @@ export default function UserSettings() {
           className={`px-4 py-2 font-medium transition-colors ${
             activeSection === "general"
               ? "border-b-2 text-blue-600"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-gray-600 hover:bg-gray-300"
           }`}
           style={{
             borderBottomColor: activeSection === "general" ? '#2563EB' : 'transparent',
@@ -144,7 +193,7 @@ export default function UserSettings() {
           className={`px-4 py-2 font-medium transition-colors ${
             activeSection === "privacy"
               ? "border-b-2 text-blue-600"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-gray-600 hover:bg-gray-300"
           }`}
           style={{
             borderBottomColor: activeSection === "privacy" ? '#2563EB' : 'transparent',
@@ -157,7 +206,7 @@ export default function UserSettings() {
           className={`px-4 py-2 font-medium transition-colors ${
             activeSection === "notifications"
               ? "border-b-2 text-blue-600"
-              : "text-gray-600 hover:text-gray-900"
+              : "text-gray-600 hover:bg-gray-300"
           }`}
           style={{
             borderBottomColor: activeSection === "notifications" ? '#2563EB' : 'transparent',
@@ -387,7 +436,12 @@ export default function UserSettings() {
       )}
 
       {/* Notification Settings */}
-      {activeSection === "notifications" && <NotificationSettings />}
+      {activeSection === "notifications" && (
+        <NotificationSettings
+          initialSettings={initialNotificationSettings}
+          isLoading={externalLoading}
+        />
+      )}
     </div>
   );
 }

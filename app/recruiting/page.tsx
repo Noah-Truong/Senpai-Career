@@ -64,7 +64,7 @@ export default function RecruitingPage() {
   }, [listingsWithDescriptions, searchTerm]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#D7FFEF' }}>
       <motion.div 
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         initial="initial"
@@ -72,7 +72,9 @@ export default function RecruitingPage() {
         variants={fadeIn}
       >
         {/* Page Header */}
-        <motion.div className="mb-8" variants={slideUp}>
+        <motion.div className="p-6 mb-8 border rounded"
+          style={{ backgroundColor: 'white', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          variants={slideUp}>
           <h1 
             className="text-2xl md:text-3xl font-bold mb-2"
             style={{ color: '#111827' }}
@@ -84,31 +86,12 @@ export default function RecruitingPage() {
           </p>
         </motion.div>
 
-        {/* Info Section */}
-        <motion.div 
-          className="p-6 mb-8 border rounded"
-          style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
-          variants={cardVariants}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true }}
-          whileHover="hover"
-        >
-          <h2 
-            className="text-lg font-semibold mb-3"
-            style={{ color: '#111827' }}
-          >
-            {t("recruiting.about.title")}
-          </h2>
-          <p style={{ color: '#6B7280' }} className="mb-4">
-            {t("recruiting.about.desc")}
-          </p>
-        </motion.div>
+        
 
         {/* Search Bar */}
         <motion.div 
-          className="mb-8 p-4 border rounded"
-          style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
+          className="mb-8 p-4 rounded"
+          style={{ backgroundColor: 'rgb(253, 253, 253)', borderColor: '#E5E7EB', borderRadius: '6px' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25, delay: 0.1 }}
@@ -150,8 +133,8 @@ export default function RecruitingPage() {
 
         {loading ? (
           <motion.div 
-            className="p-8 text-center border rounded"
-            style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
+            className="p-8 text-center border rounded bg-white"
+            style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.25 }}
@@ -160,11 +143,11 @@ export default function RecruitingPage() {
           </motion.div>
         ) : filteredListings.length === 0 ? (
           <motion.div 
-            className="p-8 text-center border rounded"
-            style={{ backgroundColor: '#D7FFEF', borderColor: '#E5E7EB', borderRadius: '6px' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
+          className="p-8 text-center border rounded bg-white"
+          style={{ borderColor: '#E5E7EB', borderRadius: '6px' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
           >
             <p className="text-lg mb-4" style={{ color: '#374151' }}>
               {searchTerm ? (t("recruiting.noResults") || "No positions found matching your search.") : t("recruiting.empty.title")}

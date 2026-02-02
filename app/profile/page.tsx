@@ -10,7 +10,7 @@ import MultiSelectDropdown from "@/components/MultiSelectDropdown";
 import { NATIONALITY_OPTIONS, INDUSTRY_OPTIONS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
-import UserSettings from "@/components/UserSettings";
+import UserSettings, { UserSettingsData, NotificationSettingsData } from "@/components/UserSettings";
 
 // Options for multi-select dropdowns (same as signup pages)
 const languageOptions = ["Japanese", "English", "Chinese", "Korean", "Spanish", "French", "German", "Portuguese"];
@@ -45,6 +45,11 @@ export default function ProfilePage() {
   const [showAvailabilityCalendar, setShowAvailabilityCalendar] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile");
 
+  // Prefetched settings data for faster Settings tab loading
+  const [userSettings, setUserSettings] = useState<UserSettingsData | null>(null);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsData | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+
   // Check if we should auto-open availability calendar from query param
   useEffect(() => {
     const openParam = searchParams?.get("open");
@@ -54,6 +59,32 @@ export default function ProfilePage() {
       router.replace("/profile", { scroll: false });
     }
   }, [searchParams, user, router]);
+
+  // Prefetch settings data for faster Settings tab loading
+  const loadSettings = useCallback(async () => {
+    setSettingsLoading(true);
+    try {
+      // Fetch both settings in parallel
+      const [userSettingsRes, notificationSettingsRes] = await Promise.all([
+        fetch("/api/user-settings"),
+        fetch("/api/notification-settings")
+      ]);
+
+      if (userSettingsRes.ok) {
+        const data = await userSettingsRes.json();
+        setUserSettings(data.settings);
+      }
+
+      if (notificationSettingsRes.ok) {
+        const data = await notificationSettingsRes.json();
+        setNotificationSettings(data.settings);
+      }
+    } catch (error) {
+      console.error("Error prefetching settings:", error);
+    } finally {
+      setSettingsLoading(false);
+    }
+  }, []);
 
   const loadProfile = useCallback(async () => {
     try {
@@ -164,9 +195,11 @@ export default function ProfilePage() {
     }
 
     if (status === "authenticated") {
+      // Load profile and settings in parallel for faster Settings tab loading
       loadProfile();
+      loadSettings();
     }
-  }, [status, router, loadProfile]);
+  }, [status, router, loadProfile, loadSettings]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -343,7 +376,7 @@ export default function ProfilePage() {
             className={`px-4 py-2 font-medium transition-colors ${
               activeTab === "profile"
                 ? "border-b-2 text-blue-600"
-                : "text-gray-600 hover:text-gray-900"
+                : "text-gray-600 hover:bg-gray-300"
             }`}
             style={{
               borderBottomColor: activeTab === "profile" ? '#2563EB' : 'transparent',
@@ -359,7 +392,7 @@ export default function ProfilePage() {
             className={`px-4 py-2 font-medium transition-colors ${
               activeTab === "settings"
                 ? "border-b-2 text-blue-600"
-                : "text-gray-600 hover:text-gray-900"
+                : "text-gray-600 hover:bg-gray-300"
             }`}
             style={{
               borderBottomColor: activeTab === "settings" ? '#2563EB' : 'transparent',
@@ -395,10 +428,14 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Settings Tab */}
-        {activeTab === "settings" && (
-          <UserSettings />
-        )}
+        {/* Settings Tab - Always mounted, hidden when not active for instant switching */}
+        <div className={activeTab === "settings" ? "block" : "hidden"}>
+          <UserSettings
+            initialSettings={userSettings}
+            initialNotificationSettings={notificationSettings}
+            isLoading={settingsLoading}
+          />
+        </div>
 
         {/* Profile Display Section */}
         {activeTab === "profile" && !isEditing && (
@@ -1093,7 +1130,7 @@ export default function ProfilePage() {
         )}
         {/* Sign Out Section */}
         {!isEditing && activeTab === "profile" && (
-          <div className="card-gradient p-8 border-t-2 border-red-200 mb-6">
+          <div className="card-gradient p-8 border-t-2 border-border_default mb-6">
             <h3 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>
               {t("profile.signOut.title") || "Sign Out"}
             </h3>
@@ -1109,7 +1146,7 @@ export default function ProfilePage() {
 
         {/* Delete Account Section */}
         {!isEditing && activeTab === "profile" && (
-          <div className="card-gradient p-8 border-t-2 border-red-200">
+          <div className="card-gradient p-8 border-t-2 border-border_default">
             <h3 className="text-xl font-semibold mb-4" style={{ color: '#000000' }}>
               {t("profile.deleteAccount.title") || "Delete Account"}
             </h3>

@@ -101,25 +101,31 @@ export default function HowToUsePage() {
                 {t("howto.student.gettingStarted.title")}
               </h2>
               <div className="space-y-4">
-                {[1, 2, 3].map((step) => (
-                  <div 
-                    key={step} 
-                    className="flex items-start bg-white p-5 rounded-lg shadow-sm"
-                  >
-                    <div
-                      className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 text-white"
-                      style={{ backgroundColor: "#0F2A44" }}
-                    >
-                      {step}
+                {[1, 2, 3].map((step, index, arr) => (
+                  <div key={step}>
+                    <div className="flex items-start bg-white p-5 rounded-lg shadow-sm">
+                      <div
+                        className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 text-white"
+                        style={{ backgroundColor: "#0F2A44" }}
+                      >
+                        {step}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {t(`howto.student.gettingStarted.step${step}.title`)}
+                        </h3>
+                        <p className="text-gray-600">
+                          {t(`howto.student.gettingStarted.step${step}.desc`)}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {t(`howto.student.gettingStarted.step${step}.title`)}
-                      </h3>
-                      <p className="text-gray-600">
-                        {t(`howto.student.gettingStarted.step${step}.desc`)}
-                      </p>
-                    </div>
+                    {index < arr.length - 1 && (
+                      <div className="flex justify-center py-2">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -194,22 +200,31 @@ export default function HowToUsePage() {
                 {t("howto.obog.gettingStarted.title")}
               </h2>
               <div className="space-y-4">
-                {[1, 2, 3].map((step) => (
-                  <div key={step} className="flex items-start bg-white p-5 rounded-lg shadow-sm">
-                    <div
-                      className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 text-white"
-                      style={{ backgroundColor: "#0F2A44" }}
-                    >
-                      {step}
+                {[1, 2, 3].map((step, index, arr) => (
+                  <div key={step}>
+                    <div className="flex items-start bg-white p-5 rounded-lg shadow-sm">
+                      <div
+                        className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 text-white"
+                        style={{ backgroundColor: "#0F2A44" }}
+                      >
+                        {step}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {t(`howto.obog.gettingStarted.step${step}.title`)}
+                        </h3>
+                        <p className="text-gray-600">
+                          {t(`howto.obog.gettingStarted.step${step}.desc`)}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {t(`howto.obog.gettingStarted.step${step}.title`)}
-                      </h3>
-                      <p className="text-gray-600">
-                        {t(`howto.obog.gettingStarted.step${step}.desc`)}
-                      </p>
-                    </div>
+                    {index < arr.length - 1 && (
+                      <div className="flex justify-center py-2">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -286,22 +301,31 @@ export default function HowToUsePage() {
                 {t("howto.company.gettingStarted.title")}
               </h2>
               <div className="space-y-4">
-                {[1, 2, 3, 4].map((step) => (
-                  <div key={step} className="flex items-start bg-white p-5 rounded-lg shadow-sm">
-                    <div
-                      className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 text-white"
-                      style={{ backgroundColor: "#0F2A44" }}
-                    >
-                      {step}
+                {[1, 2, 3, 4].map((step, index, arr) => (
+                  <div key={step}>
+                    <div className="flex items-start bg-white p-5 rounded-lg shadow-sm">
+                      <div
+                        className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-bold mr-4 text-white"
+                        style={{ backgroundColor: "#0F2A44" }}
+                      >
+                        {step}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {t(`howto.company.gettingStarted.step${step}.title`)}
+                        </h3>
+                        <p className="text-gray-600">
+                          {t(`howto.company.gettingStarted.step${step}.desc`)}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {t(`howto.company.gettingStarted.step${step}.title`)}
-                      </h3>
-                      <p className="text-gray-600">
-                        {t(`howto.company.gettingStarted.step${step}.desc`)}
-                      </p>
-                    </div>
+                    {index < arr.length - 1 && (
+                      <div className="flex justify-center py-2">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -50,7 +50,7 @@ export default function LoginPage() {
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <motion.div 
           className="max-w-md w-full space-y-8 bg-white p-8 border rounded"
-          style={{ borderColor: '#E5E7EB', borderRadius: '6px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}
+          style={{ borderColor: 'var(--border-default)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-card)' }}
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.3 }}

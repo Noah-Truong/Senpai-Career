@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSession } from "@/contexts/AuthContext";
 
@@ -14,19 +14,45 @@ interface NotificationSettingsData {
   email_internship_postings: boolean;
 }
 
-export default function NotificationSettings() {
+interface NotificationSettingsProps {
+  initialSettings?: NotificationSettingsData | null;
+  isLoading?: boolean;
+}
+
+export default function NotificationSettings({
+  initialSettings,
+  isLoading: externalLoading
+}: NotificationSettingsProps) {
   const { t } = useLanguage();
   const { data: session } = useSession();
-  const [settings, setSettings] = useState<NotificationSettingsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<NotificationSettingsData | null>(initialSettings || null);
+  const [loading, setLoading] = useState(externalLoading ?? !initialSettings);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Update settings when initial data arrives (from prefetch)
   useEffect(() => {
-    loadSettings();
+    if (initialSettings) {
+      setSettings(initialSettings);
+      setLoading(false);
+    }
+  }, [initialSettings]);
+
+  // Update loading state from external source
+  useEffect(() => {
+    if (externalLoading !== undefined) {
+      setLoading(externalLoading);
+    }
+  }, [externalLoading]);
+
+  // Only fetch if no initial data provided
+  useEffect(() => {
+    if (!initialSettings && !externalLoading) {
+      loadSettings();
+    }
   }, []);
 
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       const response = await fetch("/api/notification-settings");
       if (response.ok) {
@@ -38,7 +64,7 @@ export default function NotificationSettings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleSave = async () => {
     if (!settings) return;

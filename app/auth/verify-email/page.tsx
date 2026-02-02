@@ -17,7 +17,7 @@ function VerifyEmailContent() {
         <div
           className="w-full max-w-md mx-4"
           style={{
-            background: 'linear-gradient(135deg, rgba(215, 255, 239, 0.5) 0%, rgba(255, 255, 255, 1) 100%)'
+            background: 'linear-gradient(135deg, #D7FFEF80 0%, #FFFFFF 100%)'
           }}
         >
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">

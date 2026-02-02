@@ -74,7 +74,7 @@ export default function ForCompaniesPage() {
       {/* How It Works */}
       <motion.section
         className="py-16"
-        style={{ background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)' }}
+        className="bg-gradient-subtle"
         initial="initial"
         animate="animate"
         variants={fadeIn}

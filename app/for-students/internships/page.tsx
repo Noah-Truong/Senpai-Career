@@ -62,18 +62,7 @@ export default function InternshipPage() {
         animate="animate"
         variants={fadeIn}
       >
-        {/* Page Header */}
-        <motion.div className="mb-8" variants={slideUp}>
-          <h1 
-            className="text-2xl md:text-3xl font-bold mb-2"
-            style={{ color: '#000000' }}
-          >
-            {t("internship.title")}
-          </h1>
-          <p style={{ color: '#000000' }}>
-            {t("internship.subtitle")}
-          </p>
-        </motion.div>
+        
 
         {/* Info Section */}
         <motion.div 

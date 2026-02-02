@@ -42,7 +42,7 @@ export default function MessageBubble({
           <p 
             className="text-xs font-medium mb-1"
             style={{ 
-              color: isOwn ? 'rgba(255,255,255,0.9)' : '#6B7280',
+              color: isOwn ? '#FFFFFFE6' : 'var(--text-muted)',
               opacity: 0.8
             }}
           >
@@ -54,7 +54,7 @@ export default function MessageBubble({
         </p>
         <p 
           className="text-xs mt-1"
-          style={{ color: isOwn ? 'rgba(255,255,255,0.7)' : '#6B7280' }}
+          style={{ color: isOwn ? '#FFFFFFB3' : 'var(--text-muted)' }}
         >
           {new Date(message.createdAt).toLocaleString()}
         </p>

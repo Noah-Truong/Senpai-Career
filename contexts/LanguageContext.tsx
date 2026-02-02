@@ -3548,15 +3548,26 @@ const translations: Record<Language, Record<string, string>> = {
   },
 };
 
+// Helper to get initial language (runs during state initialization)
+const getInitialLanguage = (): Language => {
+  if (typeof window !== "undefined") {
+    const savedLanguage = localStorage.getItem("language") as Language;
+    if (savedLanguage === "en" || savedLanguage === "ja") {
+      return savedLanguage;
+    }
+  }
+  return "en";
+};
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("en");
+  const [language, setLanguageState] = useState<Language>(getInitialLanguage);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Load language from localStorage on mount
+    // Re-sync with localStorage on mount (in case of hydration mismatch)
     if (typeof window !== "undefined") {
       const savedLanguage = localStorage.getItem("language") as Language;
-      if (savedLanguage === "en" || savedLanguage === "ja") {
+      if ((savedLanguage === "en" || savedLanguage === "ja") && savedLanguage !== language) {
         setLanguageState(savedLanguage);
       }
     }

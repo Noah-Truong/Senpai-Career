@@ -106,7 +106,7 @@ export default function ResetPasswordPage() {
   if (validating) {
     return (
       <div className="min-h-screen" style={{
-        background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)'
+        background: 'linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)'
       }}>
         <Header />
         <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -121,7 +121,7 @@ export default function ResetPasswordPage() {
   if (!tokenValid || !token) {
     return (
       <div className="min-h-screen" style={{
-        background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)'
+        background: 'linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)'
       }}>
         <Header />
         <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -146,7 +146,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen" style={{
-      background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)'
+      background: 'linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)'
     }}>
       <Header />
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

@@ -5,9 +5,15 @@
    ============================================ */
 :root {
   /* Primary Colors */
-  --color-navy: #000080;
-  --color-navy-light: #1A3A5C;
+  --color-navy: #0F2A44;
+  --color-navy-light: #1A4066;
   --color-navy-dark: #0A1E32;
+  
+  /* Bright CTA Colors */
+  --color-cta-primary: #2563EB;
+  --color-cta-primary-hover: #1D4ED8;
+  --color-cta-secondary: #F3F4F6;
+  --color-cta-secondary-hover: #E5E7EB;
 
   /* Friendly Accent - Soft Mint */
   --color-mint: #D7FFEF;
@@ -58,10 +64,11 @@
   --radius-md: 6px;
   --radius-lg: 8px;
   
-  /* Shadows - Subtle, not decorative */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  /* Shadows - Subtle, not decorative (using hex with opacity) */
+  --shadow-sm: 0 1px 2px 0 #0000000D;
+  --shadow-md: 0 4px 6px -1px #0000001A, 0 2px 4px -2px #0000001A;
+  --shadow-lg: 0 10px 15px -3px #0000001A, 0 4px 6px -4px #0000001A;
+  --shadow-card: 0 1px 3px 0 #0000001A;
   
   /* Layout */
   --max-width: 1200px;
@@ -170,7 +177,32 @@ a, button, input, textarea, select {
     text-wrap: balance;
   }
   
-  /* Text utilities */
+  /* ========== TEXT COLOR UTILITIES ========== */
+  /* Primary text colors */
+  .text-heading {
+    color: var(--text-heading); /* #111827 */
+  }
+  
+  .text-body {
+    color: var(--text-body); /* #374151 */
+  }
+  
+  .text-muted {
+    color: var(--text-muted); /* #6B7280 */
+  }
+  
+  .text-disabled {
+    color: var(--text-disabled); /* #9CA3AF */
+  }
+  
+  .text-inverse {
+    color: var(--text-inverse); /* #FFFFFF */
+  }
+  
+  .text-primary {
+    color: var(--color-navy); /* #0F2A44 */
+  }
+  
   .text-navy {
     color: var(--color-navy);
   }
@@ -179,6 +211,28 @@ a, button, input, textarea, select {
     color: var(--color-accent);
   }
   
+  .text-mint {
+    color: var(--color-mint-text); /* #0D7A4D */
+  }
+  
+  /* Semantic text colors */
+  .text-success {
+    color: var(--color-success); /* #059669 */
+  }
+  
+  .text-warning {
+    color: var(--color-warning); /* #D97706 */
+  }
+  
+  .text-error {
+    color: var(--color-error); /* #DC2626 */
+  }
+  
+  .text-info {
+    color: var(--color-info); /* #2563EB */
+  }
+  
+  /* ========== BACKGROUND COLOR UTILITIES ========== */
   .bg-navy {
     background-color: var(--color-navy);
   }
@@ -188,15 +242,75 @@ a, button, input, textarea, select {
   }
 
   .bg-mint {
-    background-color: var(--color-mint);
+    background-color: var(--color-mint); /* #D7FFEF */
+  }
+  
+  .bg-muted {
+    background-color: var(--color-bg-muted); /* #EEF1F5 */
+  }
+  
+  /* Semantic background colors */
+  .bg-success-light {
+    background-color: #ECFDF5;
+  }
+  
+  .bg-warning-light {
+    background-color: #FEF3C7;
+  }
+  
+  .bg-error-light {
+    background-color: #FEF2F2;
+  }
+  
+  .bg-info-light {
+    background-color: #EFF6FF;
+  }
+  
+  /* ========== SHADOW UTILITIES ========== */
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .shadow-header {
+    box-shadow: var(--shadow-sm);
+  }
+  
+  /* ========== GRADIENT BACKGROUNDS ========== */
+  .bg-gradient-subtle {
+    background: linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%);
+  }
+  
+  .bg-gradient-mint {
+    background: linear-gradient(135deg, #D7FFEF80 0%, #FFFFFF 100%);
   }
 
-  .text-mint {
-    color: var(--color-mint-text);
+  /* ========== BORDER COLOR UTILITIES ========== */
+  .border-default {
+    border-color: var(--border-default); /* #E5E7EB */
   }
-
+  
+  .border-strong {
+    border-color: var(--border-strong); /* #D1D5DB */
+  }
+  
+  .border-muted {
+    border-color: var(--border-muted); /* #F3F4F6 */
+  }
+  
   .border-mint {
     border-color: var(--color-mint-dark);
+  }
+  
+  .border-success {
+    border-color: var(--color-success);
+  }
+  
+  .border-warning {
+    border-color: var(--color-warning);
+  }
+  
+  .border-error {
+    border-color: var(--color-error);
   }
   
   /* Active navigation indicator */
@@ -248,25 +362,27 @@ a, button, input, textarea, select {
     min-width: 44px;
   }
 
-  /* Primary Button - Navy */
+  /* Primary Button - Bright Blue */
   .btn-primary {
     @apply px-4 py-2.5 text-white font-medium transition-all;
     min-height: 44px;
-    background-color: var(--color-navy);
+    background-color: var(--color-cta-primary);
     border-radius: var(--radius-md);
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 1px 3px 0 #2563EB4D;
   }
 
   .btn-primary:hover {
-    background-color: var(--color-navy-light);
+    background-color: var(--color-cta-primary-hover);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 12px 0 #2563EB66;
   }
   
   .btn-primary:active {
     transform: translateY(0);
+    box-shadow: 0 1px 3px 0 #2563EB4D;
   }
   
   .btn-primary:disabled {
@@ -276,27 +392,30 @@ a, button, input, textarea, select {
     box-shadow: none;
   }
   
-  /* Secondary Button - Navy outline */
+  /* Secondary Button - Light Gray */
   .btn-secondary {
     @apply px-4 py-2 font-medium transition-all;
     min-height: 44px;
-    background-color: var(--color-bg-white);
-    color: var(--color-navy);
-    border: 1px solid var(--color-navy);
+    background-color: var(--color-cta-secondary);
+    color: var(--text-heading);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 1px 2px 0 #0000000D;
   }
   
   .btn-secondary:hover {
-    background-color: var(--color-navy);
-    color: var(--text-inverse);
+    background-color: var(--color-cta-secondary-hover);
+    color: var(--text-heading);
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px 0 #00000014;
   }
   
   .btn-secondary:active {
     transform: translateY(0);
+    box-shadow: 0 1px 2px 0 #0000000D;
   }
   
   /* Tertiary Button - Minimal */
@@ -420,7 +539,7 @@ a, button, input, textarea, select {
   
   .input-gradient:focus {
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px #2563EB1A;
     outline: none;
   }
   
@@ -436,7 +555,7 @@ input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--color-accent) !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  box-shadow: 0 0 0 3px #2563EB1A !important;
   outline: none !important;
 }
 

@@ -13,7 +13,7 @@ export default function ForOBOGPage() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="py-16" style={{
-        background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.08) 0%, rgba(245, 159, 193, 0.08) 35%, rgba(111, 211, 238, 0.08) 70%, rgba(76, 195, 230, 0.08) 100%)'
+        background: 'linear-gradient(135deg, #F26AA314 0%, #F59FC114 35%, #6FD3EE14 70%, #4CC3E614 100%)'
       }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -80,7 +80,7 @@ export default function ForOBOGPage() {
 
       {/* Who Can Be an OB/OG */}
       <section className="py-16" style={{
-        background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)'
+        background: 'linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)'
       }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">{t("obog.who.title")}</h2>
@@ -184,7 +184,7 @@ export default function ForOBOGPage() {
 
       {/* Rules & Guidelines */}
       <section className="py-16" style={{
-        background: 'linear-gradient(135deg, rgba(242, 106, 163, 0.03) 0%, rgba(245, 159, 193, 0.03) 35%, rgba(111, 211, 238, 0.03) 70%, rgba(76, 195, 230, 0.03) 100%)'
+        background: 'linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)'
       }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">{t("obog.rules.title")}</h2>

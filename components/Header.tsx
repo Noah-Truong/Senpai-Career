@@ -390,6 +390,21 @@ export default function Header({ minimal = false }: HeaderProps) {
   if (minimal && isLoggedIn) {
     return (
       <div className="flex items-center gap-1 sm:gap-2">
+        {/* Credits display */}
+        {typeof userCredits === 'number' && userRole !== "admin" && (
+          <Link
+            href="/credits"
+            className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+            style={{ color: '#10B981', fontSize: '1.05rem' }}
+            title={t("nav.buyCredits") || "Credits"}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{userCredits}</span>
+          </Link>
+        )}
+
         {/* Notifications */}
         <div className="relative" ref={notificationRef}>
           <button
@@ -485,7 +500,7 @@ export default function Header({ minimal = false }: HeaderProps) {
       className="fixed top-0 left-0 right-0 z-50 bg-white border-b"
       style={{
         borderColor: '#E5E7EB',
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+        boxShadow: 'var(--shadow-card)'
       }}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -553,6 +568,21 @@ export default function Header({ minimal = false }: HeaderProps) {
               </div>
             ) : (
               <div className="flex items-center gap-2">
+                {/* Credits display */}
+                {userRole !== "admin" && (
+                  <Link
+                    href="/credits"
+                    className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+                    style={{ color: '#10B981', fontSize: '1.05rem' }}
+                    title={t("nav.buyCredits") || "Credits"}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{userCredits}</span>
+                  </Link>
+                )}
+
                 {/* Notifications - Top right corner */}
                 <div className="relative" ref={notificationRef}>
                   <button
