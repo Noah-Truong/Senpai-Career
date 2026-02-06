@@ -36,16 +36,34 @@ QUICK CONFIGURATION CHECKLIST (use this with the current setup)
    - Test mode: use card 4242 4242 4242 4242 on /credits; after payment, credits should increase (webhook adds them).
 
 -------------------------------------------------------------------------------
-VERCEL DEPLOYMENT
+VERCEL DEPLOYMENT (credits after payment)
 -------------------------------------------------------------------------------
-- Set all env vars in Vercel: Project → Settings → Environment Variables.
-  Required for Stripe + credits: STRIPE_SECRET_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-  STRIPE_WEBHOOK_SECRET, NEXT_PUBLIC_BASE_URL (e.g. https://your-app.vercel.app),
-  SUPABASE_SERVICE_ROLE_KEY, and your other Supabase/Next env vars.
-- Webhook URL in Stripe (production): https://YOUR_VERCEL_DOMAIN/api/payment/webhook
-  (Use the exact domain Vercel gives you, e.g. yourapp.vercel.app or your custom domain.)
-- The app is already Vercel-ready: API routes use Node runtime; vercel.json sets
-  maxDuration: 30 for API routes so the webhook has time to run.
+Do these in order so credits update after Stripe payment on Vercel:
+
+1. VERCEL ENV VARS (Project → Settings → Environment Variables)
+   Add these for Production (and Preview if you test there):
+   - STRIPE_SECRET_KEY          (Stripe Dashboard → Developers → API keys)
+   - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+   - STRIPE_WEBHOOK_SECRET      (from step 2; add after creating webhook)
+   - NEXT_PUBLIC_BASE_URL       = https://YOUR_VERCEL_DOMAIN (e.g. https://yourapp.vercel.app)
+   - SUPABASE_SERVICE_ROLE_KEY  (Supabase Dashboard → Settings → API → service_role)
+   - NEXT_PUBLIC_SUPABASE_URL
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+   (Plus any other env vars your app already uses.)
+   Redeploy after adding or changing env vars.
+
+2. STRIPE WEBHOOK ENDPOINT (Stripe Dashboard, same mode as your keys: Test or Live)
+   - Developers → Webhooks → Add endpoint
+   - Endpoint URL: https://YOUR_VERCEL_DOMAIN/api/payment/webhook
+     (Use the exact Vercel URL: yourapp.vercel.app or your custom domain.)
+   - Events to send: checkout.session.completed, invoice.payment_succeeded, customer.subscription.deleted
+   - Add endpoint → Reveal "Signing secret" (whsec_...)
+   - Copy that value into Vercel env var STRIPE_WEBHOOK_SECRET, then redeploy.
+
+3. VERIFY
+   - Deploy, then buy credits on /credits (test card 4242 4242 4242 4242 in Test mode).
+   - If credits still don’t update: Vercel → Project → Logs; filter by /api/payment/webhook
+     and look for [webhook] lines or errors (signature failed, missing env, user not found, etc.).
 
 OVERVIEW
 --------

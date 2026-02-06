@@ -10,6 +10,9 @@ const getWebhookSecret = () => process.env.STRIPE_WEBHOOK_SECRET || "";
 
 /** Add credits for a user. Uses service-role client so RLS does not block (webhook has no session). */
 async function addCreditsForUser(userId: string, creditsToAdd: number): Promise<void> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL");
+  }
   const supabase = createAdminClient();
   const { data: user, error: fetchError } = await supabase
     .from("users")
@@ -18,7 +21,7 @@ async function addCreditsForUser(userId: string, creditsToAdd: number): Promise<
     .single();
 
   if (fetchError || !user) {
-    throw new Error(`User not found: ${userId}`);
+    throw new Error(`User not found: ${userId}${fetchError ? ` (${fetchError.message})` : ""}`);
   }
 
   const currentCredits = user.credits ?? 0;
@@ -54,6 +57,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    console.error("SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL is not set");
+    return NextResponse.json(
+      { error: "Supabase not configured for webhook" },
+      { status: 500 }
+    );
+  }
 
   const stripe = getStripe();
 
@@ -80,30 +90,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log(`[webhook] Received event: ${event.type} (id: ${event.id})`);
+
     // Handle the event
     if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session;
-      
-      if (session.mode === "subscription") {
-        // Handle subscription payment
-        const subscriptionId = session.subscription as string;
-        await stripe.subscriptions.retrieve(subscriptionId);
-        
-        const userId = session.metadata?.userId;
-        const credits = parseInt(session.metadata?.credits || "0", 10);
-
-        if (userId && credits > 0) {
-          await addCreditsForUser(userId, credits);
-        }
-      } else {
-        // Handle one-time payment
-        const userId = session.metadata?.userId;
-        const credits = parseInt(session.metadata?.credits || "0", 10);
-
-        if (userId && credits > 0) {
-          await addCreditsForUser(userId, credits);
-        }
+      let session = event.data.object as Stripe.Checkout.Session;
+      // Re-fetch session so we always have metadata (sometimes missing in event payload)
+      if (!session.metadata?.userId || !session.metadata?.credits) {
+        const retrieved = await stripe.checkout.sessions.retrieve(session.id, { expand: [] });
+        session = retrieved as Stripe.Checkout.Session;
       }
+      const userId = session.metadata?.userId;
+      const credits = parseInt(session.metadata?.credits || "0", 10);
+      console.log(`[webhook] checkout.session.completed mode=${session.mode} userId=${userId} credits=${credits}`);
+
+      if (!userId || credits <= 0) {
+        console.error("[webhook] Missing userId or credits in session metadata", session.metadata);
+        return NextResponse.json(
+          { error: "Missing metadata", received: true },
+          { status: 200 }
+        );
+      }
+
+      if (session.mode === "subscription") {
+        await stripe.subscriptions.retrieve(session.subscription as string);
+      }
+      await addCreditsForUser(userId, credits);
     } else if (event.type === "invoice.payment_succeeded") {
       // Handle recurring subscription payment
       const invoice = event.data.object as any;
@@ -129,9 +141,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error: any) {
-    console.error("Webhook error:", error);
+    console.error("Webhook error:", error?.message || error);
     return NextResponse.json(
-      { error: error.message || "Webhook handler failed" },
+      { error: error?.message || "Webhook handler failed" },
       { status: 500 }
     );
   }
