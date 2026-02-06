@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getUserById, updateUser } from "@/lib/users";
+import { createAdminClient } from "@/lib/supabase/server";
 
 const getStripe = () => new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-12-15.clover",
@@ -8,12 +8,54 @@ const getStripe = () => new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 
 const getWebhookSecret = () => process.env.STRIPE_WEBHOOK_SECRET || "";
 
+/** Add credits for a user. Uses service-role client so RLS does not block (webhook has no session). */
+async function addCreditsForUser(userId: string, creditsToAdd: number): Promise<void> {
+  const supabase = createAdminClient();
+  const { data: user, error: fetchError } = await supabase
+    .from("users")
+    .select("credits")
+    .eq("id", userId)
+    .single();
+
+  if (fetchError || !user) {
+    throw new Error(`User not found: ${userId}`);
+  }
+
+  const currentCredits = user.credits ?? 0;
+  const newCredits = currentCredits + creditsToAdd;
+
+  const { error: updateError } = await supabase
+    .from("users")
+    .update({ credits: newCredits })
+    .eq("id", userId);
+
+  if (updateError) {
+    throw new Error(`Failed to update credits: ${updateError.message}`);
+  }
+  console.log(`Credits added for user ${userId}: +${creditsToAdd} (total: ${newCredits})`);
+}
+
 // Disable body parsing for webhook route
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const stripe = getStripe();
   const webhookSecret = getWebhookSecret();
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET is not set");
+    return NextResponse.json(
+      { error: "Webhook not configured" },
+      { status: 500 }
+    );
+  }
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error("STRIPE_SECRET_KEY is not set");
+    return NextResponse.json(
+      { error: "Stripe not configured" },
+      { status: 500 }
+    );
+  }
+
+  const stripe = getStripe();
 
   try {
     const body = await request.text();
@@ -45,37 +87,21 @@ export async function POST(request: NextRequest) {
       if (session.mode === "subscription") {
         // Handle subscription payment
         const subscriptionId = session.subscription as string;
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        await stripe.subscriptions.retrieve(subscriptionId);
         
         const userId = session.metadata?.userId;
-        const credits = parseInt(session.metadata?.credits || "0");
+        const credits = parseInt(session.metadata?.credits || "0", 10);
 
         if (userId && credits > 0) {
-          const user = await getUserById(userId);
-          if (user) {
-            const currentCredits = user.credits ?? 0;
-            await updateUser(userId, {
-              credits: currentCredits + credits,
-            });
-
-            // Store subscription info (you might want to create a subscriptions table)
-            // Subscription created
-          }
+          await addCreditsForUser(userId, credits);
         }
       } else {
         // Handle one-time payment
         const userId = session.metadata?.userId;
-        const credits = parseInt(session.metadata?.credits || "0");
+        const credits = parseInt(session.metadata?.credits || "0", 10);
 
         if (userId && credits > 0) {
-          const user = await getUserById(userId);
-          if (user) {
-            const currentCredits = user.credits ?? 0;
-            await updateUser(userId, {
-              credits: currentCredits + credits,
-            });
-            console.log(`Credits added for user ${userId}: +${credits}`);
-          }
+          await addCreditsForUser(userId, credits);
         }
       }
     } else if (event.type === "invoice.payment_succeeded") {
@@ -86,20 +112,12 @@ export async function POST(request: NextRequest) {
       if (subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-        // Get metadata from subscription or invoice
         const metadata = subscription.metadata || invoice.metadata;
         const userId = metadata?.userId;
-        const credits = parseInt(metadata?.credits || "0");
+        const credits = parseInt(metadata?.credits || "0", 10);
 
         if (userId && credits > 0) {
-          const user = await getUserById(userId);
-          if (user) {
-            const currentCredits = user.credits ?? 0;
-            await updateUser(userId, {
-              credits: currentCredits + credits,
-            });
-            // Recurring payment: Credits added
-          }
+          await addCreditsForUser(userId, credits);
         }
       }
     } else if (event.type === "customer.subscription.deleted") {

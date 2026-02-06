@@ -5,6 +5,48 @@ Senpai Career Platform
 
 This guide will walk you through setting up Stripe payment processing for the Senpai Career platform. Stripe is used to handle credit purchases for the messaging system.
 
+-------------------------------------------------------------------------------
+QUICK CONFIGURATION CHECKLIST (use this with the current setup)
+-------------------------------------------------------------------------------
+
+1. STRIPE DASHBOARD - API KEYS
+   - Developers → API keys
+   - Copy Publishable key (pk_test_... or pk_live_...) and Secret key (sk_test_... or sk_live_...)
+
+2. ENVIRONMENT VARIABLES (e.g. .env.local or Vercel)
+   - STRIPE_SECRET_KEY=sk_test_... or sk_live_...
+   - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_... or pk_live_...
+   - STRIPE_WEBHOOK_SECRET=whsec_... (from step 3 or 4)
+   - NEXT_PUBLIC_BASE_URL=https://yourdomain.com (production) or http://localhost:3000 (local)
+   - SUPABASE_SERVICE_ROLE_KEY=... (required for webhook to add credits; webhook uses service role to bypass RLS)
+
+3. LOCAL DEVELOPMENT - WEBHOOK
+   - Install Stripe CLI: brew install stripe/stripe-cli/stripe (or see stripe.com/docs/stripe-cli)
+   - Run: stripe login
+   - Run: stripe listen --forward-to localhost:3000/api/payment/webhook
+   - Copy the "webhook signing secret" (whsec_...) shown by the CLI into STRIPE_WEBHOOK_SECRET
+
+4. PRODUCTION - WEBHOOK
+   - Stripe Dashboard → Developers → Webhooks → Add endpoint
+   - Endpoint URL: https://YOUR_DOMAIN/api/payment/webhook
+   - Events to send: checkout.session.completed, invoice.payment_succeeded, customer.subscription.deleted
+   - Add endpoint, then reveal and copy "Signing secret" (whsec_...) into STRIPE_WEBHOOK_SECRET in production
+
+5. VERIFY
+   - Test mode: use card 4242 4242 4242 4242 on /credits; after payment, credits should increase (webhook adds them).
+
+-------------------------------------------------------------------------------
+VERCEL DEPLOYMENT
+-------------------------------------------------------------------------------
+- Set all env vars in Vercel: Project → Settings → Environment Variables.
+  Required for Stripe + credits: STRIPE_SECRET_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  STRIPE_WEBHOOK_SECRET, NEXT_PUBLIC_BASE_URL (e.g. https://your-app.vercel.app),
+  SUPABASE_SERVICE_ROLE_KEY, and your other Supabase/Next env vars.
+- Webhook URL in Stripe (production): https://YOUR_VERCEL_DOMAIN/api/payment/webhook
+  (Use the exact domain Vercel gives you, e.g. yourapp.vercel.app or your custom domain.)
+- The app is already Vercel-ready: API routes use Node runtime; vercel.json sets
+  maxDuration: 30 for API routes so the webhook has time to run.
+
 OVERVIEW
 --------
 The platform uses a credit-based system where:
