@@ -41,6 +41,18 @@ export default function Avatar({
     return "?";
   };
 
+  // UTF-8-safe base64 (btoa only accepts Latin1; names can be non-Latin1)
+  const svgToDataUri = (svg: string) => {
+    try {
+      const encoded = typeof Buffer !== "undefined"
+        ? Buffer.from(svg, "utf-8").toString("base64")
+        : btoa(encodeURIComponent(svg).replace(/%([0-9A-F]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16))));
+      return `data:image/svg+xml;base64,${encoded}`;
+    } catch {
+      return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    }
+  };
+
   // Placeholder SVG data URI (gradient circle with initial)
   const placeholderSvg = (initial: string) => {
     const svg = `
@@ -57,7 +69,7 @@ export default function Avatar({
         <text x="50" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central">${initial}</text>
       </svg>
     `;
-    return `data:image/svg+xml;base64,${btoa(svg)}`;
+    return svgToDataUri(svg.trim());
   };
 
   // Check if src is valid (not empty, not undefined, not null)

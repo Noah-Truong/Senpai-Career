@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export default function ForgotPasswordPage() {
@@ -54,7 +53,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen" style={{
       background: "linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)",
     }}>
-      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 pb-20">
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 pb-20 mb-40">
         <div className="mt-10 max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
           <div>
             <h2 className="text-3xl font-bold text-center text-gray-900">
