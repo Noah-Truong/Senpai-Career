@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export default function ForgotPasswordPage() {
@@ -13,7 +13,6 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resetUrl, setResetUrl] = useState<string | null>(null);
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,26 +23,28 @@ export default function ForgotPasswordPage() {
     try {
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
+      let data: { message?: string; error?: string; resetUrl?: string } = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("application/json")) {
+        try {
+          data = await response.json();
+        } catch {
+          // ignore JSON parse error
+        }
+      }
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to send reset email");
       }
 
       setSuccess(true);
-      
-      // In development, if Resend returns a reset link (due to test restrictions), show it
-      if (data.resetUrl) {
-        setResetUrl(data.resetUrl);
-      }
+      if (data.resetUrl) setResetUrl(data.resetUrl);
     } catch (err: any) {
-      setError(err.message || "Failed to process request");
+      setError(err.message || "Failed to process request. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -51,10 +52,10 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen" style={{
-      background: 'linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)'
+      background: "linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)",
     }}>
-      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
+      <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="mt-10 max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
           <div>
             <h2 className="text-3xl font-bold text-center text-gray-900">
               {t("forgotPassword.title") || "Forgot Password"}
