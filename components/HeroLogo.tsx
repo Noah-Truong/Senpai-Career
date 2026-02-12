@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export default function HeroLogo() {
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center scale-[0.7] md:scale-100">
       <div className="relative inline-block">
         <Image
           src="/assets/image (2).png"

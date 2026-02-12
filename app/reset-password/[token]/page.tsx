@@ -108,7 +108,6 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen" style={{
         background: 'linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)'
       }}>
-        <Header />
         <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md text-center">
             <p>{t("common.loading") || "Loading..."}</p>
@@ -123,7 +122,6 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen" style={{
         background: 'linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)'
       }}>
-        <Header />
         <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -148,7 +146,6 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen" style={{
       background: 'linear-gradient(135deg, #F26AA30D 0%, #F59FC10D 35%, #6FD3EE0D 70%, #4CC3E60D 100%)'
     }}>
-      <Header />
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
           <div>
