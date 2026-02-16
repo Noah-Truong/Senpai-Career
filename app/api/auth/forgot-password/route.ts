@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const redirectTo = `${baseUrl.replace(/\/$/, "")}/reset-password`;
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
+      redirectTo
     });
 
     // Always return success message to prevent email enumeration

@@ -18,7 +18,6 @@ Senpai Career provides international students with a fair start line for job hun
 - **Authentication**: Supabase Auth
 - **Storage**: Supabase Storage (for profile pictures, resumes, compliance documents)
 - **Payment Processing**: Stripe
-- **Email**: Resend API
 - **Animations**: Framer Motion
 - **Runtime**: Node.js 18+
 
@@ -30,7 +29,6 @@ Before you begin, ensure you have the following installed:
 - **Git** (for cloning the repository)
 - **Supabase Account** (for database and authentication)
 - **Stripe Account** (for payment processing)
-- **Resend Account** (for email services)
 
 ## Getting Started
 
@@ -60,10 +58,6 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 # Base URL
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
-# Resend Email Configuration (for password reset)
-RESEND_API_KEY=your_resend_api_key_here
-RESEND_FROM_EMAIL=noreply@yourdomain.com
-
 # Stripe Payment Configuration (for credits purchase)
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
@@ -92,12 +86,7 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 3. This is required for real-time message updates to work
 4. Alternatively, you can enable it manually in Supabase Dashboard → Database → Replication → Add tables to publication
 
-#### Getting Resend API Key
-
-1. Sign up at [resend.com](https://resend.com)
-2. Create an API key in the dashboard
-3. Add it to `RESEND_API_KEY` in `.env.local`
-4. Set `RESEND_FROM_EMAIL` to your verified email or domain
+**Password reset emails** are sent by Supabase Auth. Configure the redirect URL and email template in Supabase Dashboard → Authentication → URL Configuration and Email Templates (see `docs/PASSWORD-RESET-REDIRECT.md`).
 
 #### Getting Stripe API Keys
 
@@ -461,12 +450,12 @@ If you encounter authentication errors:
 4. Clear browser cookies and try again
 5. Restart the development server
 
-### Email Not Sending
+### Password Reset Email Not Received
 
-If password reset emails aren't sending:
-1. Verify `RESEND_API_KEY` is correct in `.env.local`
-2. Check that `RESEND_FROM_EMAIL` is a verified email/domain in Resend
-3. Check Resend dashboard for API usage and errors
+If password reset emails aren't received:
+1. Check Supabase Dashboard → Authentication → Email Templates (reset password template)
+2. Add your app's reset URL to Supabase → Authentication → URL Configuration → Redirect URLs (see `docs/PASSWORD-RESET-REDIRECT.md`)
+3. Ensure `NEXT_PUBLIC_BASE_URL` is set correctly for your environment
 
 ### Database Connection Issues
 
@@ -498,8 +487,6 @@ Set the following in your production environment:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon/public key
 - `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key (keep secret!)
 - `NEXT_PUBLIC_BASE_URL` - Your production domain (e.g., `https://senpaicareer.com`)
-- `RESEND_API_KEY` - Your production Resend API key
-- `RESEND_FROM_EMAIL` - Your verified production email/domain
 - `STRIPE_SECRET_KEY` - Your production Stripe secret key
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Your production Stripe publishable key
 - `STRIPE_WEBHOOK_SECRET` - Your production Stripe webhook secret
